@@ -42,3 +42,10 @@ example
 # generated native folders
 /ios
 /android
+
+# Firebase / Google credentials
+google-services.json
+GoogleService-Info.plist
+
+# EAS credentials
+credentials.json
