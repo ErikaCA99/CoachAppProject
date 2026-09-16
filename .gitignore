@@ -43,6 +43,7 @@ example
 /ios
 /android
 
+# Firebase / Google credentials
 google-services.json
 GoogleService-Info.plist
 

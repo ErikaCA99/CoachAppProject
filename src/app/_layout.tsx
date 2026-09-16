@@ -1,18 +1,25 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import "../global.css";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Stack } from "expo-router";
+import { useEffect } from "react";
 
-SplashScreen.preventAutoHideAsync();
+import { configureGoogleSignIn } from "../config/googleSignIn";
+import { useAuthListener } from "../hooks/useAuthListener";
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  // Configurar Google Sign-In una sola vez al montar
+  useEffect(() => {
+    configureGoogleSignIn();
+  }, []);
+
+  // Sincronizar Firebase Auth → Zustand
+  useAuthListener();
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(app)" />
+      <Stack.Screen name="(auth)" />
+    </Stack>
   );
 }
