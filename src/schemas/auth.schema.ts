@@ -31,3 +31,22 @@ export const googleSignInResultSchema = z.object({
 });
 
 export type GoogleSignInResult = z.infer<typeof googleSignInResultSchema>;
+
+/**
+ * Formulario de registro (pantalla RegisterScreen). Incluye la confirmación
+ * de contraseña, que es solo de UI y no se envía a Firebase.
+ */
+export const registroFormSchema = z
+  .object({
+    nombre: z.string().trim().min(1, "Ingresa tu nombre").max(100),
+    apellidos: z.string().trim().min(1, "Ingresa tu apellido").max(100),
+    correo: z.string().trim().email("Correo electrónico inválido"),
+    contrasena: z.string().min(6, "Mínimo 6 caracteres"),
+    confirmarContrasena: z.string(),
+  })
+  .refine((d) => d.contrasena === d.confirmarContrasena, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmarContrasena"],
+  });
+
+export type RegistroFormInput = z.infer<typeof registroFormSchema>;
