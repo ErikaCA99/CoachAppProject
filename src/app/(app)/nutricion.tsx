@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { NutritionController } from "@/controllers/NutritionController";
+import { useAuthStore } from "@/store/auth.store";
 import type { BmiCategory } from "@/utils/imcCalculator";
 
 const CATEGORY_STYLES: Record<BmiCategory, { bar: string; text: string }> = {
@@ -12,20 +13,24 @@ const CATEGORY_STYLES: Record<BmiCategory, { bar: string; text: string }> = {
 };
 
 export default function NutricionScreen() {
+  const { user } = useAuthStore();
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [bmi, setBmi] = useState<number | null>(null);
   const [category, setCategory] = useState<BmiCategory | null>(null);
 
   const handleCalculate = async () => {
+    if (!user) return;
+
     const weightNum = parseFloat(weight);
     const heightNum = parseFloat(height);
 
     if (!(weightNum > 0) || !(heightNum > 0)) return;
 
     const resultado = await NutritionController.calcularYGuardarIMC(
+      user.uid,
       weightNum,
-      heightNum
+      heightNum,
     );
     setBmi(resultado.bmi);
     setCategory(resultado.category);
@@ -45,9 +50,7 @@ export default function NutricionScreen() {
       </Text>
 
       <View className="mb-5 w-full">
-        <Text className="mb-1.5 text-base text-text-secondary">
-          Peso (kg)
-        </Text>
+        <Text className="mb-1.5 text-base text-text-secondary">Peso (kg)</Text>
         <TextInput
           className="h-[50px] w-full rounded-lg border border-border bg-primary-light/20 text-center text-lg text-foreground"
           keyboardType="numeric"
@@ -97,9 +100,7 @@ export default function NutricionScreen() {
           <Text className="mt-5 text-xl font-bold text-foreground">
             Tu IMC es:
           </Text>
-          <Text className="my-5 text-5xl font-bold text-foreground">
-            {bmi}
-          </Text>
+          <Text className="my-5 text-5xl font-bold text-foreground">{bmi}</Text>
           <Text
             className={`mb-2.5 text-xl font-bold ${CATEGORY_STYLES[category].text}`}
           >

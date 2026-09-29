@@ -1,142 +1,141 @@
-import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useGoogleAuth } from "../../hooks/useGoogleAuth";
-import { auth } from "../../services/firebase/firebase";
-import { useAuthStore } from "../../store/auth.store";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { BotonGoogle } from "@/components/auth/BotonGoogle";
+import { BotonPrimario } from "@/components/ui/BotonPrimario";
+import { CampoTexto } from "@/components/ui/CampoTexto";
+import { SeparadorTexto } from "@/components/ui/SeparadorTexto";
+import { AuthController } from "@/controllers/AuthController";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import { useAuthStore } from "@/store/auth.store";
 
+/**
+ * Inicio de sesión. No navega manualmente: cuando Firebase confirma la
+ * sesión, `useAuthListener` + `usePerfilListener` actualizan el store y el
+ * `Stack.Protected` del layout raíz lleva al usuario a (onboarding) o (app).
+ */
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
 
   const { signInWithGoogle } = useGoogleAuth();
-  const { user, isLoading, error, setUser, setLoading, setError } =
-    useAuthStore();
+  const { user, isLoading, error, setLoading, setError } = useAuthStore();
 
-  // Redirigir automáticamente cuando el store tenga un usuario
-  useEffect(() => {
-    if (user) {
-      router.replace("/(app)");
-    }
-  }, [user, router]);
+  // Tras autenticarse, el perfil tarda un instante en llegar de Firestore;
+  // mientras tanto seguimos aquí mostrando el botón en estado de carga.
+  const esperandoPerfil = !!user;
+  const ocupado = isLoading || esperandoPerfil;
 
   const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      setError("Ingresa tu correo y contraseña");
+      return;
+    }
+
     setLoading(true);
     setError(null);
-
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
-      const firebaseUser = userCredential.user;
-
-      // Validar con Zod y guardar en el store
-      setUser({
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-        emailVerified: firebaseUser.emailVerified,
-      });
+      await AuthController.iniciarSesion(email, password);
     } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Credenciales incorrectas");
-      setError("Credenciales incorrectas");
+      setError(AuthController.mensajeDeError(err));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    await signInWithGoogle();
+  const handleRecuperar = async () => {
+    if (!email.trim()) {
+      Alert.alert(
+        "Recuperar contraseña",
+        "Escribe tu correo electrónico y vuelve a tocar el enlace.",
+      );
+      return;
+    }
+    try {
+      await AuthController.recuperarContrasena(email);
+      Alert.alert(
+        "Revisa tu correo",
+        "Te enviamos un enlace para restablecer tu contraseña.",
+      );
+    } catch (err) {
+      Alert.alert("Error", AuthController.mensajeDeError(err));
+    }
   };
 
   return (
-    <View className="flex-1 justify-center bg-background px-5">
-      {/* Input de Correo */}
-      <TextInput
-        className="mb-2.5 rounded-2xl border border-border bg-primary-light/20 px-3.5 py-3.5 text-base text-foreground"
-        placeholder="Correo electrónico"
-        placeholderTextColor="#4b5563"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        editable={!isLoading}
-      />
-
-      {/* Input de Contraseña */}
-      <TextInput
-        className="mb-2.5 rounded-2xl border border-border bg-primary-light/20 px-3.5 py-3.5 text-base text-foreground"
-        placeholder="Password"
-        placeholderTextColor="#4b5563"
-        value={password}
-        onChangeText={(text) => setPassword(text)}
-        secureTextEntry={true}
-        editable={!isLoading}
-      />
-
-      {/* Mensaje de Error */}
-      {error && (
-        <Text className="mb-2.5 text-center text-sm text-error">{error}</Text>
-      )}
-
-      {/* Botón de Sign In */}
-      <TouchableOpacity
-        className="my-5 items-center rounded-2xl bg-primary p-4 shadow-sm"
-        onPress={handleLogin}
-        disabled={isLoading}
-        style={isLoading ? { opacity: 0.6 } : undefined}
+    <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAvoidingView
+        className="flex-1 bg-primary-light/15"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {isLoading ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <Text className="text-lg font-bold tracking-wide text-background">
-            Iniciar sesión
-          </Text>
-        )}
-      </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={{ padding: 20, paddingTop: 32 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <AuthHeader modo="login" />
 
-      {/* Separador */}
-      <View className="mb-5 flex-row items-center">
-        <View className="h-px flex-1 bg-border" />
-        <Text className="mx-3 text-xs text-text-secondary">o</Text>
-        <View className="h-px flex-1 bg-border" />
-      </View>
+          <CampoTexto
+            etiqueta="Correo electrónico"
+            placeholder="correo@ejemplo.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            editable={!ocupado}
+          />
 
-      {/* Botón de Google */}
-      <TouchableOpacity
-        className="mb-5 flex-row items-center justify-center rounded-2xl border border-border bg-background p-4 shadow-sm"
-        onPress={handleGoogleLogin}
-        disabled={isLoading}
-        style={isLoading ? { opacity: 0.6 } : undefined}
-      >
-        <Text className="text-base font-bold text-foreground">
-          Continuar con Google
-        </Text>
-      </TouchableOpacity>
+          <CampoTexto
+            etiqueta="Contraseña"
+            placeholder="Mínimo 6 caracteres"
+            value={password}
+            onChangeText={setPassword}
+            esContrasena
+            autoComplete="password"
+            editable={!ocupado}
+          />
 
-      {/* Opciones Adicionales */}
-      <View className="mt-5 flex-row justify-between">
-        <Text className="text-sm text-text-secondary">
-          Olvidaste tu contraseña?
-        </Text>
-        <TouchableOpacity onPress={() => router.push("/(auth)/RegisterScreen")}>
-          <Text className="text-sm font-bold text-primary">Registrarse</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <TouchableOpacity
+            className="-mt-2 mb-5 self-end"
+            onPress={handleRecuperar}
+            disabled={ocupado}
+          >
+            <Text className="text-xs font-semibold text-primary">
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
+
+          {error ? (
+            <Text className="mb-3 text-center text-sm text-error">{error}</Text>
+          ) : null}
+
+          <BotonPrimario
+            titulo="Iniciar Sesión"
+            onPress={handleLogin}
+            cargando={ocupado}
+          />
+
+          <SeparadorTexto texto="o continúa con" />
+
+          <BotonGoogle
+            onPress={() => void signInWithGoogle()}
+            deshabilitado={ocupado}
+          />
+
+          <View className="h-6" />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

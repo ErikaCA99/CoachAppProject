@@ -1,35 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { Tabs } from "expo-router";
 
 import { palette } from "@/constants/palette";
-import { useAuthStore } from "../../store/auth.store";
 
+/**
+ * Tabs de la app autenticada. La protección de sesión y de onboarding vive en
+ * el layout raíz (`Stack.Protected`): si este layout se monta, ya hay usuario
+ * y perfil completo, así que aquí no se valida nada.
+ */
 export default function AppLayout() {
-  const { user, isLoading, hasHydrated } = useAuthStore();
-
-  // Esperar a que Zustand termine de leer AsyncStorage para evitar
-  // un parpadeo que mande al usuario logueado a la pantalla de login
-  if (!hasHydrated || isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: palette.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={palette.primary} />
-      </View>
-    );
-  }
-
-  // Si no hay usuario autenticado, redirigir al login
-  if (!user) {
-    return <Redirect href="/(auth)/LoginScreen" />;
-  }
-
   return (
     <Tabs
       screenOptions={{
@@ -70,15 +49,7 @@ export default function AppLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="routines"
-        options={{
-          title: "Rutinas",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="barbell" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="routines" options={{ href: null }} />
       <Tabs.Screen
         name="nutricion"
         options={{
@@ -88,6 +59,8 @@ export default function AppLayout() {
           ),
         }}
       />
+      {/* href: null => navegable con router.push, pero oculta de la tab bar */}
+      <Tabs.Screen name="perfil" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,17 +1,39 @@
 import {
-  GoogleSignin,
-  isErrorWithCode,
-  isSuccessResponse,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
-import {
   GoogleAuthProvider,
   signInWithCredential,
   signOut,
 } from "firebase/auth";
+import { NativeModules } from "react-native";
 
+import { AuthController } from "../controllers/AuthController";
 import { auth } from "../services/firebase/firebase";
 import { useAuthStore } from "../store/auth.store";
+
+/**
+ * True si el módulo nativo de Google Sign-In está registrado en el binario.
+ * En Expo Go será false — se necesita un Development Build.
+ */
+const NATIVE_MODULE_AVAILABLE = !!NativeModules.RNGoogleSignin;
+
+/**
+ * Carga el módulo de Google Sign-In de forma segura.
+ * Solo lo carga si el módulo nativo está disponible.
+ */
+function getGoogleSignin() {
+  if (!NATIVE_MODULE_AVAILABLE) return null;
+  const googleModule =
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require("@react-native-google-signin/google-signin") as typeof import("@react-native-google-signin/google-signin");
+
+  // IMPORTANTE: Asegúrate de reemplazar este valor con tu Web Client ID real de Firebase Console.
+  // Debe ser el ID de tipo "Web application", no el de Android.
+  googleModule.GoogleSignin.configure({
+    webClientId: "TU_WEB_CLIENT_ID_TEMPORAL.apps.googleusercontent.com",
+    offlineAccess: true, // Requerido para obtener el refreshToken y que Firebase funcione correctamente
+  });
+
+  return googleModule;
+}
 
 /**
  * Hook que encapsula el flujo completo de Google Sign-In → Firebase → Zustand.
@@ -24,11 +46,25 @@ import { useAuthStore } from "../store/auth.store";
  * 5. Autentica con Firebase (signInWithCredential)
  * 6. Valida los datos del usuario con Zod (dentro de setUser)
  * 7. Guarda en el store de Zustand
+ *
+ * NOTA: Requiere Development Build (expo run:android / expo run:ios).
+ * En Expo Go mostrará un error al intentar iniciar sesión con Google.
  */
 export function useGoogleAuth() {
   const { setUser, setLoading, setError, logout } = useAuthStore();
 
   const signInWithGoogle = async (): Promise<void> => {
+    const googleModule = getGoogleSignin();
+    if (!googleModule) {
+      setError(
+        "Google Sign-In no disponible en Expo Go. Usa un Development Build.",
+      );
+      return;
+    }
+
+    const { GoogleSignin, isSuccessResponse, isErrorWithCode, statusCodes } =
+      googleModule;
+
     setLoading(true);
     setError(null);
 
@@ -52,6 +88,13 @@ export function useGoogleAuth() {
       const credential = GoogleAuthProvider.credential(idToken);
       const userCredential = await signInWithCredential(auth, credential);
       const firebaseUser = userCredential.user;
+
+      // Primer login con Google: crea `usuarios/{uid}` si no existe, para que
+      // el onboarding pueda guardar objetivo/nivel sobre ese documento.
+      await AuthController.asegurarPerfil(firebaseUser.uid, {
+        nombre: firebaseUser.displayName,
+        email: firebaseUser.email,
+      });
 
       // setUser valida internamente con Zod antes de guardar
       setUser({
@@ -86,7 +129,10 @@ export function useGoogleAuth() {
 
   const signOutFromGoogle = async (): Promise<void> => {
     try {
-      await GoogleSignin.signOut();
+      const googleModule = getGoogleSignin();
+      if (googleModule) {
+        await googleModule.GoogleSignin.signOut();
+      }
       await signOut(auth);
     } finally {
       logout();

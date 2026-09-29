@@ -1,128 +1,180 @@
-import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { auth, db } from "../../services/firebase/firebase";
-import { useAuthStore } from "../../store/auth.store";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { BotonGoogle } from "@/components/auth/BotonGoogle";
+import { BotonPrimario } from "@/components/ui/BotonPrimario";
+import { CampoTexto } from "@/components/ui/CampoTexto";
+import { SeparadorTexto } from "@/components/ui/SeparadorTexto";
+import { AuthController } from "@/controllers/AuthController";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import {
+  registroFormSchema,
+  type RegistroFormInput,
+} from "@/schemas/auth.schema";
+import { useAuthStore } from "@/store/auth.store";
 
+type Campo = keyof RegistroFormInput;
+
+const ESTADO_INICIAL: RegistroFormInput = {
+  nombre: "",
+  apellidos: "",
+  correo: "",
+  contrasena: "",
+  confirmarContrasena: "",
+};
+
+/**
+ * Registro con correo. Tras crear la cuenta NO navega: el layout raíz detecta
+ * la sesión nueva con perfil incompleto y abre `(onboarding)` automáticamente.
+ */
 export default function RegisterScreen() {
-  const router = useRouter();
-  const { setUser } = useAuthStore();
+  const [form, setForm] = useState<RegistroFormInput>(ESTADO_INICIAL);
+  const [errores, setErrores] = useState<Partial<Record<Campo, string>>>({});
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
 
-  const initialState = {
-    nombre: "",
-    apellidos: "",
-    genero: "",
-    correo: "",
-    contraseña: "",
-    confirmarContraseña: "",
+  const { signInWithGoogle } = useGoogleAuth();
+  const { user, isLoading, error: errorGoogle } = useAuthStore();
+  const ocupado = cargando || isLoading || !!user;
+
+  const cambiar = (campo: Campo) => (valor: string) => {
+    setForm((prev) => ({ ...prev, [campo]: valor }));
+    if (errores[campo]) setErrores((prev) => ({ ...prev, [campo]: undefined }));
   };
 
-  const [state, setState] = useState(initialState);
-
-  const handleChangeText = (value: string, name: string) => {
-    setState((prevState) => ({ ...prevState, [name]: value }));
-  };
-
-  const handleContinue = async () => {
-    if (state.contraseña !== state.confirmarContraseña) {
-      Alert.alert("Alerta", "Las contraseñas no coinciden");
+  const handleContinuar = async () => {
+    setErrorGeneral(null);
+    const resultado = registroFormSchema.safeParse(form);
+    if (!resultado.success) {
+      const nuevos: Partial<Record<Campo, string>> = {};
+      for (const issue of resultado.error.issues) {
+        const campo = issue.path[0] as Campo;
+        nuevos[campo] ??= issue.message;
+      }
+      setErrores(nuevos);
       return;
     }
 
+    setCargando(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        state.correo,
-        state.contraseña,
-      );
-
-      const userId = userCredential.user.uid;
-
-      // Crear documento inicial en Firestore
-      await setDoc(doc(db, "users", userId), {
-        nombre: state.nombre,
-        apellidos: state.apellidos,
-        genero: state.genero,
-        correo: state.correo,
+      await AuthController.registrar({
+        nombre: resultado.data.nombre,
+        apellidos: resultado.data.apellidos,
+        correo: resultado.data.correo,
+        contrasena: resultado.data.contrasena,
       });
-
-      // Guardar usuario en el store de Zustand (validado con Zod)
-      const firebaseUser = userCredential.user;
-      setUser({
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-        emailVerified: firebaseUser.emailVerified,
-      });
-
-      Alert.alert("Éxito", "Registro exitoso");
-      router.replace("/(app)");
-    } catch (error) {
-      console.error("Error al registrar usuario: ", error);
-      Alert.alert("Error", "Hubo un problema al registrar el usuario");
+      // El store de sesión se sincroniza solo vía useAuthListener.
+    } catch (err) {
+      console.error("Error al registrar usuario: ", err);
+      setErrorGeneral(AuthController.mensajeDeError(err));
+      setCargando(false);
     }
   };
 
   return (
-    <View className="flex-1 justify-center bg-background p-5">
-      <Text className="mb-5 text-center text-2xl font-bold text-foreground">
-        Registro de Usuario
-      </Text>
-      <TextInput
-        className="mb-2.5 rounded-lg border border-border bg-primary-light/20 p-4 text-base text-foreground"
-        placeholder="Nombre"
-        placeholderTextColor="#4b5563"
-        onChangeText={(value) => handleChangeText(value, "nombre")}
-        value={state.nombre}
-      />
-      <TextInput
-        className="mb-2.5 rounded-lg border border-border bg-primary-light/20 p-4 text-base text-foreground"
-        placeholder="Apellidos"
-        placeholderTextColor="#4b5563"
-        onChangeText={(value) => handleChangeText(value, "apellidos")}
-        value={state.apellidos}
-      />
-      <TextInput
-        className="mb-2.5 rounded-lg border border-border bg-primary-light/20 p-4 text-base text-foreground"
-        placeholder="Género"
-        placeholderTextColor="#4b5563"
-        onChangeText={(value) => handleChangeText(value, "genero")}
-        value={state.genero}
-      />
-      <TextInput
-        className="mb-2.5 rounded-lg border border-border bg-primary-light/20 p-4 text-base text-foreground"
-        placeholder="Correo Electrónico"
-        placeholderTextColor="#4b5563"
-        keyboardType="email-address"
-        onChangeText={(value) => handleChangeText(value, "correo")}
-        value={state.correo}
-      />
-      <TextInput
-        className="mb-2.5 rounded-lg border border-border bg-primary-light/20 p-4 text-base text-foreground"
-        placeholder="Contraseña"
-        placeholderTextColor="#4b5563"
-        secureTextEntry={true}
-        onChangeText={(value) => handleChangeText(value, "contraseña")}
-        value={state.contraseña}
-      />
-      <TextInput
-        className="mb-2.5 rounded-lg border border-border bg-primary-light/20 p-4 text-base text-foreground"
-        placeholder="Confirmar Contraseña"
-        placeholderTextColor="#4b5563"
-        secureTextEntry={true}
-        onChangeText={(value) => handleChangeText(value, "confirmarContraseña")}
-        value={state.confirmarContraseña}
-      />
-      <TouchableOpacity
-        className="mt-2.5 items-center justify-center rounded-lg bg-primary p-4 shadow-sm"
-        onPress={handleContinue}
+    <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAvoidingView
+        className="flex-1 bg-primary-light/15"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Text className="text-base font-bold text-background">Siguiente</Text>
-      </TouchableOpacity>
-    </View>
+        <ScrollView
+          contentContainerStyle={{ padding: 20, paddingTop: 32 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <AuthHeader modo="registro" />
+
+          <CampoTexto
+            etiqueta="Nombre"
+            placeholder="Tu nombre"
+            value={form.nombre}
+            onChangeText={cambiar("nombre")}
+            autoCapitalize="words"
+            error={errores.nombre}
+            editable={!ocupado}
+          />
+          <CampoTexto
+            etiqueta="Apellido"
+            placeholder="Tu apellido"
+            value={form.apellidos}
+            onChangeText={cambiar("apellidos")}
+            autoCapitalize="words"
+            error={errores.apellidos}
+            editable={!ocupado}
+          />
+          <CampoTexto
+            etiqueta="Correo electrónico"
+            placeholder="correo@ejemplo.com"
+            value={form.correo}
+            onChangeText={cambiar("correo")}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            error={errores.correo}
+            editable={!ocupado}
+          />
+          <CampoTexto
+            etiqueta="Contraseña"
+            placeholder="Mínimo 6 caracteres"
+            value={form.contrasena}
+            onChangeText={cambiar("contrasena")}
+            esContrasena
+            autoComplete="new-password"
+            error={errores.contrasena}
+            editable={!ocupado}
+          />
+          <CampoTexto
+            etiqueta="Confirmar contraseña"
+            placeholder="Repite tu contraseña"
+            value={form.confirmarContrasena}
+            onChangeText={cambiar("confirmarContrasena")}
+            esContrasena
+            error={errores.confirmarContrasena}
+            editable={!ocupado}
+          />
+
+          {errorGeneral || errorGoogle ? (
+            <Text className="mb-3 text-center text-sm text-error">
+              {errorGeneral ?? errorGoogle}
+            </Text>
+          ) : null}
+
+          <BotonPrimario
+            titulo="Continuar"
+            onPress={handleContinuar}
+            cargando={ocupado}
+          />
+
+          <SeparadorTexto texto="o continúa con" />
+
+          <BotonGoogle
+            onPress={() => void signInWithGoogle()}
+            deshabilitado={ocupado}
+          />
+
+          <Text className="mt-5 text-center text-xs text-text-muted">
+            Al registrarte aceptas nuestros{" "}
+            <Text className="font-semibold text-primary">
+              Términos de Servicio
+            </Text>{" "}
+            y{" "}
+            <Text className="font-semibold text-primary">
+              Política de Privacidad
+            </Text>
+            .
+          </Text>
+
+          <View className="h-6" />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

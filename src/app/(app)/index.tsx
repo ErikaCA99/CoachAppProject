@@ -1,13 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import {
-    doc,
-    getDoc,
-} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
-    Modal,
+    Alert,
     ScrollView,
     StatusBar,
     Text,
@@ -16,51 +12,63 @@ import {
 } from "react-native";
 
 import { palette } from "@/constants/palette";
-import { useGoogleAuth } from "../../hooks/useGoogleAuth";
-import { db } from "../../services/firebase/firebase";
-import { useAuthStore } from "../../store/auth.store";
+import { AuthController } from "@/controllers/AuthController";
+import { ProgresoController } from "@/controllers/ProgresoController";
+import { RutinasController } from "@/controllers/RutinasController";
+import type { Rutina } from "@/models/entities/Rutina";
+import type { Usuario } from "@/models/entities/Usuario";
+import type { ConId } from "@/services/firebase/firestoreService";
+import { useAuthStore } from "@/store/auth.store";
+import { useOnboardingStore } from "@/store/onboarding.store";
 
 export default function HomeScreen() {
   const { user } = useAuthStore();
-  const { signOutFromGoogle } = useGoogleAuth();
-  const [userData, setUserData] = useState<any>(null);
-  const [currentRoutine, setCurrentRoutine] = useState<any>(null);
-  const [showRoutineModal, setShowRoutineModal] = useState(false);
-  const [weeklyStats] = useState({
-    entrenamientos: 12,
-    estaSemana: 3,
-    racha: 5,
-  });
-
   const router = useRouter();
 
+  const consumirDestino = useOnboardingStore((s) => s.consumirDestino);
+
+  // Recién terminado el onboarding: abrir la opción elegida en
+  // RoutineChoiceScreen ("Generar con IA" / "Crear personalizada").
+  // Se hace desde aquí porque (app) solo existe una vez que el guard raíz
+  // lo desbloquea, y el Home es su pantalla inicial.
   useEffect(() => {
-    loadUserData();
-  }, []);
+    const destino = consumirDestino();
+    if (destino) router.push(destino);
+  }, [consumirDestino, router]);
 
-  const loadUserData = async () => {
-    try {
-      if (!user) return;
+  const [perfil, setPerfil] = useState<Usuario | null>(null);
+  const [rutinas, setRutinas] = useState<ConId<Rutina>[]>([]);
+  const [totalRegistrosProgreso, setTotalRegistrosProgreso] = useState(0);
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        setUserData(userDoc.data());
-        await loadExistingRoutine(user.uid);
-      }
-    } catch (error) {
-      console.error("Error loading user data:", error);
-    }
-  };
+  useEffect(() => {
+    if (!user) return;
 
-  const loadExistingRoutine = async (userId: string) => {
-    try {
-      const routineDoc = await getDoc(doc(db, "routines", userId));
-      if (routineDoc.exists()) {
-        setCurrentRoutine(routineDoc.data());
-      }
-    } catch (error) {
-      console.error("Error loading routine:", error);
-    }
+    const unsubPerfil = AuthController.observarPerfil(user.uid, setPerfil);
+    const unsubRutinas = RutinasController.observar(user.uid, setRutinas);
+
+    ProgresoController.listar(user.uid).then((registros) =>
+      setTotalRegistrosProgreso(registros.length),
+    );
+
+    return () => {
+      unsubPerfil();
+      unsubRutinas();
+    };
+  }, [user]);
+
+  const rutinaActiva =
+    rutinas.find((r) => r.id === perfil?.rutinaActivaId) ?? null;
+  const totalEjerciciosRutina =
+    rutinaActiva?.planSemanal.reduce(
+      (acc, dia) => acc + dia.ejercicios.length,
+      0,
+    ) ?? 0;
+
+  const handleEscanear = () => {
+    Alert.alert(
+      "Próximamente",
+      "El escáner de máquinas con IA todavía está en desarrollo.",
+    );
   };
 
   return (
@@ -75,7 +83,11 @@ export default function HomeScreen() {
         <View className="mb-6 flex-row items-center justify-between">
           <View>
             <Text className="text-[26px] font-bold text-foreground">
-              Hola, {userData?.firstName || user?.displayName || "Usuario"}
+              Hola,{" "}
+              {perfil?.nombre ||
+                user?.displayName ||
+                user?.email?.split("@")[0] ||
+                "Deportista"}
             </Text>
             <Text className="mt-1 text-sm text-text-muted">
               ¿Listo para entrenar?
@@ -83,9 +95,9 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             className="h-11 w-11 items-center justify-center rounded-full bg-primary"
-            onPress={signOutFromGoogle}
+            onPress={() => router.push("/(app)/perfil")}
           >
-            <Ionicons name="log-out-outline" size={22} color={palette.background} />
+            <Ionicons name="person" size={20} color={palette.background} />
           </TouchableOpacity>
         </View>
 
@@ -97,54 +109,71 @@ export default function HomeScreen() {
           style={{ borderRadius: 20, padding: 24, marginBottom: 24 }}
         >
           <Text className="mb-1.5 text-lg font-bold text-background">
-            Mi Rutina Activa
+            {rutinaActiva ? "Mi Rutina Activa" : "Aún no tienes una rutina"}
           </Text>
           <Text className="mb-5 text-sm text-background/80">
-            {currentRoutine
-              ? `${currentRoutine.routine?.name || "Entrenamiento de Fuerza"} - Día ${currentRoutine.routine?.currentDay || 2}`
-              : "Entrenamiento de Fuerza - Día 2"}
+            {rutinaActiva
+              ? `${rutinaActiva.nombre} · ${rutinaActiva.diasPorSemana} días/semana`
+              : "Genera una con IA o arma la tuya en la pestaña Rutinas"}
           </Text>
           <View className="flex-row gap-3">
-            <TouchableOpacity className="rounded-xl bg-background px-5 py-2.5">
-              <Text className="text-sm font-bold text-primary">Continuar</Text>
-            </TouchableOpacity>
             <TouchableOpacity
-              className="rounded-xl bg-background/25 px-5 py-2.5"
-              onPress={() => setShowRoutineModal(true)}
+              className="rounded-xl bg-background px-5 py-2.5"
+              onPress={() =>
+                router.push(
+                  rutinaActiva ? "/(app)/routines" : "/(app)/routines/generar",
+                )
+              }
             >
-              <Text className="text-sm font-bold text-background">
-                Ver Detalles
+              <Text className="text-sm font-bold text-primary">
+                {rutinaActiva ? "Continuar" : "Generar rutina"}
               </Text>
             </TouchableOpacity>
+            {rutinaActiva && (
+              <TouchableOpacity
+                className="rounded-xl bg-background/25 px-5 py-2.5"
+                onPress={() => router.push("/(app)/routines")}
+              >
+                <Text className="text-sm font-bold text-background">
+                  Ver Detalles
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </LinearGradient>
 
         {/* Stats Row */}
         <View className="mb-7 flex-row justify-between gap-2.5">
           <View className="flex-1 items-center rounded-2xl border border-border bg-background p-4">
-            <Ionicons name="trending-up" size={22} color={palette.primary} />
+            <Ionicons name="barbell" size={22} color={palette.primary} />
             <Text className="mt-2 text-xl font-bold text-foreground">
-              {weeklyStats.entrenamientos}
+              {totalEjerciciosRutina}
             </Text>
             <Text className="mt-1 text-[11px] text-text-muted">
-              Entrenamientos
+              Ejercicios activos
             </Text>
           </View>
           <View className="flex-1 items-center rounded-2xl border border-border bg-background p-4">
             <Ionicons name="calendar" size={22} color={palette.accent} />
             <Text className="mt-2 text-xl font-bold text-foreground">
-              {weeklyStats.estaSemana}
+              {rutinaActiva?.diasPorSemana ?? 0}
             </Text>
             <Text className="mt-1 text-[11px] text-text-muted">
-              Esta Semana
+              Días/semana
             </Text>
           </View>
           <View className="flex-1 items-center rounded-2xl border border-border bg-background p-4">
-            <Ionicons name="trending-up" size={22} color={palette.accentStrong} />
+            <Ionicons
+              name="trending-up"
+              size={22}
+              color={palette.accentStrong}
+            />
             <Text className="mt-2 text-xl font-bold text-foreground">
-              {weeklyStats.racha} días
+              {totalRegistrosProgreso}
             </Text>
-            <Text className="mt-1 text-[11px] text-text-muted">Racha</Text>
+            <Text className="mt-1 text-[11px] text-text-muted">
+              Registros de peso
+            </Text>
           </View>
         </View>
 
@@ -153,9 +182,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-primary bg-background p-[18px]"
-          onPress={() => {
-            /* TODO: AI routine generation */
-          }}
+          onPress={() => router.push("/(app)/routines/generar")}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-primary">
             <Ionicons name="sparkles" size={24} color={palette.background} />
@@ -168,12 +195,16 @@ export default function HomeScreen() {
               Genera una rutina personalizada
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={palette.textMuted} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={palette.textMuted}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent bg-background p-[18px]"
-          onPress={() => router.push("/(app)/machines" as any)}
+          onPress={() => router.push("/(app)/machines")}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-accent">
             <Ionicons name="grid" size={24} color={palette.background} />
@@ -186,14 +217,16 @@ export default function HomeScreen() {
               Explora todas las máquinas
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={palette.textMuted} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={palette.textMuted}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent-strong bg-background p-[18px]"
-          onPress={() => {
-            /* TODO: AR scanner */
-          }}
+          onPress={handleEscanear}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-accent-strong">
             <Ionicons name="scan" size={24} color={palette.background} />
@@ -203,71 +236,18 @@ export default function HomeScreen() {
               Escanear Máquina
             </Text>
             <Text className="mt-0.5 text-[13px] text-text-muted">
-              Usa AR para identificar
+              Usa AR para identificar (próximamente)
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={palette.textMuted} />
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={palette.textMuted}
+          />
         </TouchableOpacity>
 
         <View className="h-[30px]" />
       </ScrollView>
-
-      {/* Routine Detail Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showRoutineModal}
-        onRequestClose={() => setShowRoutineModal(false)}
-      >
-        <View className="flex-1 items-center justify-center bg-black/60">
-          <View className="max-h-[80%] w-[90%] rounded-3xl border border-border bg-background p-6">
-            <Text className="mb-4 text-center text-xl font-bold text-foreground">
-              Tu Rutina
-            </Text>
-            <ScrollView className="mb-3">
-              {currentRoutine?.routine?.weeklySchedule?.map(
-                (day: any, index: number) => (
-                  <View
-                    key={index}
-                    className="mb-3 rounded-2xl bg-primary-light/25 p-4"
-                  >
-                    <Text className="mb-2.5 text-base font-bold text-foreground">
-                      Día {day.day}: {day.focus}
-                    </Text>
-                    {day.exercises.map((exercise: any, exIndex: number) => (
-                      <TouchableOpacity
-                        key={exIndex}
-                        className="mb-2 rounded-lg border border-border bg-background p-3"
-                        onPress={() => {
-                          setShowRoutineModal(false);
-                          router.push(
-                            `/machines/${exercise.id}` as any
-                          );
-                        }}
-                      >
-                        <Text className="text-sm font-semibold text-foreground">
-                          {exercise.name}
-                        </Text>
-                        <Text className="mt-1 text-xs text-text-muted">
-                          {exercise.sets} series × {exercise.reps} reps
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )
-              )}
-            </ScrollView>
-            <TouchableOpacity
-              className="items-center rounded-2xl bg-primary p-4"
-              onPress={() => setShowRoutineModal(false)}
-            >
-              <Text className="text-base font-bold text-background">
-                Cerrar
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
