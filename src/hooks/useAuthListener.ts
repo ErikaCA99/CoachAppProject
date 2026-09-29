@@ -12,7 +12,7 @@ import { useAuthStore } from "../store/auth.store";
  * actualiza el store. Esto es la fuente de verdad de sesión "reactiva".
  */
 export function useAuthListener(): void {
-  const { setUser, logout, setLoading } = useAuthStore();
+  const { setUser, logout, setLoading, setAuthInicializado } = useAuthStore();
 
   useEffect(() => {
     setLoading(true);
@@ -31,6 +31,7 @@ export function useAuthListener(): void {
         logout();
       }
       setLoading(false);
+      setAuthInicializado(true);
     });
 
     return unsubscribe;

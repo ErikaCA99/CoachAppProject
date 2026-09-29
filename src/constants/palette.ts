@@ -7,6 +7,8 @@
 export const palette = {
   primary: "#32a685",
   primaryLight: "#add9d1",
+  /** Extremo oscuro de los degradados de botones/tarjetas (solo props nativas). */
+  primaryDark: "#1f8a6a",
   secondary: "#f2c0a2",
   accent: "#f29580",
   accentStrong: "#d95032",
