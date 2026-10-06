@@ -5,7 +5,10 @@ import type { NivelExperiencia, ObjetivoUsuario } from "./Usuario";
 export type TipoRutina = "ia" | "personalizada";
 
 export interface EjercicioRutina {
+  /** Id del ejercicio en wger (nombre histórico: antes el catálogo era wger). */
   maquinaId: number;
+  /** Id de la máquina del catálogo (`maquinas/{id}`) si se agregó desde su ficha. */
+  maquinaCatalogoId?: string;
   nombre: string;
   imagenUrl: string | null;
   series: number;

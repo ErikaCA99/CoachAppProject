@@ -9,13 +9,10 @@ import {
 
 export const ejercicioRutinaSchema = z.object({
   maquinaId: z.number().int().positive("ID de máquina inválido"),
+  maquinaCatalogoId: z.string().min(1).optional(),
   nombre: z.string().min(1, "El nombre del ejercicio es obligatorio"),
   imagenUrl: z.string().url().nullable(),
-  series: z
-    .number()
-    .int()
-    .min(1, "Mínimo 1 serie")
-    .max(20, "Máximo 20 series"),
+  series: z.number().int().min(1, "Mínimo 1 serie").max(20, "Máximo 20 series"),
   repeticiones: z
     .number()
     .int()

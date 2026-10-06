@@ -73,9 +73,7 @@ export const NutritionController = {
   },
 
   /** Lista el historial nutricional completo del usuario. */
-  async listar(
-    usuarioId: string,
-  ): Promise<ConId<RegistroNutricional>[]> {
+  async listar(usuarioId: string): Promise<ConId<RegistroNutricional>[]> {
     return listarRegistrosNutricion(usuarioId);
   },
 

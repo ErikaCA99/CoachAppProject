@@ -3,7 +3,10 @@ import { z } from "zod";
 // ── Registrar progreso físico ────────────────────────────────────────
 
 export const registrarProgresoSchema = z.object({
-  peso: z.number().min(10, "Peso mínimo: 10 kg").max(500, "Peso máximo: 500 kg"),
+  peso: z
+    .number()
+    .min(10, "Peso mínimo: 10 kg")
+    .max(500, "Peso máximo: 500 kg"),
   altura: z.number().min(50, "Altura mínima: 50 cm").max(300).optional(),
   notas: z.string().max(500, "Máximo 500 caracteres").optional(),
 });

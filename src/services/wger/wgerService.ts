@@ -3,8 +3,8 @@ import { create } from "axios";
 /**
  * Cliente crudo de la API pública de wger (https://wger.de/api/v2/).
  * Sin conocimiento de dominio: solo tipos y llamadas HTTP tal como los
- * devuelve wger. El mapeo a la entidad `Maquina` vive en
- * `src/models/repositories/maquinaRepository.ts`.
+ * devuelve wger. El mapeo a la entidad `EjercicioWger` vive en
+ * `src/models/repositories/ejercicioWgerRepository.ts`.
  */
 
 const WGER_BASE_URL = "https://wger.de/api/v2";
@@ -72,6 +72,7 @@ const cliente = create({
 
 export interface FiltrosEjercicios {
   categoria?: number;
+  equipo?: number;
   busqueda?: string;
   limite?: number;
   offset?: number;
@@ -86,6 +87,7 @@ export async function listarEjerciciosWger(
     {
       params: {
         category: filtros.categoria,
+        equipment: filtros.equipo,
         limit: filtros.limite ?? 20,
         offset: filtros.offset ?? 0,
         search: filtros.busqueda || undefined,

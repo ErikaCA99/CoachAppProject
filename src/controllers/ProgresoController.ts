@@ -35,7 +35,11 @@ export const ProgresoController = {
     altura?: number,
     notas?: string,
   ): Promise<ResultadoRegistroProgreso> {
-    const validacion = registrarProgresoSchema.safeParse({ peso, altura, notas });
+    const validacion = registrarProgresoSchema.safeParse({
+      peso,
+      altura,
+      notas,
+    });
     if (!validacion.success) {
       throw new Error(
         `Datos de progreso inválidos: ${validacion.error.issues.map((i) => i.message).join(", ")}`,
@@ -74,11 +78,20 @@ export const ProgresoController = {
     const datosActualizados: Partial<ProgresoFisico> = { ...validacion.data };
 
     // Recalcular IMC si se proporcionó peso y/o altura
-    if (validacion.data.peso !== undefined || validacion.data.altura !== undefined) {
+    if (
+      validacion.data.peso !== undefined ||
+      validacion.data.altura !== undefined
+    ) {
       // Para recalcular el IMC necesitamos ambos valores; si solo se actualiza uno,
       // el otro ya debe estar en el registro existente (responsabilidad de la Vista).
-      if (validacion.data.peso !== undefined && validacion.data.altura !== undefined) {
-        datosActualizados.imc = calcularIMC(validacion.data.peso, validacion.data.altura);
+      if (
+        validacion.data.peso !== undefined &&
+        validacion.data.altura !== undefined
+      ) {
+        datosActualizados.imc = calcularIMC(
+          validacion.data.peso,
+          validacion.data.altura,
+        );
       }
     }
 

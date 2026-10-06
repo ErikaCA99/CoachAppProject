@@ -21,9 +21,7 @@ import type { ConId } from "@/services/firebase/firestoreService";
  */
 export const EjerciciosController = {
   /** Crea un ejercicio en el catálogo con validación completa. */
-  async crear(
-    datos: Omit<Ejercicio, "id">,
-  ): Promise<string> {
+  async crear(datos: Omit<Ejercicio, "id">): Promise<string> {
     const validacion = ejercicioSchema.safeParse(datos);
     if (!validacion.success) {
       throw new Error(

@@ -2,7 +2,12 @@ import { z } from "zod";
 
 // ── Registro de cálculo IMC ──────────────────────────────────────────
 
-const categoriaIMCSchema = z.enum(["BAJO", "NORMALIDAD", "SOBREPESO", "OBESIDAD"]);
+const categoriaIMCSchema = z.enum([
+  "BAJO",
+  "NORMALIDAD",
+  "SOBREPESO",
+  "OBESIDAD",
+]);
 
 export const registroIMCSchema = z.object({
   weight: z.number().min(10, "Peso mínimo: 10 kg").max(500),

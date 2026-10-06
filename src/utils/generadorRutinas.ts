@@ -1,4 +1,7 @@
-import type { NivelExperiencia, ObjetivoUsuario } from "@/models/entities/Usuario";
+import type {
+  NivelExperiencia,
+  ObjetivoUsuario,
+} from "@/models/entities/Usuario";
 
 /**
  * Heurística pura para armar la estructura de una rutina semanal.
@@ -7,7 +10,7 @@ import type { NivelExperiencia, ObjetivoUsuario } from "@/models/entities/Usuari
  * día y con qué parámetros de serie/repeticiones/descanso.
  *
  * El `RutinasController` combina esta estructura con ejercicios reales
- * (obtenidos vía `MaquinasController`) para armar la `Rutina` final.
+ * (obtenidos vía `EjerciciosWgerController`) para armar la `Rutina` final.
  */
 
 export interface ParametrosSerie {
@@ -18,7 +21,7 @@ export interface ParametrosSerie {
 
 export interface BloqueDia {
   enfoque: string;
-  /** IDs de categoría de wger (ver `maquinaRepository.ts`) de donde sacar ejercicios. */
+  /** IDs de categoría de wger (ver `ejercicioWgerRepository.ts`) de donde sacar ejercicios. */
   categoriasIds: number[];
   cantidadEjercicios: number;
 }

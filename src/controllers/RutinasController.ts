@@ -1,11 +1,14 @@
-import { MaquinasController } from "@/controllers/MaquinasController";
+import { EjerciciosWgerController } from "@/controllers/EjerciciosWgerController";
 import type {
   DiaRutina,
   EjercicioRutina,
   Rutina,
 } from "@/models/entities/Rutina";
 import { OBJETIVOS_USUARIO } from "@/models/entities/Usuario";
-import type { NivelExperiencia, ObjetivoUsuario } from "@/models/entities/Usuario";
+import type {
+  NivelExperiencia,
+  ObjetivoUsuario,
+} from "@/models/entities/Usuario";
 import {
   actualizarRutina,
   eliminarRutina,
@@ -14,10 +17,14 @@ import {
   obtenerRutina,
   observarRutinas,
 } from "@/models/repositories/rutinaRepository";
-import { actualizarPerfilUsuario } from "@/models/repositories/usuarioRepository";
+import {
+  actualizarPerfilUsuario,
+  obtenerPerfilUsuario,
+} from "@/models/repositories/usuarioRepository";
 import {
   actualizarRutinaSchema,
   crearRutinaPersonalizadaSchema,
+  ejercicioRutinaSchema,
   generarRutinaIASchema,
 } from "@/schemas/rutina.schema";
 import type { ConId } from "@/services/firebase/firestoreService";
@@ -50,7 +57,7 @@ async function armarDia(
 
   const resultadosPorCategoria = await Promise.all(
     bloque.categoriasIds.map((categoriaId) =>
-      MaquinasController.listar({ categoriaId }),
+      EjerciciosWgerController.listar({ categoriaId }),
     ),
   );
 
@@ -91,7 +98,10 @@ export const RutinasController = {
       );
     }
 
-    const plan = generarPlanHeuristico(validacion.data.objetivo, validacion.data.nivel);
+    const plan = generarPlanHeuristico(
+      validacion.data.objetivo,
+      validacion.data.nivel,
+    );
 
     const planSemanal = await Promise.all(
       plan.bloques.map((bloque, indice) =>
@@ -120,7 +130,10 @@ export const RutinasController = {
     nombre: string,
     planSemanal: DiaRutina[],
   ): Promise<string> {
-    const validacion = crearRutinaPersonalizadaSchema.safeParse({ nombre, planSemanal });
+    const validacion = crearRutinaPersonalizadaSchema.safeParse({
+      nombre,
+      planSemanal,
+    });
     if (!validacion.success) {
       throw new Error(
         `Datos de rutina inválidos: ${validacion.error.issues.map((i) => i.message).join(", ")}`,
@@ -174,6 +187,48 @@ export const RutinasController = {
       datosActualizados.diasPorSemana = validacion.data.planSemanal.length;
     }
     await actualizarRutina(usuarioId, rutinaId, datosActualizados);
+  },
+
+  /** Rutina marcada como activa en el perfil, o `null` si no hay ninguna. */
+  async obtenerActiva(usuarioId: string): Promise<ConId<Rutina> | null> {
+    const perfil = await obtenerPerfilUsuario(usuarioId);
+    if (!perfil?.rutinaActivaId) return null;
+    return obtenerRutina(usuarioId, perfil.rutinaActivaId);
+  },
+
+  /**
+   * Agrega un ejercicio al final de un día de la rutina (p. ej. desde la
+   * ficha de una máquina). Lanza error si el día no existe o si el ejercicio
+   * ya está en ese día.
+   */
+  async agregarEjercicioADia(
+    usuarioId: string,
+    rutinaId: string,
+    numeroDia: number,
+    ejercicio: EjercicioRutina,
+  ): Promise<void> {
+    const validacion = ejercicioRutinaSchema.safeParse(ejercicio);
+    if (!validacion.success) {
+      throw new Error(
+        `Ejercicio inválido: ${validacion.error.issues.map((i) => i.message).join(", ")}`,
+      );
+    }
+
+    const rutina = await obtenerRutina(usuarioId, rutinaId);
+    if (!rutina) throw new Error("La rutina ya no existe.");
+
+    const dia = rutina.planSemanal.find((d) => d.dia === numeroDia);
+    if (!dia) throw new Error(`La rutina no tiene día ${numeroDia}.`);
+    if (dia.ejercicios.some((e) => e.maquinaId === ejercicio.maquinaId)) {
+      throw new Error("Ese ejercicio ya está en este día.");
+    }
+
+    const planSemanal = rutina.planSemanal.map((d) =>
+      d.dia === numeroDia
+        ? { ...d, ejercicios: [...d.ejercicios, validacion.data] }
+        : d,
+    );
+    await RutinasController.actualizar(usuarioId, rutinaId, { planSemanal });
   },
 
   async activar(usuarioId: string, rutinaId: string): Promise<void> {
