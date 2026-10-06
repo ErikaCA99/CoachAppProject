@@ -1,7 +1,12 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
   sendPasswordResetEmail,
+  signInWithCredential,
   signInWithEmailAndPassword,
+  signOut,
+  type User as UsuarioFirebase,
 } from "firebase/auth";
 
 import type {
@@ -31,6 +36,25 @@ export interface DatosRegistro {
   contrasena: string;
 }
 
+/** Datos de la sesión que se guardan en el store (los valida `userSchema`). */
+export interface UsuarioSesion {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  emailVerified: boolean;
+}
+
+function aUsuarioSesion(usuario: UsuarioFirebase): UsuarioSesion {
+  return {
+    uid: usuario.uid,
+    email: usuario.email,
+    displayName: usuario.displayName,
+    photoURL: usuario.photoURL,
+    emailVerified: usuario.emailVerified,
+  };
+}
+
 /**
  * Controlador (capa de negocio) para autenticación y perfil de usuario.
  * Las Vistas de `(auth)/` y `(app)/perfil.tsx` solo llaman a este
@@ -58,6 +82,31 @@ export const AuthController = {
     });
 
     return uid;
+  },
+
+  /**
+   * Inicia sesión en Firebase con el idToken de Google y crea el perfil en
+   * Firestore si es el primer acceso. Devuelve los datos de la sesión.
+   */
+  async iniciarSesionConGoogle(idToken: string): Promise<UsuarioSesion> {
+    const credencial = GoogleAuthProvider.credential(idToken);
+    const { user } = await signInWithCredential(auth, credencial);
+    await AuthController.asegurarPerfil(user.uid, {
+      nombre: user.displayName,
+      email: user.email,
+    });
+    return aUsuarioSesion(user);
+  },
+
+  async cerrarSesion(): Promise<void> {
+    await signOut(auth);
+  },
+
+  /** Suscripción a los cambios de sesión (login, logout, token expirado). */
+  observarSesion(callback: (usuario: UsuarioSesion | null) => void) {
+    return onAuthStateChanged(auth, (usuario) =>
+      callback(usuario ? aUsuarioSesion(usuario) : null),
+    );
   },
 
   async iniciarSesion(correo: string, contrasena: string): Promise<void> {
@@ -135,6 +184,16 @@ export const AuthController = {
         `Datos de objetivo/nivel inválidos: ${resultado.error.issues.map((i) => i.message).join(", ")}`,
       );
     }
+    // Cuentas creadas en Auth cuyo perfil nunca llegó a Firestore (p. ej.
+    // registradas mientras las reglas estaban vencidas) llegan aquí sin
+    // `usuarios/{uid}`. Un update sobre un doc inexistente sería un create
+    // sin `nombre`/`creadoEn` y las reglas lo rechazarían: primero se
+    // garantiza el perfil base.
+    const actual = auth.currentUser;
+    await AuthController.asegurarPerfil(uid, {
+      nombre: actual?.displayName ?? null,
+      email: actual?.email ?? null,
+    });
     await actualizarPerfilUsuario(uid, resultado.data);
   },
 

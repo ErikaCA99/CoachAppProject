@@ -1,21 +1,21 @@
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    onSnapshot,
-    orderBy,
-    query,
-    serverTimestamp,
-    setDoc,
-    type DocumentData,
-    type FirestoreError,
-    type Unsubscribe
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  type DocumentData,
+  type FirestoreError,
+  type Unsubscribe,
 } from "firebase/firestore";
 
-import { db } from "@/services/firebase/firebase";
+import { auth, db } from "@/services/firebase/firebase";
 
 /**
  * Helpers genéricos de acceso a Firestore.
@@ -49,6 +49,34 @@ function limpiarUndefined<T extends object>(datos: T): T {
     }
   }
   return resultado as T;
+}
+
+/**
+ * Manejador de errores por defecto para los listeners en tiempo real.
+ *
+ * Sin un `onError`, un error de `onSnapshot` (p. ej. `permission-denied`)
+ * se reporta como "Uncaught Error in snapshot listener" y la pantalla se
+ * queda esperando datos que nunca llegan (spinner infinito). Con este
+ * manejador:
+ *  - Al cerrar sesión, Firestore reintenta los listeners activos sin
+ *    credenciales y recibe `permission-denied` justo antes de que las
+ *    pantallas se desmonten. Es esperado, así que se ignora en silencio.
+ *  - En cualquier otro caso se registra un aviso legible y se entrega un
+ *    resultado vacío para que la UI salga del estado de carga.
+ */
+function manejarErrorListener(
+  coleccionPath: string,
+  error: FirestoreError,
+  entregarVacio: () => void,
+): void {
+  const esCierreDeSesion =
+    error.code === "permission-denied" && !auth.currentUser;
+  if (!esCierreDeSesion) {
+    console.warn(
+      `[Firestore] Listener de "${coleccionPath}" falló (${error.code}): ${error.message}`,
+    );
+  }
+  entregarVacio();
 }
 
 /** Crea un documento con ID autogenerado. Agrega `creadoEn` (server timestamp). */
@@ -163,7 +191,10 @@ export function observar<T>(
     (snapshot) => {
       callback(snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as T) })));
     },
-    opciones.onError,
+    (error) => {
+      if (opciones.onError) opciones.onError(error);
+      else manejarErrorListener(coleccionPath, error, () => callback([]));
+    },
   );
 }
 
@@ -183,7 +214,13 @@ export function observarDocumento<T>(
           : null,
       );
     },
-    onError,
+    (error) => {
+      if (onError) onError(error);
+      else
+        manejarErrorListener(`${coleccionPath}/${id}`, error, () =>
+          callback(null),
+        );
+    },
   );
 }
 

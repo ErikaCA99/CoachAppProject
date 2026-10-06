@@ -1,32 +1,28 @@
-import { onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
 
-import { auth } from "../services/firebase/firebase";
-import { useAuthStore } from "../store/auth.store";
+import { AuthController } from "@/controllers/AuthController";
+import { useAuthStore } from "@/store/auth.store";
 
 /**
- * Listener que sincroniza el estado de Firebase Auth con el store de Zustand.
+ * Listener que sincroniza la sesión de Firebase Auth con el store de Zustand.
  * Se debe llamar UNA sola vez en el layout raíz.
  *
  * Cuando Firebase detecta un cambio de sesión (login, logout, token expirado),
- * actualiza el store. Esto es la fuente de verdad de sesión "reactiva".
+ * actualiza el store. Es la fuente de verdad "reactiva" de la sesión.
  */
 export function useAuthListener(): void {
-  const { setUser, logout, setLoading, setAuthInicializado } = useAuthStore();
+  // Las acciones de Zustand son referencias estables: el efecto corre una vez.
+  const setUser = useAuthStore((s) => s.setUser);
+  const logout = useAuthStore((s) => s.logout);
+  const setLoading = useAuthStore((s) => s.setLoading);
+  const setAuthInicializado = useAuthStore((s) => s.setAuthInicializado);
 
   useEffect(() => {
     setLoading(true);
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // setUser valida internamente con Zod antes de guardar
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          emailVerified: firebaseUser.emailVerified,
-        });
+    const unsubscribe = AuthController.observarSesion((usuario) => {
+      if (usuario) {
+        setUser(usuario); // setUser valida con Zod antes de guardar
       } else {
         logout();
       }
@@ -35,6 +31,5 @@ export function useAuthListener(): void {
     });
 
     return unsubscribe;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setUser, logout, setLoading, setAuthInicializado]);
 }

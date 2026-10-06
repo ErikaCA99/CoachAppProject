@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Reglas de Firebase Storage para coach-app.
+// Las imágenes/GIFs del catálogo (maquinas/..., ejercicios/...) se suben con
+// el SDK Admin; la app solo las lee.
+// Publicar: Firebase Console → Storage → Reglas → pegar → Publicar.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}

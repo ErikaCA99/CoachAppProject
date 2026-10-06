@@ -1,243 +1,253 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Href } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ChipFiltro } from "@/components/maquinas/ChipFiltro";
+import { TarjetaMaquina } from "@/components/maquinas/TarjetaMaquina";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MaquinasController";
-import type { CategoriaMaquina, Maquina } from "@/models/entities/Maquina";
+import {
+  TIPOS_MAQUINA,
+  type Maquina,
+  type TipoMaquina,
+} from "@/models/entities/Maquina";
 
+const TIPOS = Object.entries(TIPOS_MAQUINA) as [
+  TipoMaquina,
+  (typeof TIPOS_MAQUINA)[TipoMaquina],
+][];
+
+/**
+ * Guía de Máquinas: catálogo de las máquinas del gimnasio (Firestore).
+ * El catálogo completo se descarga una vez y se filtra en memoria.
+ */
 export default function MachinesScreen() {
   const router = useRouter();
-  const [categorias] = useState<CategoriaMaquina[]>(
-    MaquinasController.listarCategorias,
-  );
 
-  const [categoriaId, setCategoriaId] = useState<number | undefined>(undefined);
+  const [catalogo, setCatalogo] = useState<Maquina[]>([]);
+  const [categorias, setCategorias] = useState<string[]>([]);
   const [busqueda, setBusqueda] = useState("");
-  const [maquinas, setMaquinas] = useState<Maquina[]>([]);
-  const [siguienteOffset, setSiguienteOffset] = useState<number | null>(0);
+  const [categoria, setCategoria] = useState<string | undefined>();
+  const [tipo, setTipo] = useState<TipoMaquina | undefined>();
   const [cargando, setCargando] = useState(true);
-  const [cargandoMas, setCargandoMas] = useState(false);
+  const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Evita que una respuesta vieja (p. ej. de una letra tecleada dos búsquedas
-  // atrás) pise los resultados de una búsqueda más reciente si llega tarde.
-  const solicitudIdRef = useRef(0);
 
-  const cargar = useCallback(
-    async (offset: number, reset: boolean) => {
-      const idSolicitud = ++solicitudIdRef.current;
-      try {
-        if (reset) {
-          setCargando(true);
-          setError(null);
-        } else {
-          setCargandoMas(true);
-        }
+  /** Descarga (o recarga) el catálogo. Los setState van en callbacks, no en el cuerpo del efecto. */
+  const cargar = useCallback((forzar = false) => {
+    const recarga = forzar ? MaquinasController.recargar() : Promise.resolve();
+    return recarga
+      .then(() =>
+        Promise.all([
+          MaquinasController.listar(),
+          MaquinasController.listarCategorias(),
+        ]),
+      )
+      .then(([maquinas, cats]) => {
+        setCatalogo(maquinas);
+        setCategorias(cats);
+        setError(null);
+      })
+      .catch((err) => {
+        console.error("Error al cargar el catálogo de máquinas:", err);
+        setError("No se pudo cargar el catálogo. Verifica tu conexión.");
+      })
+      .finally(() => {
+        setCargando(false);
+        setRefrescando(false);
+      });
+  }, []);
 
-        const resultado = await MaquinasController.listar({
-          categoriaId,
-          busqueda: busqueda.trim() || undefined,
-          offset,
-        });
-
-        // Esta respuesta quedó obsoleta: ya se disparó otra búsqueda/filtro
-        // más reciente mientras esperábamos. Se descarta en vez de pisar
-        // resultados correctos con datos viejos.
-        if (idSolicitud !== solicitudIdRef.current) return;
-
-        setMaquinas((prev) =>
-          reset ? resultado.items : [...prev, ...resultado.items],
-        );
-        setSiguienteOffset(resultado.siguienteOffset);
-      } catch (err) {
-        if (idSolicitud !== solicitudIdRef.current) return;
-        console.error("Error al cargar máquinas:", err);
-        setError("No se pudieron cargar las máquinas. Verifica tu conexión.");
-      } finally {
-        if (idSolicitud === solicitudIdRef.current) {
-          setCargando(false);
-          setCargandoMas(false);
-        }
-      }
-    },
-    [categoriaId, busqueda],
-  );
-
-  // Recarga (con debounce) cada vez que cambia el filtro de categoría o el texto de búsqueda.
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      cargar(0, true);
-    }, 400);
-    return () => clearTimeout(timeout);
+    cargar();
   }, [cargar]);
 
-  const cargarMas = useCallback(() => {
-    if (siguienteOffset === null || cargandoMas || cargando) return;
-    cargar(siguienteOffset, false);
-  }, [siguienteOffset, cargandoMas, cargando, cargar]);
+  const filtradas = useMemo(
+    () => MaquinasController.filtrar(catalogo, { busqueda, categoria, tipo }),
+    [catalogo, busqueda, categoria, tipo],
+  );
 
-  const renderItem = useCallback(
-    ({ item }: { item: Maquina }) => (
-      <TouchableOpacity
-        className="mb-3 flex-row items-center overflow-hidden rounded-2xl border border-border bg-background"
-        onPress={() => router.push(`/(app)/machines/${item.id}` as Href)}
-      >
-        {item.imagenUrl ? (
-          <Image
-            source={{ uri: item.imagenUrl }}
-            className="h-20 w-20"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="h-20 w-20 items-center justify-center bg-primary-light/30">
-            <Ionicons
-              name="barbell-outline"
-              size={28}
-              color={palette.primary}
-            />
-          </View>
-        )}
-        <View className="flex-1 p-3">
-          <Text
-            className="text-base font-semibold text-foreground"
-            numberOfLines={1}
-          >
-            {item.nombre}
-          </Text>
-          <Text className="mt-1 text-xs text-text-muted">{item.categoria}</Text>
-          {item.equipo.length > 0 && (
-            <Text
-              className="mt-0.5 text-[11px] text-text-muted"
-              numberOfLines={1}
-            >
-              {item.equipo.join(", ")}
-            </Text>
-          )}
-        </View>
-        <Ionicons
-          name="chevron-forward"
-          size={18}
-          color={palette.textMuted}
-          style={{ marginRight: 12 }}
-        />
-      </TouchableOpacity>
-    ),
+  const hayFiltros = useMemo(
+    () => !!busqueda.trim() || !!categoria || !!tipo,
+    [busqueda, categoria, tipo],
+  );
+
+  const irADetalle = useCallback(
+    (id: string) => router.push(`/(app)/machines/${id}` as Href),
     [router],
   );
 
-  return (
-    <View className="flex-1 bg-background">
-      <View className="border-b border-border bg-background px-4 pb-3 pt-14">
-        <Text className="mb-3 text-2xl font-bold text-foreground">
-          Máquinas
-        </Text>
+  const renderItem = useCallback(
+    ({ item }: { item: Maquina }) => (
+      <TarjetaMaquina maquina={item} onPress={() => irADetalle(item.id)} />
+    ),
+    [irADetalle],
+  );
 
-        <View className="mb-3 flex-row items-center rounded-2xl border border-border bg-primary-light/20 px-3">
-          <Ionicons name="search" size={18} color={palette.textMuted} />
-          <TextInput
-            className="ml-2 flex-1 py-2.5 text-sm text-foreground"
-            placeholder="Buscar ejercicio..."
-            placeholderTextColor="#6b7280"
-            value={busqueda}
-            onChangeText={setBusqueda}
-          />
+  return (
+    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
+      <View className="flex-1 bg-primary-light/15">
+        {/* Encabezado */}
+        <View className="px-4 pb-3 pt-4">
+          <View className="flex-row items-start justify-between">
+            <View>
+              <Text className="text-2xl font-bold text-foreground">
+                Guía de Máquinas
+              </Text>
+              <Text className="mt-0.5 text-sm text-primary">
+                {hayFiltros
+                  ? `${filtradas.length} de ${catalogo.length} máquinas`
+                  : `${catalogo.length} máquinas`}
+              </Text>
+            </View>
+            <TouchableOpacity
+              className="h-11 w-11 items-center justify-center rounded-2xl bg-accent-strong"
+              onPress={() => router.push("/(app)/machines/escaner" as Href)}
+              accessibilityLabel="Escanear una máquina"
+            >
+              <Ionicons name="scan" size={22} color={palette.background} />
+            </TouchableOpacity>
+          </View>
+
+          <View className="mt-4 flex-row items-center rounded-2xl border border-primary-light bg-background px-3">
+            <Ionicons name="search" size={18} color={palette.textMuted} />
+            <TextInput
+              className="ml-2 flex-1 py-2.5 text-sm text-foreground"
+              placeholder="Buscar máquinas, músculos o ejercicios..."
+              placeholderTextColor="#9ca3af"
+              value={busqueda}
+              onChangeText={setBusqueda}
+              returnKeyType="search"
+            />
+            {busqueda.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setBusqueda("")}
+                accessibilityLabel="Borrar búsqueda"
+              >
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={palette.textMuted}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <Text className="mb-2 mt-4 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+            Grupo muscular
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ChipFiltro
+              texto="Todos"
+              activo={!categoria}
+              onPress={() => setCategoria(undefined)}
+            />
+            {categorias.map((c) => (
+              <ChipFiltro
+                key={c}
+                texto={c}
+                activo={categoria === c}
+                onPress={() => setCategoria(categoria === c ? undefined : c)}
+              />
+            ))}
+          </ScrollView>
+
+          <Text className="mb-2 mt-3 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+            Tipo
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ChipFiltro
+              texto="Todos"
+              activo={!tipo}
+              onPress={() => setTipo(undefined)}
+            />
+            {TIPOS.map(([valor, info]) => (
+              <ChipFiltro
+                key={valor}
+                texto={info.etiqueta}
+                activo={tipo === valor}
+                onPress={() => setTipo(tipo === valor ? undefined : valor)}
+              />
+            ))}
+          </ScrollView>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity
-            className={`mr-2 rounded-full border px-4 py-2 ${
-              categoriaId === undefined
-                ? "border-primary bg-primary"
-                : "border-border bg-background"
-            }`}
-            onPress={() => setCategoriaId(undefined)}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                categoriaId === undefined
-                  ? "text-background"
-                  : "text-foreground"
-              }`}
-            >
-              Todas
+        {/* Contenido */}
+        {cargando ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={palette.primary} />
+            <Text className="mt-3 text-sm text-text-muted">
+              Cargando máquinas...
             </Text>
-          </TouchableOpacity>
-          {categorias.map((categoria) => (
+          </View>
+        ) : error ? (
+          <View className="flex-1 items-center justify-center p-6">
+            <Ionicons
+              name="cloud-offline-outline"
+              size={40}
+              color={palette.textMuted}
+            />
+            <Text className="mt-3 text-center text-sm text-error">{error}</Text>
             <TouchableOpacity
-              key={categoria.id}
-              className={`mr-2 rounded-full border px-4 py-2 ${
-                categoriaId === categoria.id
-                  ? "border-primary bg-primary"
-                  : "border-border bg-background"
-              }`}
-              onPress={() => setCategoriaId(categoria.id)}
+              className="mt-4 rounded-xl bg-primary px-5 py-2.5"
+              onPress={() => {
+                setCargando(true);
+                cargar(true);
+              }}
             >
-              <Text
-                className={`text-xs font-semibold ${
-                  categoriaId === categoria.id
-                    ? "text-background"
-                    : "text-foreground"
-                }`}
-              >
-                {categoria.nombre}
+              <Text className="text-sm font-bold text-background">
+                Reintentar
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {cargando ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={palette.primary} />
-          <Text className="mt-3 text-sm text-text-muted">
-            Cargando máquinas...
-          </Text>
-        </View>
-      ) : error ? (
-        <View className="flex-1 items-center justify-center p-6">
-          <Text className="text-center text-sm text-error">{error}</Text>
-          <TouchableOpacity
-            className="mt-4 rounded-xl bg-primary px-5 py-2.5"
-            onPress={() => cargar(0, true)}
-          >
-            <Text className="text-sm font-bold text-background">
-              Reintentar
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={maquinas}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          contentContainerStyle={{ padding: 16 }}
-          onEndReachedThreshold={0.4}
-          onEndReached={cargarMas}
-          ListEmptyComponent={
-            <Text className="mt-10 text-center text-sm text-text-muted">
-              No se encontraron máquinas con esos filtros.
-            </Text>
-          }
-          ListFooterComponent={
-            cargandoMas ? (
-              <ActivityIndicator
-                style={{ marginVertical: 16 }}
-                color={palette.primary}
+          </View>
+        ) : (
+          <FlatList
+            data={filtradas}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            numColumns={2}
+            columnWrapperStyle={{ gap: 12 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl
+                refreshing={refrescando}
+                onRefresh={() => {
+                  setRefrescando(true);
+                  cargar(true);
+                }}
+                colors={[palette.primary]}
+                tintColor={palette.primary}
               />
-            ) : null
-          }
-        />
-      )}
-    </View>
+            }
+            ListEmptyComponent={
+              <View className="mt-10 items-center px-6">
+                <Ionicons
+                  name="search-outline"
+                  size={36}
+                  color={palette.textMuted}
+                />
+                <Text className="mt-2 text-center text-sm text-text-muted">
+                  {catalogo.length === 0
+                    ? "El catálogo está vacío. Carga las máquinas con el script de seed."
+                    : "No hay máquinas con esos filtros."}
+                </Text>
+              </View>
+            }
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }

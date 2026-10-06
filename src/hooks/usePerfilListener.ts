@@ -18,16 +18,29 @@ export function usePerfilListener(): void {
 
   useEffect(() => {
     if (!uid) return;
+    // Evita que un callback tardío (llegado después del cleanup o de un
+    // logout) escriba un `perfilCompleto` obsoleto en el store: eso haría
+    // que el siguiente login pasara un instante por (onboarding).
+    let activo = true;
+    const sigueVigente = () =>
+      activo && useAuthStore.getState().user?.uid === uid;
 
     const unsubscribe = AuthController.observarPerfil(
       uid,
-      (perfil) => setPerfilCompleto(AuthController.esPerfilCompleto(perfil)),
+      (perfil) => {
+        if (!sigueVigente()) return;
+        setPerfilCompleto(AuthController.esPerfilCompleto(perfil));
+      },
       (error) => {
+        if (!sigueVigente()) return;
         console.warn("No se pudo leer el perfil:", error.message);
         setPerfilCompleto(false);
       },
     );
 
-    return unsubscribe;
+    return () => {
+      activo = false;
+      unsubscribe();
+    };
   }, [uid, setPerfilCompleto]);
 }

@@ -47,13 +47,15 @@ export default function ProgressScreen() {
       setCargando(false);
     });
 
-    AuthController.obtenerPerfil(user.uid).then((perfil) => {
-      if (!activo) return;
-      if (perfil?.altura) {
-        setAlturaPerfil(perfil.altura);
-        setAltura(String(perfil.altura));
-      }
-    });
+    AuthController.obtenerPerfil(user.uid)
+      .then((perfil) => {
+        if (!activo) return;
+        if (perfil?.altura) {
+          setAlturaPerfil(perfil.altura);
+          setAltura(String(perfil.altura));
+        }
+      })
+      .catch((error) => console.warn("No se pudo leer el perfil:", error));
 
     return () => {
       activo = false;

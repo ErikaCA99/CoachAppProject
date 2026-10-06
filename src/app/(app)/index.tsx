@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { palette } from "@/constants/palette";
@@ -46,11 +45,15 @@ export default function HomeScreen() {
     const unsubPerfil = AuthController.observarPerfil(user.uid, setPerfil);
     const unsubRutinas = RutinasController.observar(user.uid, setRutinas);
 
-    ProgresoController.listar(user.uid).then((registros) =>
-      setTotalRegistrosProgreso(registros.length),
-    );
+    let activo = true;
+    ProgresoController.listar(user.uid)
+      .then((registros) => {
+        if (activo) setTotalRegistrosProgreso(registros.length);
+      })
+      .catch((error) => console.warn("No se pudo contar el progreso:", error));
 
     return () => {
+      activo = false;
       unsubPerfil();
       unsubRutinas();
     };
@@ -65,10 +68,7 @@ export default function HomeScreen() {
     ) ?? 0;
 
   const handleEscanear = () => {
-    Alert.alert(
-      "Próximamente",
-      "El escáner de máquinas con IA todavía está en desarrollo.",
-    );
+    router.push("/(app)/machines/escaner" as Href);
   };
 
   return (
