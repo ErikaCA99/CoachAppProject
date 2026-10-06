@@ -30,9 +30,14 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Windows
+Thumbs.db
+desktop.ini
+
+# local env files (solo se versionaría una plantilla .env.example)
 .env
-.env*.local
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -46,9 +51,38 @@ example
 # Firebase / Google credentials
 google-services.json
 GoogleService-Info.plist
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # EAS credentials
 credentials.json
 
+# Android signing y builds locales
+*.keystore
+!debug.keystore
+*.apk
+*.aab
+
 # Caché de Gradle creada en la raíz (no versionar)
 .gradle/
+
+# Logs
+*.log
+logs/
+
+# IDEs (se versionan solo .vscode/settings.json y extensions.json)
+.idea/
+.vscode/.react/
+*.swp
+
+# Salidas locales de scripts y asistentes de IA (seeds, descargas temporales)
+_tmp/
+Claude outputs/
+.claude/settings.local.json
+
+# Instalador local de Antigravity CLI (no pertenece al proyecto)
+install.cmd
