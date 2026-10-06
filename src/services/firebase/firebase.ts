@@ -1,6 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  type Firestore,
+} from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 // NOTA: Auth se importa de "@firebase/auth" (el paquete con scope), NO de
 // "firebase/auth". El paquete "firebase" (el envoltorio) no declara la
 // condición "react-native" en su exports map para "./auth" — ni en la
@@ -45,6 +50,27 @@ try {
 export { auth };
 
 // Inicializar Firestore
-export const db = getFirestore(app);
+//
+// React Native no soporta bien el streaming de WebChannel que el SDK web usa
+// por defecto para los listeners (`onSnapshot`). En Android eso produce el
+// aviso "WebChannelConnection RPC 'Listen' stream ... transport errored" y
+// reconexiones constantes. Forzar long polling usa peticiones HTTP normales,
+// que el `fetch` de React Native sí maneja de forma estable.
+//
+// Igual que con Auth: con Fast Refresh este módulo se re-ejecuta y
+// `initializeFirestore` lanza si la instancia ya existe; en ese caso se
+// recupera la existente con `getFirestore`.
+let db: Firestore;
+try {
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
+} catch {
+  db = getFirestore(app);
+}
+export { db };
+
+// Inicializar Storage (imágenes y GIFs del catálogo de máquinas)
+export const storage = getStorage(app);
 
 export default app;

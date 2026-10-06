@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// Reglas de seguridad de Firestore para coach-app.
+// Alineadas con el modelo REAL del código (src/models/entities y repositorios):
+//
+//   maquinas/{id}, ejercicios/{id}            → catálogo, solo lectura
+//   usuarios/{uid}                            → perfil (id = uid de Auth)
+//     ├── rutinas/{id}                        → planSemanal (no "ejercicios")
+//     ├── registrosNutricionales/{id}         → IMC o ingesta
+//     └── progresoFisico/{id}                 → peso (+ altura/imc opcionales)
+//
+// Publicar: Firebase Console → Firestore Database → Reglas → pegar → Publicar.
+// (o `firebase deploy --only firestore:rules` si usas Firebase CLI)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaAutenticado() {
+      return request.auth != null;
+    }
+
+    function esDueno(usuarioId) {
+      return estaAutenticado() && request.auth.uid == usuarioId;
+    }
+
+    // Campo opcional: si viene, debe ser número > 0.
+    function numeroPositivoOpcional(datos, campo) {
+      return !(campo in datos) || (datos[campo] is number && datos[campo] > 0);
+    }
+
+    // ---------- Catálogo público (solo lectura) ----------
+    // Se escribe únicamente con el SDK Admin (scripts de seed), que no pasa por estas reglas.
+    match /maquinas/{maquinaId} {
+      allow read: if estaAutenticado();
+      allow write: if false;
+    }
+
+    match /ejercicios/{ejercicioId} {
+      allow read: if estaAutenticado();
+      allow write: if false;
+    }
+
+    // ---------- Datos por usuario ----------
+    match /usuarios/{usuarioId} {
+
+      function perfilValido() {
+        let datos = request.resource.data;
+        return datos.nombre is string && datos.nombre.size() > 0
+          && datos.email is string
+          && numeroPositivoOpcional(datos, 'altura')
+          && numeroPositivoOpcional(datos, 'pesoActual');
+      }
+
+      allow read, delete: if esDueno(usuarioId);
+      // crearConId() agrega creadoEn = serverTimestamp()
+      allow create: if esDueno(usuarioId) && perfilValido()
+        && request.resource.data.creadoEn == request.time;
+      // actualizar() hace setDoc(merge): request.resource.data es el doc completo resultante.
+      allow update: if esDueno(usuarioId) && perfilValido()
+        && request.resource.data.email == resource.data.email;
+
+      match /rutinas/{rutinaId} {
+        function rutinaValida() {
+          let datos = request.resource.data;
+          return datos.usuarioId == usuarioId
+            && datos.nombre is string && datos.nombre.size() > 0
+            && datos.tipo in ['ia', 'personalizada']
+            && datos.diasPorSemana is number
+            && datos.diasPorSemana >= 1 && datos.diasPorSemana <= 7
+            && datos.planSemanal is list;
+        }
+
+        allow read, delete: if esDueno(usuarioId);
+        allow create: if esDueno(usuarioId) && rutinaValida();
+        allow update: if esDueno(usuarioId) && rutinaValida()
+          && request.resource.data.usuarioId == resource.data.usuarioId;
+      }
+
+      match /registrosNutricionales/{registroId} {
+        function registroValido() {
+          let datos = request.resource.data;
+          let esIMC = datos.weight is number && datos.weight > 0
+            && datos.height is number && datos.height > 0;
+          let esIngesta = datos.alimento is string && datos.alimento.size() > 0
+            && datos.calorias is number && datos.calorias >= 0;
+          return datos.usuarioId == usuarioId && (esIMC || esIngesta);
+        }
+
+        allow read, delete: if esDueno(usuarioId);
+        allow create: if esDueno(usuarioId) && registroValido();
+        allow update: if esDueno(usuarioId) && registroValido()
+          && request.resource.data.usuarioId == resource.data.usuarioId;
+      }
+
+      match /progresoFisico/{registroId} {
+        function progresoValido() {
+          let datos = request.resource.data;
+          return datos.usuarioId == usuarioId
+            && datos.peso is number && datos.peso > 0
+            && numeroPositivoOpcional(datos, 'altura')
+            && numeroPositivoOpcional(datos, 'imc');
+        }
+
+        allow read, delete: if esDueno(usuarioId);
+        allow create: if esDueno(usuarioId) && progresoValido();
+        allow update: if esDueno(usuarioId) && progresoValido()
+          && request.resource.data.usuarioId == resource.data.usuarioId;
+      }
+    }
+  }
+}
