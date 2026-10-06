@@ -49,3 +49,6 @@ GoogleService-Info.plist
 
 # EAS credentials
 credentials.json
+
+# Caché de Gradle creada en la raíz (no versionar)
+.gradle/

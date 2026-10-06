@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "coach-app",
+    "name": "CoachApp",
     "slug": "coach-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,8 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "googleServicesFile": "./google-services.json",
-      "usesCleartextTraffic": true
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -38,7 +37,15 @@
       ],
       "expo-image",
       "@react-native-google-signin/google-signin",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "CoachApp usa la cámara para identificar las máquinas del gimnasio.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

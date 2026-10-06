@@ -15,13 +15,14 @@
 |---|---|---|
 | Presentación | Vista | `src/app/` (rutas Expo Router) y `src/components/` |
 | Lógica de Negocio | Controlador | `src/controllers/` y `src/utils/` |
-| Modelo de datos | Modelo | `src/models/entities/`, `src/models/schemas/`, `src/models/repositories/` |
-| Integraciones externas | Servicios | `src/services/firebase/` y `src/services/ai/` |
+| Modelo de datos | Modelo | `src/models/entities/`, `src/schemas/` (Zod), `src/models/repositories/` |
+| Integraciones externas | Servicios | `src/services/firebase/` (Firestore, Storage), `src/services/wger/` y `src/services/ai/` |
 
 Reglas de la arquitectura que hay que respetar al modificar código:
 
 - Los archivos de `src/app/` son **solo Vista**: nunca importan Firebase ni hacen lógica de negocio directamente; siempre pasan por un controlador de `src/controllers/`.
 - Los **repositorios** (`src/models/repositories/`) son el único lugar que conoce la forma real de Firestore (nombres de colección, rutas de subcolección). Controladores y pantallas no arman rutas de Firestore a mano.
+- El SDK de Firebase Auth solo se usa en `AuthController`; el de Storage solo en `src/services/firebase/storageService.ts` (Firestore guarda **rutas** de Storage, no URLs con token).
 - `src/services/firebase/firestoreService.ts` expone helpers genéricos (`listar`, `obtenerPorId`, `crear`, `actualizar`, `eliminar`, `observar`); no lo dupliques ni accedas al SDK de Firestore fuera de `services/firebase`.
 - Alias de importación: usa `@/*` (→ `./src/*`), nunca rutas relativas largas tipo `../../../`.
 - Enrutamiento (Expo Router): el nombre de archivo **es** la ruta. `(auth)/` y `(app)/` son grupos que no aparecen en la URL. Cada pantalla exporta con `export default` (requisito del router, no opcional). La protección de sesión vive en `src/app/_layout.tsx` con `Stack.Protected` — no reimplementes guards manuales pantalla por pantalla.
@@ -61,10 +62,10 @@ Este proyecto usa `npm`/`npx`, no `pnpm` ni `yarn` (el equipo probó `npx expo i
 - TypeScript estricto en todo `src/`; sigue el estilo ya presente en el archivo que edites antes que imponer uno nuevo.
 - Nombres de entidades y campos de dominio en **español** (`Usuario`, `Maquina`, `Ejercicio`, `Rutina`, `RegistroNutricional`, `ProgresoFisico`, `usuarioId`, `grupoMuscular`...) — mantén esa convención en código nuevo del dominio; los nombres técnicos de hooks/props de librerías (`useState`, `onPress`) se quedan en inglés como ya está.
 - No modifiques `package.json`, `app.json` ni `tsconfig.json` sin permiso explícito: contienen configuración sensible al funcionamiento del proyecto (`"main": "expo-router/entry"`, `experiments.typedRoutes`, el alias `paths: { "@/*": ["./src/*"] }`). Un cambio accidental ahí rompe el enrutador o el build sin un error obvio.
-- No reintroduzcas React Navigation ni Redux: la decisión de arquitectura vigente es Expo Router (enrutamiento) + React Context (`src/context/AuthContext`, `UserContext`) para estado global — no hay Redux/Redux Toolkit en este stack.
+- No reintroduzcas React Navigation ni Redux: la decisión de arquitectura vigente es Expo Router (enrutamiento) + **Zustand** (`src/store/`: `auth.store`, `onboarding.store`) para estado global — no hay Redux ni React Context de sesión en este stack.
 - Para el catálogo de máquinas/ejercicios: las fuentes de datos externas ya están decididas (wger API y/o `free-exercise-db`, ambas de acceso libre); no propongas scraping de HTML como primera opción — varias de esas páginas están detrás de protección anti-bot y ya existe una vía oficial documentada.
 - El mapeo manual máquina → ejercicio externo (`fuentes-mapeo.json`) se hizo a mano a propósito porque el matching difuso por nombre daba resultados incorrectos; no lo reemplaces por lógica de similitud automática sin que te lo pidan explícitamente.
-- Nunca hardcodees credenciales de Firebase ni las imprimas en un mensaje o commit; viven en `.env` (prefijo `EXPO_PUBLIC_`, no versionado) y se leen vía `src/config/env.ts`.
+- Nunca hardcodees credenciales de Firebase ni las imprimas en un mensaje o commit; viven en `.env` (prefijo `EXPO_PUBLIC_`, no versionado) y se leen en `src/services/firebase/firebase.ts`. Todo lo que lleva `EXPO_PUBLIC_` queda dentro del APK: claves privadas de APIs (p. ej. WorkoutX) **no** van en el `.env` de la app, solo en los scripts de seed fuera del proyecto.
 
 ## Reglas de Pruebas
 
