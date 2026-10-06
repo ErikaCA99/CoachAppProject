@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { NutritionController } from "@/controllers/NutritionController";
 import { useAuthStore } from "@/store/auth.store";
@@ -25,15 +25,28 @@ export default function NutricionScreen() {
     const weightNum = parseFloat(weight);
     const heightNum = parseFloat(height);
 
-    if (!(weightNum > 0) || !(heightNum > 0)) return;
+    if (!(weightNum > 0) || !(heightNum > 0)) {
+      Alert.alert("Datos incompletos", "Ingresa un peso y una altura válidos.");
+      return;
+    }
 
-    const resultado = await NutritionController.calcularYGuardarIMC(
-      user.uid,
-      weightNum,
-      heightNum,
-    );
-    setBmi(resultado.bmi);
-    setCategory(resultado.category);
+    try {
+      const resultado = await NutritionController.calcularYGuardarIMC(
+        user.uid,
+        weightNum,
+        heightNum,
+      );
+      setBmi(resultado.bmi);
+      setCategory(resultado.category);
+    } catch (error) {
+      // Solo llega aquí si la validación de Zod rechaza los valores
+      // (p. ej. una altura fuera de rango); el guardado en Firestore ya
+      // maneja sus propios errores dentro del controlador.
+      Alert.alert(
+        "Datos inválidos",
+        error instanceof Error ? error.message : "Revisa los valores.",
+      );
+    }
   };
 
   const resetCalculator = () => {

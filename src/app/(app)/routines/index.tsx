@@ -13,8 +13,9 @@ import {
 
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
+import { MaquinasController } from "@/controllers/MaquinasController";
 import { RutinasController } from "@/controllers/RutinasController";
-import type { Rutina } from "@/models/entities/Rutina";
+import type { EjercicioRutina, Rutina } from "@/models/entities/Rutina";
 import type { ConId } from "@/services/firebase/firestoreService";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -23,7 +24,7 @@ function RutinaActivaCard({
   onIrAMaquina,
 }: {
   rutina: ConId<Rutina>;
-  onIrAMaquina: (maquinaId: number) => void;
+  onIrAMaquina: (ejercicio: EjercicioRutina) => void;
 }) {
   const [diaExpandido, setDiaExpandido] = useState<number | null>(
     rutina.planSemanal[0]?.dia ?? null,
@@ -71,7 +72,7 @@ function RutinaActivaCard({
                   <TouchableOpacity
                     key={`${ejercicio.maquinaId}-${indice}`}
                     className="mb-2 flex-row items-center rounded-lg border border-border p-2.5"
-                    onPress={() => onIrAMaquina(ejercicio.maquinaId)}
+                    onPress={() => onIrAMaquina(ejercicio)}
                   >
                     {ejercicio.imagenUrl ? (
                       <Image
@@ -118,6 +119,26 @@ function RutinaActivaCard({
 export default function RoutinesScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
+
+  /** Abre la ficha de la máquina del ejercicio (si el ejercicio usa una máquina del catálogo). */
+  const irAMaquina = async (ejercicio: EjercicioRutina) => {
+    try {
+      const maquinaId =
+        ejercicio.maquinaCatalogoId ??
+        (await MaquinasController.buscarPorWgerId(ejercicio.maquinaId))?.id;
+      if (maquinaId) {
+        router.push(`/(app)/machines/${maquinaId}` as Href);
+      } else {
+        Alert.alert(
+          ejercicio.nombre,
+          "Este ejercicio no usa ninguna máquina del catálogo (por ejemplo, es con peso libre).",
+        );
+      }
+    } catch (error) {
+      console.error("Error al buscar la máquina del ejercicio:", error);
+      Alert.alert("Error", "No se pudo abrir la ficha de la máquina.");
+    }
+  };
 
   const [rutinas, setRutinas] = useState<ConId<Rutina>[]>([]);
   const [rutinaActivaId, setRutinaActivaId] = useState<string | null>(null);
@@ -196,9 +217,7 @@ export default function RoutinesScreen() {
           // "pegado" al de la rutina anterior.
           key={rutinaActiva.id}
           rutina={rutinaActiva}
-          onIrAMaquina={(maquinaId) =>
-            router.push(`/(app)/machines/${maquinaId}` as Href)
-          }
+          onIrAMaquina={irAMaquina}
         />
       ) : (
         <View className="mb-4 flex-row gap-3">

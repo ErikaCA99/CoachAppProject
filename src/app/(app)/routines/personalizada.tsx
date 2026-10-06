@@ -15,9 +15,9 @@ import {
 } from "react-native";
 
 import { palette } from "@/constants/palette";
-import { MaquinasController } from "@/controllers/MaquinasController";
+import { EjerciciosWgerController } from "@/controllers/EjerciciosWgerController";
 import { RutinasController } from "@/controllers/RutinasController";
-import type { Maquina } from "@/models/entities/Maquina";
+import type { EjercicioWger } from "@/models/entities/EjercicioWger";
 import type { DiaRutina, EjercicioRutina } from "@/models/entities/Rutina";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -35,17 +35,19 @@ function SelectorEjercicios({
 }: {
   visible: boolean;
   onCerrar: () => void;
-  onSeleccionar: (maquina: Maquina) => void;
+  onSeleccionar: (ejercicio: EjercicioWger) => void;
 }) {
   const [busqueda, setBusqueda] = useState("");
-  const [resultados, setResultados] = useState<Maquina[]>([]);
+  const [resultados, setResultados] = useState<EjercicioWger[]>([]);
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
     const timeout = setTimeout(() => {
       setCargando(true);
-      MaquinasController.listar({ busqueda: busqueda.trim() || undefined })
+      EjerciciosWgerController.listar({
+        busqueda: busqueda.trim() || undefined,
+      })
         .then((resultado) => setResultados(resultado.items))
         .catch((error) => console.error("Error al buscar ejercicios:", error))
         .finally(() => setCargando(false));
@@ -177,7 +179,7 @@ export default function RutinaPersonalizadaScreen() {
     );
   };
 
-  const agregarEjercicio = (maquina: Maquina) => {
+  const agregarEjercicio = (maquina: EjercicioWger) => {
     const nuevoEjercicio: EjercicioRutina = {
       maquinaId: maquina.id,
       nombre: maquina.nombre,

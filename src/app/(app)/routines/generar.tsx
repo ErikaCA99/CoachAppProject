@@ -40,12 +40,19 @@ export default function GenerarRutinaScreen() {
     if (!user) return;
     let activo = true;
 
-    AuthController.obtenerPerfil(user.uid).then((perfil) => {
-      if (!activo) return;
-      setObjetivo(perfil?.objetivo ?? null);
-      setNivel(perfil?.nivel ?? null);
-      setFase(perfil?.objetivo && perfil?.nivel ? "generando" : "formulario");
-    });
+    AuthController.obtenerPerfil(user.uid)
+      .then((perfil) => {
+        if (!activo) return;
+        setObjetivo(perfil?.objetivo ?? null);
+        setNivel(perfil?.nivel ?? null);
+        setFase(perfil?.objetivo && perfil?.nivel ? "generando" : "formulario");
+      })
+      .catch((error) => {
+        // Sin perfil no se puede generar automáticamente: se muestra el
+        // formulario para que el usuario elija objetivo y nivel a mano.
+        console.warn("No se pudo leer el perfil:", error);
+        if (activo) setFase("formulario");
+      });
 
     return () => {
       activo = false;

@@ -13,7 +13,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-[#2C2C2C]">
+    <SafeAreaView className="flex-1 bg-[#c9fffc]">
       <View className="p-2" style={{ height: SCREEN_HEIGHT * 0.58 }}>
         <Image
           className="h-full w-full rounded-3xl"
