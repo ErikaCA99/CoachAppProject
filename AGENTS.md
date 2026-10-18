@@ -42,6 +42,7 @@ usuarios/{usuarioId}                          → doc = perfil, id = uid de Fire
 - `maquinas` y `ejercicios` son catálogos de solo lectura para la app; se escriben únicamente desde scripts de seed con el SDK Admin (fuera de la app, con `serviceAccountKey.json`), nunca desde un cliente autenticado.
 - Los datos propios de cada usuario viven en subcolecciones bajo `usuarios/{usuarioId}` (no en colecciones raíz filtradas por un campo `usuarioId`), aunque el campo `usuarioId` se mantiene también dentro de cada documento como defensa en profundidad para las reglas de seguridad.
 - Las fechas son `Timestamp` de Firestore generados con `serverTimestamp()` desde el repositorio — nunca construyas una fecha en el cliente (`new Date()`) para persistirla.
+- Al LEER, `firestoreService` convierte los `Timestamp` a `Date`: las entidades declaran `creadoEn?: Date` y ningún archivo fuera de `services/firebase/` importa tipos de `firebase/firestore`. El tipo `ConId<T>` vive en `src/models/types.ts`.
 - Las reglas de seguridad de Firestore son la barrera real (las credenciales de Firebase viajan dentro del APK y son públicas por diseño). No asumas que la validación de Zod del cliente es suficiente: las reglas también validan tipos y rangos.
 
 ## Comandos Esenciales
