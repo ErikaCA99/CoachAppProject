@@ -27,9 +27,10 @@ import {
   ejercicioRutinaSchema,
   generarRutinaIASchema,
 } from "@/schemas/rutina.schema";
-import type { ConId } from "@/services/firebase/firestoreService";
+import type { ConId } from "@/models/types";
+import { contarEjercicios } from "@/utils/editorRutina";
+import { planificarRutina } from "@/services/ai/planificadorRutinas";
 import {
-  generarPlanHeuristico,
   repartirCantidad,
   type BloqueDia,
   type ParametrosSerie,
@@ -98,10 +99,19 @@ export const RutinasController = {
       );
     }
 
-    const plan = generarPlanHeuristico(
-      validacion.data.objetivo,
-      validacion.data.nivel,
-    );
+    // Datos físicos del perfil: entradas del modelo de IA (edad, IMC,
+    // género, días disponibles). Si faltan, `construirFeatures` imputa.
+    const perfil = await obtenerPerfilUsuario(usuarioId);
+    const planificacion = await planificarRutina({
+      objetivo: validacion.data.objetivo,
+      nivel: validacion.data.nivel,
+      genero: perfil?.genero,
+      edad: perfil?.edad,
+      altura: perfil?.altura,
+      pesoActual: perfil?.pesoActual,
+      diasDisponibles: perfil?.diasDisponibles,
+    });
+    const plan = planificacion.plan;
 
     const planSemanal = await Promise.all(
       plan.bloques.map((bloque, indice) =>
@@ -117,11 +127,37 @@ export const RutinasController = {
       diasPorSemana: plan.diasPorSemana,
       planSemanal,
       usuarioId,
+      origenPlan: planificacion.origen,
+      versionModelo: planificacion.versionModelo,
+      confianzaModelo: planificacion.confianza,
     };
 
     const rutinaId = await guardarRutina(usuarioId, rutina);
     await actualizarPerfilUsuario(usuarioId, { rutinaActivaId: rutinaId });
     return rutinaId;
+  },
+
+  /**
+   * Validación previa de lo que el usuario armó a mano (nombre y al menos un
+   * ejercicio). Devuelve el aviso a mostrar, o `null` si se puede guardar.
+   */
+  validarBorradorPersonalizado(
+    nombre: string,
+    planSemanal: DiaRutina[],
+  ): { titulo: string; mensaje: string } | null {
+    if (!nombre.trim()) {
+      return {
+        titulo: "Falta el nombre",
+        mensaje: "Ponle un nombre a tu rutina.",
+      };
+    }
+    if (contarEjercicios(planSemanal) === 0) {
+      return {
+        titulo: "Sin ejercicios",
+        mensaje: "Agrega al menos un ejercicio a algún día antes de guardar.",
+      };
+    }
+    return null;
   },
 
   /** Guarda una rutina armada a mano por el usuario y la marca como activa. */

@@ -19,6 +19,7 @@ import {
   type ObjetivoUsuario,
 } from "@/models/entities/Usuario";
 import { useAuthStore } from "@/store/auth.store";
+import { useOnboardingStore } from "@/store/onboarding.store";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 type Fase = "cargando_perfil" | "formulario" | "generando" | "error";
@@ -31,10 +32,17 @@ type Fase = "cargando_perfil" | "formulario" | "generando" | "error";
 export default function GenerarRutinaScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
+  const limpiarDestinoPendiente = useOnboardingStore(
+    (s) => s.limpiarDestinoPendiente,
+  );
 
   const [fase, setFase] = useState<Fase>("cargando_perfil");
   const [objetivo, setObjetivo] = useState<ObjetivoUsuario | null>(null);
   const [nivel, setNivel] = useState<NivelExperiencia | null>(null);
+
+  useEffect(() => {
+    limpiarDestinoPendiente();
+  }, [limpiarDestinoPendiente]);
 
   useEffect(() => {
     if (!user) return;
