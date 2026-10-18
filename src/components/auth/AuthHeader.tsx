@@ -17,9 +17,7 @@ export function AuthHeader({ modo }: { modo: ModoAuth }) {
 
   const irA = (destino: ModoAuth) => {
     if (destino === modo) return;
-    router.replace(
-      destino === "login" ? "/(auth)/LoginScreen" : "/(auth)/RegisterScreen",
-    );
+    router.replace(destino === "login" ? "/(auth)/login" : "/(auth)/registro");
   };
 
   return (

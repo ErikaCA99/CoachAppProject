@@ -38,7 +38,7 @@ export default function WelcomeScreen() {
         <View className="mt-8">
           <BotonPrimario
             titulo="Empezar"
-            onPress={() => router.push("/(auth)/LoginScreen")}
+            onPress={() => router.push("/(auth)/login")}
             icono={
               <Ionicons
                 name="rocket-outline"
