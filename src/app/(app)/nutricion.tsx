@@ -1,150 +1,266 @@
-import { useState } from "react";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
 
-import { NutritionController } from "@/controllers/NutritionController";
+import { AgregarRapido } from "@/components/nutricion/AgregarRapido";
+import { BuscadorAlimentos } from "@/components/nutricion/BuscadorAlimentos";
+import { CalculadoraIMCCard } from "@/components/nutricion/CalculadoraIMCCard";
+import { CaloriasGauge } from "@/components/nutricion/CaloriasGauge";
+import {
+  FormularioAlimento,
+  type DatosNuevoAlimento,
+} from "@/components/nutricion/FormularioAlimento";
+import { ListaAlimentosHoy } from "@/components/nutricion/ListaAlimentosHoy";
+import { TablaReferenciaIMC } from "@/components/nutricion/TablaReferenciaIMC";
+import { AppHeader } from "@/components/ui/AppHeader";
+import { ErrorCarga } from "@/components/ui/ErrorCarga";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { palette } from "@/constants/palette";
+import { AuthController } from "@/controllers/AuthController";
+import {
+  calcularMetasNutricionales,
+  calcularResumenDiario,
+  filtrarAlimentosDeHoy,
+  NutritionController,
+  type AlimentoRapido,
+} from "@/controllers/NutritionController";
+import { useErrorDeCarga } from "@/hooks/useErrorDeCarga";
+import type { AlimentoUSDA } from "@/models/entities/AlimentoUSDA";
+import type { RegistroNutricional } from "@/models/entities/RegistroNutricional";
+import type { Usuario } from "@/models/entities/Usuario";
+import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
-import type { BmiCategory } from "@/utils/imcCalculator";
 
-const CATEGORY_STYLES: Record<BmiCategory, { bar: string; text: string }> = {
-  BAJO: { bar: "bg-secondary", text: "text-secondary" },
-  NORMALIDAD: { bar: "bg-primary", text: "text-primary" },
-  SOBREPESO: { bar: "bg-accent", text: "text-accent" },
-  OBESIDAD: { bar: "bg-error", text: "text-error" },
-};
+type VistaNutricion = "diario" | "imc";
+
+function obtenerFechaHoyFormateada(): string {
+  const hoy = new Date();
+  const opciones: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  };
+  return hoy.toLocaleDateString("es-ES", opciones);
+}
 
 export default function NutricionScreen() {
+  const router = useRouter();
   const { user } = useAuthStore();
-  const [weight, setWeight] = useState("");
-  const [height, setHeight] = useState("");
-  const [bmi, setBmi] = useState<number | null>(null);
-  const [category, setCategory] = useState<BmiCategory | null>(null);
+  const [vista, setVista] = useState<VistaNutricion>("diario");
 
-  const handleCalculate = async () => {
+  const [registros, setRegistros] = useState<ConId<RegistroNutricional>[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [guardandoAlimento, setGuardandoAlimento] = useState(false);
+  const [eliminandoId, setEliminandoId] = useState<string | null>(null);
+  const { error, intento, reportar, reintentar } = useErrorDeCarga();
+
+  const [perfil, setPerfil] = useState<Usuario | null>(null);
+
+  const fechaFormateada = useMemo(() => obtenerFechaHoyFormateada(), []);
+
+  // Perfil en tiempo real: si el usuario edita peso/edad/objetivo, la meta
+  // del día se recalcula sola.
+  useEffect(() => {
+    if (!user) return;
+    return AuthController.observarPerfil(user.uid, setPerfil);
+  }, [user]);
+
+  // Metas diarias personalizadas (Mifflin-St Jeor + actividad + objetivo)
+  const resultadoMetas = useMemo(
+    () => calcularMetasNutricionales(perfil),
+    [perfil],
+  );
+
+  // Suscripción en tiempo real a los registros nutricionales del usuario
+  useEffect(() => {
     if (!user) return;
 
-    const weightNum = parseFloat(weight);
-    const heightNum = parseFloat(height);
+    const unsubscribe = NutritionController.observar(
+      user.uid,
+      (datos) => {
+        setRegistros(datos);
+        setCargando(false);
+      },
+      (causa) => reportar("nutricion", causa),
+    );
 
-    if (!(weightNum > 0) || !(heightNum > 0)) {
-      Alert.alert("Datos incompletos", "Ingresa un peso y una altura válidos.");
-      return;
-    }
+    return () => {
+      unsubscribe();
+    };
+  }, [user, intento, reportar]);
 
+  // Alimentos consumidos durante el día de hoy
+  const alimentosHoy = useMemo(
+    () => filtrarAlimentosDeHoy(registros),
+    [registros],
+  );
+
+  // Resumen del balance calórico y macronutrientes del día
+  const resumenDiario = useMemo(
+    () => calcularResumenDiario(alimentosHoy, resultadoMetas.metas),
+    [alimentosHoy, resultadoMetas],
+  );
+
+  // Ingesta rápida mediante chips
+  const handleAgregarRapido = async (item: AlimentoRapido) => {
+    if (!user) return;
     try {
-      const resultado = await NutritionController.calcularYGuardarIMC(
-        user.uid,
-        weightNum,
-        heightNum,
-      );
-      setBmi(resultado.bmi);
-      setCategory(resultado.category);
+      setGuardandoAlimento(true);
+      await NutritionController.registrarIngesta(user.uid, {
+        alimento: item.nombre,
+        calorias: item.calorias,
+        proteinas: item.proteinas,
+        carbohidratos: item.carbohidratos,
+        grasas: item.grasas,
+      });
     } catch (error) {
-      // Solo llega aquí si la validación de Zod rechaza los valores
-      // (p. ej. una altura fuera de rango); el guardado en Firestore ya
-      // maneja sus propios errores dentro del controlador.
       Alert.alert(
-        "Datos inválidos",
-        error instanceof Error ? error.message : "Revisa los valores.",
+        "Error al agregar",
+        error instanceof Error
+          ? error.message
+          : "No se pudo registrar el alimento.",
       );
+    } finally {
+      setGuardandoAlimento(false);
     }
   };
 
-  const resetCalculator = () => {
-    setWeight("");
-    setHeight("");
-    setBmi(null);
-    setCategory(null);
+  // Ingesta personalizada mediante formulario
+  const handleGuardarFormulario = async (datos: DatosNuevoAlimento) => {
+    if (!user) return;
+    setGuardandoAlimento(true);
+    try {
+      await NutritionController.registrarIngesta(user.uid, datos);
+    } finally {
+      setGuardandoAlimento(false);
+    }
+  };
+
+  // Ingesta desde la API de USDA (el componente maneja la alerta de error)
+  const handleAgregarDesdeAPI = async (
+    alimento: AlimentoUSDA,
+    gramos: number,
+    nombre: string,
+  ) => {
+    if (!user) return;
+    setGuardandoAlimento(true);
+    try {
+      await NutritionController.registrarAlimentoUSDA(
+        user.uid,
+        alimento,
+        gramos,
+        nombre,
+      );
+    } finally {
+      setGuardandoAlimento(false);
+    }
+  };
+
+  // Eliminación de un alimento registrado hoy
+  const handleEliminarAlimento = async (id: string) => {
+    if (!user) return;
+    setEliminandoId(id);
+    try {
+      await NutritionController.eliminar(user.uid, id);
+    } catch (error) {
+      Alert.alert(
+        "Error al eliminar",
+        error instanceof Error
+          ? error.message
+          : "No se pudo eliminar el alimento.",
+      );
+    } finally {
+      setEliminandoId(null);
+    }
+  };
+
+  // Cálculo de IMC para la pestaña "Calc. IMC"
+  const handleCalcularIMC = async (pesoKg: number, alturaCm: number) => {
+    if (!user) {
+      throw new Error("Usuario no autenticado");
+    }
+    return NutritionController.calcularYGuardarIMC(user.uid, pesoKg, alturaCm);
   };
 
   return (
-    <View className="flex-1 items-center bg-background p-5 pt-10">
-      <Text className="mb-8 text-2xl font-bold text-foreground">
-        Calculadora IMC
-      </Text>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerStyle={{
+        padding: 20,
+        paddingTop: 56,
+        paddingBottom: 40,
+      }}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* Encabezado superior unificado */}
+      <AppHeader
+        title="Nutrición"
+        subtitle={fechaFormateada}
+        onProfilePress={() => router.push("/(app)/perfil")}
+      />
 
-      <View className="mb-5 w-full">
-        <Text className="mb-1.5 text-base text-text-secondary">Peso (kg)</Text>
-        <TextInput
-          className="h-[50px] w-full rounded-lg border border-border bg-primary-light/20 text-center text-lg text-foreground"
-          keyboardType="numeric"
-          value={weight}
-          onChangeText={setWeight}
-          placeholder="Ejemplo: 70"
-          placeholderTextColor="#6b7280"
+      {/* Selector de pestañas: Diario vs Calc. IMC */}
+      <View className="mb-5">
+        <SegmentedControl
+          options={[
+            { value: "diario", label: "Diario" },
+            { value: "imc", label: "Calc. IMC" },
+          ]}
+          value={vista}
+          onChange={setVista}
         />
       </View>
 
-      <View className="mb-5 w-full">
-        <Text className="mb-1.5 text-base text-text-secondary">
-          Altura (cm)
-        </Text>
-        <TextInput
-          className="h-[50px] w-full rounded-lg border border-border bg-primary-light/20 text-center text-lg text-foreground"
-          keyboardType="numeric"
-          value={height}
-          onChangeText={setHeight}
-          placeholder="Ejemplo: 170"
-          placeholderTextColor="#6b7280"
-        />
-      </View>
+      {error ? (
+        <ErrorCarga mensaje={error} onReintentar={reintentar} />
+      ) : cargando ? (
+        <View className="items-center justify-center py-20">
+          <ActivityIndicator size="large" color={palette.primary} />
+        </View>
+      ) : vista === "diario" ? (
+        <View>
+          {/* Tarjeta de balance calórico y macronutrientes */}
+          <CaloriasGauge
+            resumen={resumenDiario}
+            origenMeta={resultadoMetas}
+            onCompletarPerfil={() => router.push("/(app)/perfil")}
+          />
 
-      <View className="my-7 w-full flex-row justify-between">
-        <TouchableOpacity
-          className="w-[48%] rounded-2xl bg-text-muted p-4"
-          onPress={resetCalculator}
-        >
-          <Text className="text-center text-base font-bold text-background">
-            Reiniciar
-          </Text>
-        </TouchableOpacity>
+          {/* Búsqueda de alimentos en USDA FoodData Central */}
+          <BuscadorAlimentos
+            onAgregar={handleAgregarDesdeAPI}
+            guardando={guardandoAlimento}
+          />
 
-        <TouchableOpacity
-          className="w-[48%] rounded-2xl bg-primary p-4"
-          onPress={handleCalculate}
-        >
-          <Text className="text-center text-base font-bold text-background">
-            Calcular
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Carrusel de adición rápida de alimentos */}
+          <AgregarRapido
+            onAgregar={handleAgregarRapido}
+            deshabilitado={guardandoAlimento}
+          />
 
-      {bmi !== null && category !== null && (
-        <>
-          <Text className="mt-5 text-xl font-bold text-foreground">
-            Tu IMC es:
-          </Text>
-          <Text className="my-5 text-5xl font-bold text-foreground">{bmi}</Text>
-          <Text
-            className={`mb-2.5 text-xl font-bold ${CATEGORY_STYLES[category].text}`}
-          >
-            Categoría: {category}
-          </Text>
+          {/* Formulario colapsable para agregar alimento personalizado */}
+          <FormularioAlimento
+            onGuardar={handleGuardarFormulario}
+            guardando={guardandoAlimento}
+          />
 
-          <View className="mt-5 w-full">
-            <View className="h-5 flex-row overflow-hidden rounded-full">
-              <View className="flex-1 bg-secondary" />
-              <View className="flex-1 bg-primary" />
-              <View className="flex-1 bg-accent" />
-              <View className="flex-1 bg-error" />
-            </View>
+          {/* Listado de alimentos registrados hoy o estado vacío */}
+          <ListaAlimentosHoy
+            alimentos={alimentosHoy}
+            onEliminar={handleEliminarAlimento}
+            eliminandoId={eliminandoId}
+          />
+        </View>
+      ) : (
+        <View>
+          {/* Tarjeta interactiva de cálculo de IMC */}
+          <CalculadoraIMCCard onCalcular={handleCalcularIMC} />
 
-            <View className="mt-2.5 flex-row justify-between">
-              <Text className="flex-1 text-center text-[11px] text-text-muted">
-                BAJO
-              </Text>
-              <Text className="flex-1 text-center text-[11px] text-text-muted">
-                NORMALIDAD
-              </Text>
-              <Text className="flex-1 text-center text-[11px] text-text-muted">
-                SOBREPESO
-              </Text>
-              <Text className="flex-1 text-center text-[11px] text-text-muted">
-                OBESIDAD
-              </Text>
-            </View>
-          </View>
-        </>
+          {/* Tabla de referencia con rangos oficiales de IMC */}
+          <TablaReferenciaIMC />
+        </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
