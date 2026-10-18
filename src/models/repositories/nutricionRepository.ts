@@ -1,10 +1,10 @@
 import type { RegistroNutricional } from "@/models/entities/RegistroNutricional";
+import type { ConId } from "@/models/types";
 import {
   crear,
   eliminar,
   listar,
   observarPorUsuario,
-  type ConId,
 } from "@/services/firebase/firestoreService";
 
 /** Única función que conoce la ruta real de la subcolección de nutrición. */
@@ -54,6 +54,7 @@ export async function eliminarRegistroNutricion(
 export function observarRegistrosNutricion(
   usuarioId: string,
   callback: (registros: ConId<RegistroNutricional>[]) => void,
+  onError?: (error: Error) => void,
 ) {
   return observarPorUsuario<RegistroNutricional>(
     usuarioId,
@@ -62,6 +63,7 @@ export function observarRegistrosNutricion(
     {
       ordenarPor: "creadoEn",
       direccion: "desc",
+      onError,
     },
   );
 }

@@ -1,4 +1,5 @@
 import type { Ejercicio } from "@/models/entities/Ejercicio";
+import type { ConId } from "@/models/types";
 import {
   actualizar,
   crear,
@@ -6,7 +7,6 @@ import {
   listar,
   obtenerPorId,
   observar,
-  type ConId,
 } from "@/services/firebase/firestoreService";
 
 /**

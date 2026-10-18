@@ -1,4 +1,5 @@
 import type { Rutina } from "@/models/entities/Rutina";
+import type { ConId } from "@/models/types";
 import {
   actualizar,
   crear,
@@ -6,7 +7,6 @@ import {
   listar,
   obtenerPorId,
   observarPorUsuario,
-  type ConId,
 } from "@/services/firebase/firestoreService";
 
 /** Única función que conoce la ruta real de la subcolección de rutinas. */
@@ -56,9 +56,11 @@ export async function eliminarRutina(
 export function observarRutinas(
   usuarioId: string,
   callback: (rutinas: ConId<Rutina>[]) => void,
+  onError?: (error: Error) => void,
 ) {
   return observarPorUsuario<Rutina>(usuarioId, "rutinas", callback, {
     ordenarPor: "creadoEn",
     direccion: "desc",
+    onError,
   });
 }

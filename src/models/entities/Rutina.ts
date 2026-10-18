@@ -1,5 +1,3 @@
-import type { Timestamp } from "firebase/firestore";
-
 import type { NivelExperiencia, ObjetivoUsuario } from "./Usuario";
 
 export type TipoRutina = "ia" | "personalizada";
@@ -30,5 +28,11 @@ export interface Rutina {
   diasPorSemana: number;
   planSemanal: DiaRutina[];
   usuarioId: string;
-  creadoEn?: Timestamp;
+  /** Solo rutinas "ia": si la estructura la decidió el modelo TFLite o la heurística de respaldo. */
+  origenPlan?: "modelo" | "heuristica";
+  /** Versión del modelo que generó la rutina (trazabilidad / reentrenamiento). */
+  versionModelo?: string;
+  /** Confianza del modelo (0..1) cuando `origenPlan` es "modelo". */
+  confianzaModelo?: number;
+  creadoEn?: Date;
 }
