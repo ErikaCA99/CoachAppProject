@@ -11,7 +11,7 @@ import {
   actualizarEjercicioSchema,
   ejercicioSchema,
 } from "@/schemas/ejercicio.schema";
-import type { ConId } from "@/services/firebase/firestoreService";
+import type { ConId } from "@/models/types";
 
 /**
  * Controlador (capa de negocio) para el catálogo público de ejercicios.

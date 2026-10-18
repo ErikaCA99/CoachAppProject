@@ -1,21 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Linking,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { HojaConfirmacionMaquina } from "@/components/maquinas/escaner/HojaConfirmacionMaquina";
+import { IndicadorDeteccionAR } from "@/components/maquinas/escaner/IndicadorDeteccionAR";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MaquinasController";
 import type { DificultadEjercicio, Maquina } from "@/models/entities/Maquina";
@@ -113,14 +114,20 @@ function MarcoEscaneo({ detectada }: { detectada: boolean }) {
 export default function EscanerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { height: altoPantalla } = useWindowDimensions();
   const { maquinaId } = useLocalSearchParams<{ maquinaId?: string }>();
   const [permiso, pedirPermiso] = useCameraPermissions();
   const camara = useRef<CameraView>(null);
 
   const [fase, setFase] = useState<Fase>("inicio");
+  /** En "eligiendo" es la candidata; en "detectada", la confirmada. */
   const [maquina, setMaquina] = useState<Maquina | null>(null);
   const [catalogo, setCatalogo] = useState<Maquina[]>([]);
-  const [busqueda, setBusqueda] = useState("");
+  /** Predicción del reconocimiento (aunque tenga baja confianza). */
+  const [sugerencia, setSugerencia] = useState<{
+    maquinaId: string;
+    confianza: number;
+  } | null>(null);
 
   // Máquina preseleccionada desde su ficha ("Ver en Realidad Aumentada").
   useEffect(() => {
@@ -134,17 +141,8 @@ export default function EscanerScreen() {
     };
   }, [maquinaId]);
 
-  const opciones = useMemo(() => {
-    const texto = busqueda.trim().toLowerCase();
-    return texto
-      ? catalogo.filter((m) => m.nombre.toLowerCase().includes(texto))
-      : catalogo;
-  }, [catalogo, busqueda]);
-
   const volver = () =>
-    router.canGoBack()
-      ? router.back()
-      : router.replace("/(app)/machines" as Href);
+    router.canGoBack() ? router.back() : router.replace("/(app)/machines");
 
   const iniciar = async () => {
     const respuesta = permiso?.granted ? permiso : await pedirPermiso();
@@ -152,24 +150,37 @@ export default function EscanerScreen() {
     setFase(maquinaId && maquina ? "detectada" : "escaneando");
   };
 
+  const reiniciarEscaneo = () => {
+    setMaquina(null);
+    setSugerencia(null);
+    setFase("escaneando");
+  };
+
   const capturar = async () => {
     setFase("analizando");
-    let reconocida = null;
+    let resultado = null;
     try {
       const foto = await camara.current?.takePictureAsync({ quality: 0.5 });
-      reconocida = foto
+      resultado = foto
         ? await MaquinasController.reconocerDesdeFoto(foto.uri)
         : null;
-      if (reconocida) {
-        setMaquina(reconocida);
-        setFase("detectada");
-        return;
-      }
     } catch (error) {
       console.warn("No se pudo analizar la foto:", error);
     }
+
+    setSugerencia(
+      resultado
+        ? { maquinaId: resultado.maquina.id, confianza: resultado.confianza }
+        : null,
+    );
+    setMaquina(resultado?.maquina ?? null);
+    if (resultado && !resultado.requiereConfirmacion) {
+      setFase("detectada");
+      return;
+    }
+
     try {
-      // Sin modelo (o con baja confianza): el usuario confirma la máquina.
+      // Sin modelo o con baja confianza: el usuario confirma la máquina.
       setCatalogo(await MaquinasController.listar());
       setFase("eligiendo");
     } catch (error) {
@@ -181,6 +192,19 @@ export default function EscanerScreen() {
       );
     }
   };
+
+  const esSugerida = !!maquina && sugerencia?.maquinaId === maquina.id;
+  const porcentaje = sugerencia ? Math.round(sugerencia.confianza * 100) : 0;
+  const etiquetaIndicador =
+    fase === "detectada"
+      ? esSugerida
+        ? `Detectada · ${porcentaje} %`
+        : "Máquina confirmada"
+      : esSugerida
+        ? `Sugerencia · ${porcentaje} %`
+        : "Tu selección";
+  const mostrarIndicador =
+    !!maquina && (fase === "eligiendo" || fase === "detectada");
 
   const camaraActiva = fase !== "inicio" && permiso?.granted;
   const permisoDenegado = permiso && !permiso.granted && !permiso.canAskAgain;
@@ -215,6 +239,17 @@ export default function EscanerScreen() {
         </View>
         <View className="h-9 w-9" />
       </View>
+
+      {/* Identificación visual: miniatura de la máquina + ícono 3D */}
+      {mostrarIndicador && maquina ? (
+        <View className="mt-3 px-4">
+          <IndicadorDeteccionAR
+            maquina={maquina}
+            etiqueta={etiquetaIndicador}
+            confirmada={fase === "detectada"}
+          />
+        </View>
+      ) : null}
 
       {/* Contenido central */}
       <View className="flex-1 items-center justify-center px-8">
@@ -313,51 +348,15 @@ export default function EscanerScreen() {
         )}
 
         {fase === "eligiendo" && (
-          <View className="max-h-[420px] rounded-3xl bg-background p-4">
-            <Text className="text-base font-bold text-foreground">
-              ¿Qué máquina es?
-            </Text>
-            <Text className="mb-3 mt-1 text-xs text-text-muted">
-              El reconocimiento automático está en desarrollo. Elige la máquina
-              para continuar.
-            </Text>
-            <TextInput
-              className="mb-2 rounded-xl border border-primary-light px-3 py-2 text-sm text-foreground"
-              placeholder="Buscar máquina..."
-              placeholderTextColor="#9ca3af"
-              value={busqueda}
-              onChangeText={setBusqueda}
-            />
-            <FlatList
-              data={opciones}
-              keyExtractor={(m) => m.id}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  className="flex-row items-center justify-between border-b border-primary-light/40 py-2.5"
-                  onPress={() => {
-                    setMaquina(item);
-                    setFase("detectada");
-                  }}
-                >
-                  <Text className="flex-1 text-sm text-foreground">
-                    {item.nombre}
-                  </Text>
-                  <Text className="ml-2 text-[11px] text-primary">
-                    {item.categoria}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              className="mt-3 self-center"
-              onPress={() => setFase("escaneando")}
-            >
-              <Text className="text-xs font-bold text-primary">
-                Volver a intentar
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <HojaConfirmacionMaquina
+            catalogo={catalogo}
+            seleccionada={maquina}
+            onSeleccionar={setMaquina}
+            sugerencia={sugerencia}
+            onConfirmar={() => maquina && setFase("detectada")}
+            onReintentar={reiniciarEscaneo}
+            alturaMaxima={altoPantalla * 0.66}
+          />
         )}
 
         {fase === "detectada" && maquina && (
@@ -371,7 +370,7 @@ export default function EscanerScreen() {
               </View>
               <View className="ml-3 flex-1">
                 <Text className="text-[11px] text-white/80">
-                  Máquina Detectada
+                  {esSugerida ? "Máquina detectada" : "Máquina confirmada"}
                 </Text>
                 <Text
                   className="text-lg font-bold text-white"
@@ -407,7 +406,10 @@ export default function EscanerScreen() {
               <TouchableOpacity
                 className="flex-1 items-center rounded-2xl bg-white py-3"
                 onPress={() =>
-                  router.replace(`/(app)/machines/${maquina.id}` as Href)
+                  router.replace({
+                    pathname: "/(app)/machines/[id]",
+                    params: { id: maquina.id },
+                  })
                 }
               >
                 <Text className="text-sm font-bold text-primary">
@@ -416,11 +418,7 @@ export default function EscanerScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-1 items-center rounded-2xl bg-white/20 py-3"
-                onPress={() => {
-                  setMaquina(null);
-                  setBusqueda("");
-                  setFase("escaneando");
-                }}
+                onPress={reiniciarEscaneo}
               >
                 <Text className="text-sm font-bold text-white">
                   Escanear Otra

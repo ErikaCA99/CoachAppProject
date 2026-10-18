@@ -1,20 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   RefreshControl,
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ChipFiltro } from "@/components/maquinas/ChipFiltro";
 import { TarjetaMaquina } from "@/components/maquinas/TarjetaMaquina";
+import { AppHeader } from "@/components/ui/AppHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MaquinasController";
 import {
@@ -84,7 +86,8 @@ export default function MachinesScreen() {
   );
 
   const irADetalle = useCallback(
-    (id: string) => router.push(`/(app)/machines/${id}` as Href),
+    (id: string) =>
+      router.push({ pathname: "/(app)/machines/[id]", params: { id } }),
     [router],
   );
 
@@ -100,25 +103,20 @@ export default function MachinesScreen() {
       <View className="flex-1 bg-primary-light/15">
         {/* Encabezado */}
         <View className="px-4 pb-3 pt-4">
-          <View className="flex-row items-start justify-between">
-            <View>
-              <Text className="text-2xl font-bold text-foreground">
-                Guía de Máquinas
-              </Text>
-              <Text className="mt-0.5 text-sm text-primary">
-                {hayFiltros
-                  ? `${filtradas.length} de ${catalogo.length} máquinas`
-                  : `${catalogo.length} máquinas`}
-              </Text>
-            </View>
-            <TouchableOpacity
-              className="h-11 w-11 items-center justify-center rounded-2xl bg-accent-strong"
-              onPress={() => router.push("/(app)/machines/escaner" as Href)}
-              accessibilityLabel="Escanear una máquina"
-            >
-              <Ionicons name="scan" size={22} color={palette.background} />
-            </TouchableOpacity>
-          </View>
+          <AppHeader
+            title="Guía de Máquinas"
+            subtitle={
+              hayFiltros
+                ? `${filtradas.length} de ${catalogo.length} máquinas`
+                : `${catalogo.length} máquinas`
+            }
+            secondaryAction={{
+              icon: "scan",
+              label: "Escanear una máquina",
+              onPress: () => router.push("/(app)/machines/escaner"),
+            }}
+            onProfilePress={() => router.push("/(app)/perfil")}
+          />
 
           <View className="mt-4 flex-row items-center rounded-2xl border border-primary-light bg-background px-3">
             <Ionicons name="search" size={18} color={palette.textMuted} />
@@ -131,16 +129,17 @@ export default function MachinesScreen() {
               returnKeyType="search"
             />
             {busqueda.length > 0 && (
-              <TouchableOpacity
+              <Pressable
                 onPress={() => setBusqueda("")}
                 accessibilityLabel="Borrar búsqueda"
+                className="p-1 active:opacity-60"
               >
                 <Ionicons
                   name="close-circle"
                   size={18}
                   color={palette.textMuted}
                 />
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
 
@@ -193,23 +192,19 @@ export default function MachinesScreen() {
           </View>
         ) : error ? (
           <View className="flex-1 items-center justify-center p-6">
-            <Ionicons
-              name="cloud-offline-outline"
-              size={40}
-              color={palette.textMuted}
-            />
-            <Text className="mt-3 text-center text-sm text-error">{error}</Text>
-            <TouchableOpacity
-              className="mt-4 rounded-xl bg-primary px-5 py-2.5"
-              onPress={() => {
-                setCargando(true);
-                cargar(true);
+            <EmptyState
+              icon="cloud-offline-outline"
+              title="No se pudo cargar el catálogo"
+              description={error}
+              actionButton={{
+                label: "Reintentar",
+                icon: "refresh",
+                onPress: () => {
+                  setCargando(true);
+                  cargar(true);
+                },
               }}
-            >
-              <Text className="text-sm font-bold text-background">
-                Reintentar
-              </Text>
-            </TouchableOpacity>
+            />
           </View>
         ) : (
           <FlatList
@@ -232,18 +227,32 @@ export default function MachinesScreen() {
               />
             }
             ListEmptyComponent={
-              <View className="mt-10 items-center px-6">
-                <Ionicons
-                  name="search-outline"
-                  size={36}
-                  color={palette.textMuted}
-                />
-                <Text className="mt-2 text-center text-sm text-text-muted">
-                  {catalogo.length === 0
-                    ? "El catálogo está vacío. Carga las máquinas con el script de seed."
-                    : "No hay máquinas con esos filtros."}
-                </Text>
-              </View>
+              <EmptyState
+                icon="search-outline"
+                title={
+                  catalogo.length === 0
+                    ? "El catálogo está vacío"
+                    : "Sin resultados"
+                }
+                description={
+                  catalogo.length === 0
+                    ? "Carga las máquinas con el script de seed para ver el catálogo completo."
+                    : "No hay máquinas con esos filtros. Prueba con otra búsqueda o categoría."
+                }
+                actionButton={
+                  hayFiltros
+                    ? {
+                        label: "Quitar filtros",
+                        icon: "close-circle-outline",
+                        onPress: () => {
+                          setBusqueda("");
+                          setCategoria(undefined);
+                          setTipo(undefined);
+                        },
+                      }
+                    : undefined
+                }
+              />
             }
           />
         )}

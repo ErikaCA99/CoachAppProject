@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { ImagenStorage } from "@/components/maquinas/ImagenStorage";
 import type { Maquina } from "@/models/entities/Maquina";
@@ -11,10 +11,9 @@ interface TarjetaMaquinaProps {
 /** Tarjeta del grid de "Guía de Máquinas": foto, nombre y categoría. */
 export function TarjetaMaquina({ maquina, onPress }: TarjetaMaquinaProps) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
+    <Pressable
       onPress={onPress}
-      className="mb-3 flex-1 overflow-hidden rounded-2xl border border-primary-light/70 bg-background shadow-sm"
+      className="mb-3 flex-1 overflow-hidden rounded-2xl border border-primary-light/70 bg-background shadow-sm active:scale-[0.98] active:opacity-90"
       accessibilityRole="button"
       accessibilityLabel={`${maquina.nombre}, ${maquina.categoria}`}
     >
@@ -36,6 +35,6 @@ export function TarjetaMaquina({ maquina, onPress }: TarjetaMaquinaProps) {
           {maquina.categoria}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
