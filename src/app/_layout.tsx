@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 import { configureGoogleSignIn } from "@/config/googleSignIn";
 import { useAuthListener } from "@/hooks/useAuthListener";
-import { usePerfilListener } from "@/hooks/usePerfilListener";
+import { usePerfilListener } from "@/hooks/useProfileListener";
 import { useAuthStore } from "@/store/auth.store";
 
 // Mantener el splash nativo hasta saber a qué grupo de rutas ir.

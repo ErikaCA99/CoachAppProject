@@ -11,7 +11,7 @@ export default function MachinesLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="[id]" options={{ animation: "slide_from_right" }} />
       <Stack.Screen
-        name="escaner"
+        name="scanner"
         options={{ animation: "fade", presentation: "fullScreenModal" }}
       />
     </Stack>

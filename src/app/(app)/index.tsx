@@ -7,10 +7,10 @@ import { Pressable, ScrollView, StatusBar, Text, View } from "react-native";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
-import { ProgresoController } from "@/controllers/ProgresoController";
-import { RutinasController } from "@/controllers/RutinasController";
-import type { Rutina } from "@/models/entities/Rutina";
-import type { Usuario } from "@/models/entities/Usuario";
+import { ProgresoController } from "@/controllers/ProgressController";
+import { RutinasController } from "@/controllers/RoutinesController";
+import type { Rutina } from "@/models/entities/Routine";
+import type { Usuario } from "@/models/entities/User";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
@@ -62,7 +62,7 @@ export default function HomeScreen() {
     ) ?? 0;
 
   const handleEscanear = () => {
-    router.push("/(app)/machines/escaner");
+    router.push("/(app)/machines/scanner");
   };
 
   return (
@@ -81,7 +81,7 @@ export default function HomeScreen() {
             "Deportista"
           }`}
           subtitle="¿Listo para entrenar?"
-          onProfilePress={() => router.push("/(app)/perfil")}
+          onProfilePress={() => router.push("/(app)/profile")}
         />
 
         {/* Active Routine Card */}
@@ -104,7 +104,7 @@ export default function HomeScreen() {
               className="rounded-xl bg-background px-5 py-2.5 active:scale-[0.97] active:opacity-85"
               onPress={() =>
                 router.push(
-                  rutinaActiva ? "/(app)/routines" : "/(app)/routines/generar",
+                  rutinaActiva ? "/(app)/routines" : "/(app)/routines/generate",
                 )
               }
             >
@@ -165,7 +165,7 @@ export default function HomeScreen() {
 
         <Pressable
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-primary bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
-          onPress={() => router.push("/(app)/routines/generar")}
+          onPress={() => router.push("/(app)/routines/generate")}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-primary">
             <Ionicons name="sparkles" size={24} color={palette.background} />

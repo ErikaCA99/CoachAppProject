@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { Dimensions, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BotonPrimario } from "@/components/ui/BotonPrimario";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { palette } from "@/constants/palette";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -18,7 +18,7 @@ export default function WelcomeScreen() {
         <Image
           className="h-full w-full rounded-3xl"
           resizeMode="cover"
-          source={require("@/assets/portadaApp.jpg")}
+          source={require("@/assets/cover.jpg")}
         />
       </View>
 

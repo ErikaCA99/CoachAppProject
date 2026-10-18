@@ -4,7 +4,7 @@ import { create } from "axios";
  * Cliente crudo de la API pública de wger (https://wger.de/api/v2/).
  * Sin conocimiento de dominio: solo tipos y llamadas HTTP tal como los
  * devuelve wger. El mapeo a la entidad `EjercicioWger` vive en
- * `src/models/repositories/ejercicioWgerRepository.ts`.
+ * `src/models/repositories/wgerExerciseRepository.ts`.
  */
 
 const WGER_BASE_URL = "https://wger.de/api/v2";

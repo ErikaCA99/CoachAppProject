@@ -4,8 +4,8 @@ import { create } from "zustand";
 import type {
   NivelExperiencia,
   ObjetivoUsuario,
-} from "@/models/entities/Usuario";
-import type { DatosFisicosInput } from "@/schemas/usuario.schema";
+} from "@/models/entities/User";
+import type { DatosFisicosInput } from "@/schemas/user.schema";
 
 /**
  * Borrador del onboarding (no se persiste).

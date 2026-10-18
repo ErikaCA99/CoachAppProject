@@ -9,19 +9,19 @@ import {
   type User as UsuarioFirebase,
 } from "firebase/auth";
 
-import type { GeneroUsuario, Usuario } from "@/models/entities/Usuario";
+import type { GeneroUsuario, Usuario } from "@/models/entities/User";
 import {
   actualizarPerfilUsuario,
   crearPerfilUsuario,
   eliminarPerfilUsuario,
   obtenerPerfilUsuario,
   observarPerfilUsuario,
-} from "@/models/repositories/usuarioRepository";
+} from "@/models/repositories/userRepository";
 import {
   actualizarUsuarioSchema,
   datosOnboardingSchema,
   type DatosOnboardingInput,
-} from "@/schemas/usuario.schema";
+} from "@/schemas/user.schema";
 import { auth } from "@/services/firebase/firebase";
 
 export interface DatosRegistro {

@@ -9,7 +9,7 @@ export const unstable_settings = {
  * sesión y `perfilCompleto === false` (ver `Stack.Protected` en el layout raíz).
  *
  * 1. objetivo.tsx      → objetivo + nivel de experiencia
- * 2. datos-fisicos.tsx → edad, altura, peso y días disponibles
+ * 2. physical-data.tsx → edad, altura, peso y días disponibles
  * 3. rutina.tsx        → generar con IA / crear personalizada / saltar
  */
 export default function OnboardingLayout() {
@@ -17,9 +17,9 @@ export default function OnboardingLayout() {
     <Stack
       screenOptions={{ headerShown: false, animation: "slide_from_right" }}
     >
-      <Stack.Screen name="objetivo" />
-      <Stack.Screen name="datos-fisicos" />
-      <Stack.Screen name="rutina" />
+      <Stack.Screen name="goal" />
+      <Stack.Screen name="physical-data" />
+      <Stack.Screen name="routine" />
     </Stack>
   );
 }
