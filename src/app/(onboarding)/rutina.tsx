@@ -17,30 +17,39 @@ import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
 
 /**
- * Onboarding · Paso 2 (final): cómo generar la primera rutina.
+ * Onboarding · Paso 3 (final): cómo generar la primera rutina.
  *
- * Cualquiera de las 3 opciones guarda objetivo + nivel en `usuarios/{uid}`,
- * lo que marca el perfil como completo. El layout raíz desbloquea `(app)` y
+ * Cualquiera de las 3 opciones guarda objetivo, nivel y datos físicos en
+ * `usuarios/{uid}`, lo que marca el perfil como completo. El layout raíz desbloquea `(app)` y
  * el Home consume `destinoPendiente` para abrir la opción elegida.
  */
 export default function RoutineChoiceScreen() {
   const router = useRouter();
   const uid = useAuthStore((s) => s.user?.uid);
   const setPerfilCompleto = useAuthStore((s) => s.setPerfilCompleto);
-  const { objetivo, nivel, reset, setDestinoPendiente } = useOnboardingStore();
+  const { objetivo, nivel, datosFisicos, reset, setDestinoPendiente } =
+    useOnboardingStore();
   const [guardando, setGuardando] = useState(false);
 
   const finalizar = async (destino: Href | null) => {
     if (!uid) return;
     if (!objetivo || !nivel) {
       // Llegó aquí sin pasar por el paso 1 (p. ej. recarga en web)
-      router.replace("/(onboarding)/TargetSelectionScreen");
+      router.replace("/(onboarding)/objetivo");
+      return;
+    }
+    if (!datosFisicos) {
+      router.replace("/(onboarding)/datos-fisicos");
       return;
     }
 
     setGuardando(true);
     try {
-      await AuthController.guardarObjetivoYNivel(uid, objetivo, nivel);
+      await AuthController.guardarDatosOnboarding(uid, {
+        objetivo,
+        nivel,
+        ...datosFisicos,
+      });
       reset();
       // Orden importante: primero el destino, luego desbloquear (app).
       setDestinoPendiente(destino);
@@ -70,7 +79,7 @@ export default function RoutineChoiceScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             disabled={guardando}
-            onPress={() => finalizar("/(app)/routines/generar" as Href)}
+            onPress={() => finalizar("/(app)/routines/generar")}
             accessibilityRole="button"
             className="mb-4 rounded-3xl shadow-md"
           >
@@ -120,7 +129,7 @@ export default function RoutineChoiceScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             disabled={guardando}
-            onPress={() => finalizar("/(app)/routines/personalizada" as Href)}
+            onPress={() => finalizar("/(app)/routines/personalizada")}
             accessibilityRole="button"
             className="rounded-3xl border border-primary-light bg-background p-5 shadow-sm"
           >

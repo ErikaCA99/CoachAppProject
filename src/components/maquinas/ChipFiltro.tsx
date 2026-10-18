@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity } from "react-native";
+import { Pressable, Text } from "react-native";
 
 interface ChipFiltroProps {
   texto: string;
@@ -8,8 +8,8 @@ interface ChipFiltroProps {
 
 export function ChipFiltro({ texto, activo, onPress }: ChipFiltroProps) {
   return (
-    <TouchableOpacity
-      className={`mr-2 rounded-full px-3.5 py-1.5 ${
+    <Pressable
+      className={`mr-2 rounded-full px-3.5 py-1.5 active:scale-95 active:opacity-80 ${
         activo ? "bg-primary" : "bg-primary-light/30"
       }`}
       onPress={onPress}
@@ -23,6 +23,6 @@ export function ChipFiltro({ texto, activo, onPress }: ChipFiltroProps) {
       >
         {texto}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }

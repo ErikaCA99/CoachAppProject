@@ -1,5 +1,3 @@
-import type { Timestamp } from "firebase/firestore";
-
 export type ObjetivoUsuario =
   "perder_peso" | "ganar_masa" | "mantenimiento" | "resistencia";
 export type NivelExperiencia = "principiante" | "intermedio" | "avanzado";
@@ -50,6 +48,12 @@ export const NIVELES_EXPERIENCIA: Record<
   },
 };
 
+/** Rango de edad aceptado (años). Mismo rango que valida `firestore.rules`. */
+export const RANGO_EDAD = { min: 14, max: 90 } as const;
+
+/** Opciones de días por semana que el usuario puede declarar como disponibles. */
+export const OPCIONES_DIAS_DISPONIBLES = [2, 3, 4, 5, 6] as const;
+
 export interface Usuario {
   id: string; // = uid de Firebase Auth
   nombre: string;
@@ -58,9 +62,13 @@ export interface Usuario {
   genero?: GeneroUsuario;
   altura?: number; // cm
   pesoActual?: number; // kg
+  /** Edad en años (entrada del modelo de rutinas con IA). */
+  edad?: number;
+  /** Días por semana que el usuario puede entrenar (entrada del modelo de rutinas con IA). */
+  diasDisponibles?: number;
   nivel?: NivelExperiencia;
   objetivo?: ObjetivoUsuario;
   /** ID de la rutina activa dentro de `usuarios/{id}/rutinas`. */
   rutinaActivaId?: string | null;
-  creadoEn?: Timestamp;
+  creadoEn?: Date;
 }

@@ -4,19 +4,23 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 
+import { AppHeader } from "@/components/ui/AppHeader";
+import { ErrorCarga } from "@/components/ui/ErrorCarga";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
+import { useErrorDeCarga } from "@/hooks/useErrorDeCarga";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import {
   NIVELES_EXPERIENCIA,
   OBJETIVOS_USUARIO,
+  OPCIONES_DIAS_DISPONIBLES,
   type NivelExperiencia,
   type ObjetivoUsuario,
   type Usuario,
@@ -30,38 +34,52 @@ export default function PerfilScreen() {
 
   const [perfil, setPerfil] = useState<Usuario | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [edad, setEdad] = useState("");
   const [altura, setAltura] = useState("");
   const [peso, setPeso] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const { error, intento, reportar, reintentar } = useErrorDeCarga();
 
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = AuthController.observarPerfil(user.uid, (datos) => {
-      setPerfil(datos);
-      setAltura(datos?.altura ? String(datos.altura) : "");
-      setPeso(datos?.pesoActual ? String(datos.pesoActual) : "");
-      setCargando(false);
-    });
+    const unsubscribe = AuthController.observarPerfil(
+      user.uid,
+      (datos) => {
+        setPerfil(datos);
+        setEdad(datos?.edad ? String(datos.edad) : "");
+        setAltura(datos?.altura ? String(datos.altura) : "");
+        setPeso(datos?.pesoActual ? String(datos.pesoActual) : "");
+        setCargando(false);
+      },
+      (causa) => reportar("perfil", causa),
+    );
 
     return unsubscribe;
-  }, [user]);
+  }, [user, intento, reportar]);
 
   const handleGuardarMedidas = async () => {
     if (!user) return;
+    const edadNum = parseInt(edad, 10);
     const alturaNum = parseFloat(altura);
     const pesoNum = parseFloat(peso);
 
     setGuardando(true);
     try {
       await AuthController.actualizarPerfil(user.uid, {
+        edad: edadNum > 0 ? edadNum : undefined,
         altura: alturaNum > 0 ? alturaNum : undefined,
         pesoActual: pesoNum > 0 ? pesoNum : undefined,
       });
       Alert.alert("Listo", "Tus datos se guardaron correctamente.");
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
-      Alert.alert("Error", "No se pudieron guardar tus datos.");
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "No se pudieron guardar tus datos.",
+      );
     } finally {
       setGuardando(false);
     }
@@ -85,6 +103,15 @@ export default function PerfilScreen() {
     }
   };
 
+  const handleCambiarDias = async (diasDisponibles: number) => {
+    if (!user) return;
+    try {
+      await AuthController.actualizarPerfil(user.uid, { diasDisponibles });
+    } catch (error) {
+      console.error("Error al actualizar días disponibles:", error);
+    }
+  };
+
   const handleCerrarSesion = () => {
     Alert.alert("Cerrar sesión", "¿Seguro que quieres salir?", [
       { text: "Cancelar", style: "cancel" },
@@ -95,6 +122,14 @@ export default function PerfilScreen() {
       },
     ]);
   };
+
+  if (error) {
+    return (
+      <View className="flex-1 justify-center bg-background">
+        <ErrorCarga mensaje={error} onReintentar={reintentar} />
+      </View>
+    );
+  }
 
   if (cargando) {
     return (
@@ -110,12 +145,7 @@ export default function PerfilScreen() {
       contentContainerStyle={{ padding: 20, paddingTop: 60, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <TouchableOpacity
-        className="mb-6 h-10 w-10 items-center justify-center rounded-full bg-primary-light/30"
-        onPress={() => router.back()}
-      >
-        <Ionicons name="arrow-back" size={22} color={palette.foreground} />
-      </TouchableOpacity>
+      <AppHeader title="Mi Perfil" onBackPress={() => router.back()} />
 
       <View className="mb-8 items-center">
         <View className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-primary">
@@ -143,9 +173,9 @@ export default function PerfilScreen() {
         ).map(([valor, info]) => {
           const activo = perfil?.objetivo === valor;
           return (
-            <TouchableOpacity
+            <Pressable
               key={valor}
-              className={`rounded-full border px-4 py-2 ${
+              className={`rounded-full border px-4 py-2 active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
@@ -159,7 +189,7 @@ export default function PerfilScreen() {
               >
                 {info.etiqueta}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>
@@ -176,9 +206,9 @@ export default function PerfilScreen() {
         ).map(([valor, info]) => {
           const activo = perfil?.nivel === valor;
           return (
-            <TouchableOpacity
+            <Pressable
               key={valor}
-              className={`rounded-full border px-4 py-2 ${
+              className={`rounded-full border px-4 py-2 active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
@@ -192,13 +222,54 @@ export default function PerfilScreen() {
               >
                 {info.etiqueta}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text className="mb-3 text-base font-bold text-foreground">
+        Días disponibles por semana
+      </Text>
+      <View className="mb-7 flex-row flex-wrap gap-2">
+        {OPCIONES_DIAS_DISPONIBLES.map((valor) => {
+          const activo = perfil?.diasDisponibles === valor;
+          return (
+            <Pressable
+              key={valor}
+              className={`h-10 w-10 items-center justify-center rounded-full border active:scale-95 active:opacity-80 ${
+                activo
+                  ? "border-primary bg-primary"
+                  : "border-border bg-background"
+              }`}
+              onPress={() => handleCambiarDias(valor)}
+              accessibilityLabel={`${valor} días por semana`}
+            >
+              <Text
+                className={`text-sm font-semibold ${
+                  activo ? "text-background" : "text-foreground"
+                }`}
+              >
+                {valor}
+              </Text>
+            </Pressable>
           );
         })}
       </View>
 
       <Text className="mb-3 text-base font-bold text-foreground">Medidas</Text>
       <View className="mb-2 flex-row gap-3">
+        <View className="flex-1">
+          <Text className="mb-1 text-xs text-text-muted">Edad</Text>
+          <TextInput
+            className="rounded-xl border border-border bg-primary-light/20 p-3 text-base text-foreground"
+            keyboardType="number-pad"
+            value={edad}
+            onChangeText={setEdad}
+            placeholder="25"
+            placeholderTextColor="#6b7280"
+            maxLength={2}
+          />
+        </View>
         <View className="flex-1">
           <Text className="mb-1 text-xs text-text-muted">Altura (cm)</Text>
           <TextInput
@@ -222,8 +293,8 @@ export default function PerfilScreen() {
           />
         </View>
       </View>
-      <TouchableOpacity
-        className="mb-8 mt-2 items-center rounded-2xl bg-primary p-3.5"
+      <Pressable
+        className="mb-8 mt-2 items-center rounded-2xl bg-primary p-3.5 active:scale-[0.98] active:opacity-85"
         onPress={handleGuardarMedidas}
         disabled={guardando}
         style={guardando ? { opacity: 0.6 } : undefined}
@@ -231,15 +302,15 @@ export default function PerfilScreen() {
         <Text className="text-sm font-bold text-background">
           {guardando ? "Guardando..." : "Guardar medidas"}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
-      <TouchableOpacity
-        className="flex-row items-center justify-center rounded-2xl border border-error p-4"
+      <Pressable
+        className="flex-row items-center justify-center rounded-2xl border border-error p-4 active:scale-[0.98] active:bg-error/10"
         onPress={handleCerrarSesion}
       >
         <Ionicons name="log-out-outline" size={20} color={palette.error} />
         <Text className="ml-2 text-sm font-bold text-error">Cerrar sesión</Text>
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 }

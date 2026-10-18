@@ -1,22 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ScrollView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StatusBar, Text, View } from "react-native";
 
+import { AppHeader } from "@/components/ui/AppHeader";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
 import { ProgresoController } from "@/controllers/ProgresoController";
 import { RutinasController } from "@/controllers/RutinasController";
 import type { Rutina } from "@/models/entities/Rutina";
 import type { Usuario } from "@/models/entities/Usuario";
-import type { ConId } from "@/services/firebase/firestoreService";
+import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
 
@@ -24,16 +19,15 @@ export default function HomeScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
 
-  const consumirDestino = useOnboardingStore((s) => s.consumirDestino);
+  const destinoPendiente = useOnboardingStore((s) => s.destinoPendiente);
 
   // Recién terminado el onboarding: abrir la opción elegida en
   // RoutineChoiceScreen ("Generar con IA" / "Crear personalizada").
   // Se hace desde aquí porque (app) solo existe una vez que el guard raíz
   // lo desbloquea, y el Home es su pantalla inicial.
   useEffect(() => {
-    const destino = consumirDestino();
-    if (destino) router.push(destino);
-  }, [consumirDestino, router]);
+    if (destinoPendiente) router.push(destinoPendiente);
+  }, [destinoPendiente, router]);
 
   const [perfil, setPerfil] = useState<Usuario | null>(null);
   const [rutinas, setRutinas] = useState<ConId<Rutina>[]>([]);
@@ -68,7 +62,7 @@ export default function HomeScreen() {
     ) ?? 0;
 
   const handleEscanear = () => {
-    router.push("/(app)/machines/escaner" as Href);
+    router.push("/(app)/machines/escaner");
   };
 
   return (
@@ -79,27 +73,16 @@ export default function HomeScreen() {
         contentContainerStyle={{ padding: 20, paddingTop: 50 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="mb-6 flex-row items-center justify-between">
-          <View>
-            <Text className="text-[26px] font-bold text-foreground">
-              Hola,{" "}
-              {perfil?.nombre ||
-                user?.displayName ||
-                user?.email?.split("@")[0] ||
-                "Deportista"}
-            </Text>
-            <Text className="mt-1 text-sm text-text-muted">
-              ¿Listo para entrenar?
-            </Text>
-          </View>
-          <TouchableOpacity
-            className="h-11 w-11 items-center justify-center rounded-full bg-primary"
-            onPress={() => router.push("/(app)/perfil")}
-          >
-            <Ionicons name="person" size={20} color={palette.background} />
-          </TouchableOpacity>
-        </View>
+        <AppHeader
+          title={`Hola, ${
+            perfil?.nombre ||
+            user?.displayName ||
+            user?.email?.split("@")[0] ||
+            "Deportista"
+          }`}
+          subtitle="¿Listo para entrenar?"
+          onProfilePress={() => router.push("/(app)/perfil")}
+        />
 
         {/* Active Routine Card */}
         <LinearGradient
@@ -117,8 +100,8 @@ export default function HomeScreen() {
               : "Genera una con IA o arma la tuya en la pestaña Rutinas"}
           </Text>
           <View className="flex-row gap-3">
-            <TouchableOpacity
-              className="rounded-xl bg-background px-5 py-2.5"
+            <Pressable
+              className="rounded-xl bg-background px-5 py-2.5 active:scale-[0.97] active:opacity-85"
               onPress={() =>
                 router.push(
                   rutinaActiva ? "/(app)/routines" : "/(app)/routines/generar",
@@ -128,16 +111,16 @@ export default function HomeScreen() {
               <Text className="text-sm font-bold text-primary">
                 {rutinaActiva ? "Continuar" : "Generar rutina"}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
             {rutinaActiva && (
-              <TouchableOpacity
-                className="rounded-xl bg-background/25 px-5 py-2.5"
+              <Pressable
+                className="rounded-xl bg-background/25 px-5 py-2.5 active:scale-[0.97] active:opacity-80"
                 onPress={() => router.push("/(app)/routines")}
               >
                 <Text className="text-sm font-bold text-background">
                   Ver Detalles
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
         </LinearGradient>
@@ -149,7 +132,7 @@ export default function HomeScreen() {
             <Text className="mt-2 text-xl font-bold text-foreground">
               {totalEjerciciosRutina}
             </Text>
-            <Text className="mt-1 text-[11px] text-text-muted">
+            <Text className="mt-1 text-xs text-text-secondary">
               Ejercicios activos
             </Text>
           </View>
@@ -158,7 +141,7 @@ export default function HomeScreen() {
             <Text className="mt-2 text-xl font-bold text-foreground">
               {rutinaActiva?.diasPorSemana ?? 0}
             </Text>
-            <Text className="mt-1 text-[11px] text-text-muted">
+            <Text className="mt-1 text-xs text-text-secondary">
               Días/semana
             </Text>
           </View>
@@ -171,7 +154,7 @@ export default function HomeScreen() {
             <Text className="mt-2 text-xl font-bold text-foreground">
               {totalRegistrosProgreso}
             </Text>
-            <Text className="mt-1 text-[11px] text-text-muted">
+            <Text className="mt-1 text-xs text-text-secondary">
               Registros de peso
             </Text>
           </View>
@@ -180,8 +163,8 @@ export default function HomeScreen() {
         {/* Explore Section */}
         <Text className="mb-4 text-xl font-bold text-foreground">Explorar</Text>
 
-        <TouchableOpacity
-          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-primary bg-background p-[18px]"
+        <Pressable
+          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-primary bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={() => router.push("/(app)/routines/generar")}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-primary">
@@ -191,7 +174,7 @@ export default function HomeScreen() {
             <Text className="text-base font-bold text-foreground">
               Rutina con IA
             </Text>
-            <Text className="mt-0.5 text-[13px] text-text-muted">
+            <Text className="mt-0.5 text-[13px] text-text-secondary">
               Genera una rutina personalizada
             </Text>
           </View>
@@ -200,10 +183,10 @@ export default function HomeScreen() {
             size={20}
             color={palette.textMuted}
           />
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent bg-background p-[18px]"
+        <Pressable
+          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={() => router.push("/(app)/machines")}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-accent">
@@ -213,7 +196,7 @@ export default function HomeScreen() {
             <Text className="text-base font-bold text-foreground">
               Catálogo de Máquinas
             </Text>
-            <Text className="mt-0.5 text-[13px] text-text-muted">
+            <Text className="mt-0.5 text-[13px] text-text-secondary">
               Explora todas las máquinas
             </Text>
           </View>
@@ -222,10 +205,10 @@ export default function HomeScreen() {
             size={20}
             color={palette.textMuted}
           />
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent-strong bg-background p-[18px]"
+        <Pressable
+          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent-strong bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={handleEscanear}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-accent-strong">
@@ -235,7 +218,7 @@ export default function HomeScreen() {
             <Text className="text-base font-bold text-foreground">
               Escanear Máquina
             </Text>
-            <Text className="mt-0.5 text-[13px] text-text-muted">
+            <Text className="mt-0.5 text-[13px] text-text-secondary">
               Usa AR para identificar (próximamente)
             </Text>
           </View>
@@ -244,7 +227,7 @@ export default function HomeScreen() {
             size={20}
             color={palette.textMuted}
           />
-        </TouchableOpacity>
+        </Pressable>
 
         <View className="h-[30px]" />
       </ScrollView>

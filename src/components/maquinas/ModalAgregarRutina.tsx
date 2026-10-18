@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,7 +17,7 @@ import { palette } from "@/constants/palette";
 import { RutinasController } from "@/controllers/RutinasController";
 import type { Maquina } from "@/models/entities/Maquina";
 import type { Rutina } from "@/models/entities/Rutina";
-import type { ConId } from "@/services/firebase/firestoreService";
+import type { ConId } from "@/models/types";
 
 interface ModalAgregarRutinaProps {
   visible: boolean;
@@ -197,7 +197,7 @@ export function ModalAgregarRutina({
                 titulo="Crear una rutina"
                 onPress={() => {
                   onCerrar();
-                  router.push("/(app)/routines" as Href);
+                  router.push("/(app)/routines");
                 }}
               />
             </View>

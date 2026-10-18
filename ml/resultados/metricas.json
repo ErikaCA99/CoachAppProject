@@ -1,0 +1,566 @@
+{
+  "version_modelo": "1.1.0",
+  "version_features": 1,
+  "muestras": {
+    "entrenamiento": 42000,
+    "validacion": 9000,
+    "prueba": 9000
+  },
+  "epocas_entrenadas": 110,
+  "exactitud_prueba": {
+    "plantilla": 0.9981111111111111,
+    "esquema": 0.9996666666666667,
+    "ambas": 0.9977777777777778
+  },
+  "reporte_plantilla": {
+    "3d_fuerza": {
+      "precision": 1.0,
+      "recall": 0.9939058171745152,
+      "f1-score": 0.9969435954431787,
+      "support": 1805.0
+    },
+    "3d_cardio": {
+      "precision": 0.9970651013874067,
+      "recall": 1.0,
+      "f1-score": 0.9985303941215765,
+      "support": 3737.0
+    },
+    "4d_fuerza": {
+      "precision": 1.0,
+      "recall": 0.9948979591836735,
+      "f1-score": 0.9974424552429667,
+      "support": 784.0
+    },
+    "4d_cardio": {
+      "precision": 0.9975201487910725,
+      "recall": 1.0,
+      "f1-score": 0.9987585350713842,
+      "support": 1609.0
+    },
+    "5d_fuerza": {
+      "precision": 1.0,
+      "recall": 0.994269340974212,
+      "f1-score": 0.9971264367816092,
+      "support": 349.0
+    },
+    "5d_cardio": {
+      "precision": 0.9972144846796658,
+      "recall": 1.0,
+      "f1-score": 0.99860529986053,
+      "support": 716.0
+    },
+    "accuracy": 0.9981111111111111,
+    "macro avg": {
+      "precision": 0.9986332891430242,
+      "recall": 0.9971788528887334,
+      "f1-score": 0.9979011194202075,
+      "support": 9000.0
+    },
+    "weighted avg": {
+      "precision": 0.9981164193689128,
+      "recall": 0.9981111111111111,
+      "f1-score": 0.9981096846205036,
+      "support": 9000.0
+    }
+  },
+  "reporte_esquema": {
+    "metabolico": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1784.0
+    },
+    "hipertrofia": {
+      "precision": 0.9981470043236566,
+      "recall": 1.0,
+      "f1-score": 0.9990726429675425,
+      "support": 1616.0
+    },
+    "general": {
+      "precision": 1.0,
+      "recall": 0.9991050119331742,
+      "f1-score": 0.9995523056260259,
+      "support": 3352.0
+    },
+    "resistencia": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2248.0
+    },
+    "accuracy": 0.9996666666666667,
+    "macro avg": {
+      "precision": 0.9995367510809141,
+      "recall": 0.9997762529832935,
+      "f1-score": 0.9996562371483921,
+      "support": 9000.0
+    },
+    "weighted avg": {
+      "precision": 0.999667284331892,
+      "recall": 0.9996666666666667,
+      "f1-score": 0.9996667466104431,
+      "support": 9000.0
+    }
+  },
+  "matriz_confusion_plantilla": [
+    [
+      1794,
+      11,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      3737,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      780,
+      4,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1609,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      347,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      716
+    ]
+  ],
+  "matriz_confusion_esquema": [
+    [
+      1784,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1616,
+      0,
+      0
+    ],
+    [
+      0,
+      3,
+      3349,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2248
+    ]
+  ],
+  "tflite": {
+    "bytes": 16672,
+    "entrada": {
+      "forma": [
+        1,
+        10
+      ],
+      "tipo": "float32"
+    },
+    "salida": {
+      "forma": [
+        1,
+        10
+      ],
+      "tipo": "float32"
+    },
+    "coincidencia_con_keras": 1.0
+  },
+  "cuadricula_exhaustiva": {
+    "total": 28512,
+    "aciertos": 27689,
+    "exactitud": 0.9711349607182941,
+    "ejemplos_error": [
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "intermedio",
+          "dias": 5,
+          "edad": 59,
+          "imc": 42,
+          "genero": "femenino"
+        },
+        "esperado": [
+          3,
+          0
+        ],
+        "predicho": [
+          3,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "intermedio",
+          "dias": 6,
+          "edad": 59,
+          "imc": 42,
+          "genero": "femenino"
+        },
+        "esperado": [
+          3,
+          0
+        ],
+        "predicho": [
+          3,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "avanzado",
+          "dias": 5,
+          "edad": 59,
+          "imc": 16,
+          "genero": "otro"
+        },
+        "esperado": [
+          5,
+          0
+        ],
+        "predicho": [
+          5,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "avanzado",
+          "dias": 6,
+          "edad": 59,
+          "imc": 16,
+          "genero": "masculino"
+        },
+        "esperado": [
+          5,
+          0
+        ],
+        "predicho": [
+          5,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "avanzado",
+          "dias": 6,
+          "edad": 59,
+          "imc": 16,
+          "genero": "femenino"
+        },
+        "esperado": [
+          5,
+          0
+        ],
+        "predicho": [
+          5,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "avanzado",
+          "dias": 6,
+          "edad": 59,
+          "imc": 16,
+          "genero": "otro"
+        },
+        "esperado": [
+          5,
+          0
+        ],
+        "predicho": [
+          5,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "perder_peso",
+          "nivel": "avanzado",
+          "dias": null,
+          "edad": 59,
+          "imc": 16,
+          "genero": "otro"
+        },
+        "esperado": [
+          5,
+          0
+        ],
+        "predicho": [
+          5,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 14,
+          "imc": 29.9,
+          "genero": "masculino"
+        },
+        "esperado": [
+          0,
+          2
+        ],
+        "predicho": [
+          1,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 14,
+          "imc": 29.9,
+          "genero": "femenino"
+        },
+        "esperado": [
+          0,
+          2
+        ],
+        "predicho": [
+          1,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 15,
+          "imc": 29.9,
+          "genero": "masculino"
+        },
+        "esperado": [
+          0,
+          2
+        ],
+        "predicho": [
+          1,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 15,
+          "imc": 29.9,
+          "genero": "femenino"
+        },
+        "esperado": [
+          0,
+          2
+        ],
+        "predicho": [
+          1,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 15,
+          "imc": 35,
+          "genero": "femenino"
+        },
+        "esperado": [
+          1,
+          2
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 15,
+          "imc": 42,
+          "genero": "femenino"
+        },
+        "esperado": [
+          1,
+          2
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 16,
+          "imc": 16,
+          "genero": "masculino"
+        },
+        "esperado": [
+          0,
+          1
+        ],
+        "predicho": [
+          0,
+          2
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 16,
+          "imc": 29.9,
+          "genero": "masculino"
+        },
+        "esperado": [
+          0,
+          1
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 16,
+          "imc": 29.9,
+          "genero": "femenino"
+        },
+        "esperado": [
+          0,
+          1
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 30,
+          "imc": 29.9,
+          "genero": "femenino"
+        },
+        "esperado": [
+          0,
+          1
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 45,
+          "imc": 29.9,
+          "genero": "femenino"
+        },
+        "esperado": [
+          0,
+          1
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 59,
+          "imc": 29.9,
+          "genero": "femenino"
+        },
+        "esperado": [
+          0,
+          1
+        ],
+        "predicho": [
+          1,
+          1
+        ]
+      },
+      {
+        "perfil": {
+          "objetivo": "ganar_masa",
+          "nivel": "principiante",
+          "dias": 2,
+          "edad": 59,
+          "imc": 30,
+          "genero": "otro"
+        },
+        "esperado": [
+          1,
+          1
+        ],
+        "predicho": [
+          0,
+          1
+        ]
+      }
+    ]
+  }
+}

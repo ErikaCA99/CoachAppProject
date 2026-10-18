@@ -1,11 +1,11 @@
 import type { ProgresoFisico } from "@/models/entities/ProgresoFisico";
+import type { ConId } from "@/models/types";
 import {
   actualizar,
   crear,
   eliminar,
   listar,
   observarPorUsuario,
-  type ConId,
 } from "@/services/firebase/firestoreService";
 
 /** Única función que conoce la ruta real de la subcolección de progreso físico. */
@@ -49,6 +49,7 @@ export async function actualizarProgreso(
 export function observarProgreso(
   usuarioId: string,
   callback: (registros: ConId<ProgresoFisico>[]) => void,
+  onError?: (error: Error) => void,
 ) {
   return observarPorUsuario<ProgresoFisico>(
     usuarioId,
@@ -57,6 +58,7 @@ export function observarProgreso(
     {
       ordenarPor: "creadoEn",
       direccion: "asc",
+      onError,
     },
   );
 }

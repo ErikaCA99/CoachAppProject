@@ -25,9 +25,9 @@ export function BotonPrimario({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.85}
       onPress={onPress}
       disabled={inactivo}
+      activeOpacity={0.85}
       accessibilityRole="button"
       accessibilityState={{ disabled: inactivo, busy: cargando }}
       className="rounded-2xl shadow-sm"

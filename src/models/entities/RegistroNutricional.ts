@@ -1,5 +1,3 @@
-import type { Timestamp } from "firebase/firestore";
-
 import type { BmiCategory } from "@/utils/imcCalculator";
 
 /**
@@ -21,6 +19,11 @@ export interface RegistroNutricional {
   alimento?: string;
   calorias?: number;
   cantidad?: string; // p.ej. "200 g", "1 taza"
+  proteinas?: number; // gramos
+  carbohidratos?: number; // gramos
+  grasas?: number; // gramos
+  /** ID del alimento en USDA FoodData Central (si vino de la API). */
+  fdcId?: number;
 
-  creadoEn?: Timestamp;
+  creadoEn?: Date;
 }

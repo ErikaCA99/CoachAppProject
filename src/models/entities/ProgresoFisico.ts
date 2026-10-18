@@ -1,5 +1,3 @@
-import type { Timestamp } from "firebase/firestore";
-
 /**
  * Registro puntual de progreso físico (peso corporal a lo largo del tiempo).
  * Corresponde a un documento de `usuarios/{usuarioId}/progresoFisico`.
@@ -12,5 +10,5 @@ export interface ProgresoFisico {
   altura?: number; // cm
   imc?: number;
   notas?: string;
-  creadoEn?: Timestamp;
+  creadoEn?: Date;
 }

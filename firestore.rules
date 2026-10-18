@@ -7,7 +7,8 @@ rules_version = '2';
 //   usuarios/{uid}                            → perfil (id = uid de Auth)
 //     ├── rutinas/{id}                        → planSemanal (no "ejercicios")
 //     ├── registrosNutricionales/{id}         → IMC o ingesta
-//     └── progresoFisico/{id}                 → peso (+ altura/imc opcionales)
+//     ├── progresoFisico/{id}                 → peso (+ altura/imc opcionales)
+//     └── entrenamientos/{fecha}              → día de rutina completado (id = YYYY-MM-DD)
 //
 // Publicar: Firebase Console → Firestore Database → Reglas → pegar → Publicar.
 // (o `firebase deploy --only firestore:rules` si usas Firebase CLI)
@@ -26,6 +27,12 @@ service cloud.firestore {
     // Campo opcional: si viene, debe ser número > 0.
     function numeroPositivoOpcional(datos, campo) {
       return !(campo in datos) || (datos[campo] is number && datos[campo] > 0);
+    }
+
+    // Campo opcional: si viene, debe ser entero dentro de [minimo, maximo].
+    function enteroEnRangoOpcional(datos, campo, minimo, maximo) {
+      return !(campo in datos)
+        || (datos[campo] is int && datos[campo] >= minimo && datos[campo] <= maximo);
     }
 
     // ---------- Catálogo público (solo lectura) ----------
@@ -48,7 +55,10 @@ service cloud.firestore {
         return datos.nombre is string && datos.nombre.size() > 0
           && datos.email is string
           && numeroPositivoOpcional(datos, 'altura')
-          && numeroPositivoOpcional(datos, 'pesoActual');
+          && numeroPositivoOpcional(datos, 'pesoActual')
+          // Entradas del modelo de rutinas con IA (mismos rangos que usuario.schema.ts)
+          && enteroEnRangoOpcional(datos, 'edad', 14, 90)
+          && enteroEnRangoOpcional(datos, 'diasDisponibles', 2, 6);
       }
 
       allow read, delete: if esDueno(usuarioId);
@@ -105,6 +115,23 @@ service cloud.firestore {
         allow create: if esDueno(usuarioId) && progresoValido();
         allow update: if esDueno(usuarioId) && progresoValido()
           && request.resource.data.usuarioId == resource.data.usuarioId;
+      }
+
+      // El ID del documento es la fecha (YYYY-MM-DD): marcar un día
+      // completado es un setDoc sin merge (crearConId), por eso create Y
+      // update comparten la misma validación.
+      match /entrenamientos/{entrenamientoId} {
+        function entrenamientoValido() {
+          let datos = request.resource.data;
+          return datos.usuarioId == usuarioId
+            && datos.rutinaId is string && datos.rutinaId.size() > 0
+            && datos.dia is int && datos.dia >= 1 && datos.dia <= 7
+            && datos.fecha is string
+            && datos.fecha == entrenamientoId;
+        }
+
+        allow read, delete: if esDueno(usuarioId);
+        allow create, update: if esDueno(usuarioId) && entrenamientoValido();
       }
     }
   }

@@ -9,12 +9,7 @@ import {
   type User as UsuarioFirebase,
 } from "firebase/auth";
 
-import type {
-  GeneroUsuario,
-  NivelExperiencia,
-  ObjetivoUsuario,
-  Usuario,
-} from "@/models/entities/Usuario";
+import type { GeneroUsuario, Usuario } from "@/models/entities/Usuario";
 import {
   actualizarPerfilUsuario,
   crearPerfilUsuario,
@@ -24,7 +19,8 @@ import {
 } from "@/models/repositories/usuarioRepository";
 import {
   actualizarUsuarioSchema,
-  objetivoYNivelSchema,
+  datosOnboardingSchema,
+  type DatosOnboardingInput,
 } from "@/schemas/usuario.schema";
 import { auth } from "@/services/firebase/firebase";
 
@@ -172,16 +168,19 @@ export const AuthController = {
     return observarPerfilUsuario(uid, callback, onError);
   },
 
-  /** Guarda el objetivo y nivel elegidos en el onboarding posterior al registro. */
-  async guardarObjetivoYNivel(
+  /**
+   * Guarda lo recogido en el onboarding (objetivo, nivel y datos físicos)
+   * en `usuarios/{uid}`. Edad, altura, peso y días disponibles son las
+   * entradas del modelo de rutinas con IA (ver `src/services/ai/features.ts`).
+   */
+  async guardarDatosOnboarding(
     uid: string,
-    objetivo: ObjetivoUsuario,
-    nivel: NivelExperiencia,
+    datos: DatosOnboardingInput,
   ): Promise<void> {
-    const resultado = objetivoYNivelSchema.safeParse({ objetivo, nivel });
+    const resultado = datosOnboardingSchema.safeParse(datos);
     if (!resultado.success) {
       throw new Error(
-        `Datos de objetivo/nivel inválidos: ${resultado.error.issues.map((i) => i.message).join(", ")}`,
+        `Datos de onboarding inválidos: ${resultado.error.issues.map((i) => i.message).join(", ")}`,
       );
     }
     // Cuentas creadas en Auth cuyo perfil nunca llegó a Firestore (p. ej.

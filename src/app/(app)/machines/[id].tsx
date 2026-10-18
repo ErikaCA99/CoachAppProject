@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter, type Href } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,94 +20,15 @@ import { ListaPuntos, SeccionFicha } from "@/components/maquinas/SeccionFicha";
 import { TarjetaEjercicioGif } from "@/components/maquinas/TarjetaEjercicioGif";
 import { BotonPrimario } from "@/components/ui/BotonPrimario";
 import { palette } from "@/constants/palette";
-import { EjerciciosWgerController } from "@/controllers/EjerciciosWgerController";
 import { MaquinasController } from "@/controllers/MaquinasController";
 import type { EjercicioWger } from "@/models/entities/EjercicioWger";
-import type {
-  EjercicioGif,
-  EjercicioMaquina,
-  Maquina,
-} from "@/models/entities/Maquina";
+import type { EjercicioGif, Maquina } from "@/models/entities/Maquina";
 import { useAuthStore } from "@/store/auth.store";
+import type { DetalleEjercicioGenerado } from "@/utils/ejercicioMaquina";
 
 const ALTO_PORTADA = 300;
 /** Máximo de fotos de variantes en la galería, para no descargar decenas. */
 const MAX_VARIANTES = 8;
-
-function normalizar(texto: string): string {
-  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-}
-
-function buscarEjercicioRelacionado(
-  maquina: Maquina,
-  ejercicioGif: EjercicioGif,
-): EjercicioMaquina | null {
-  const candidatos = [
-    ejercicioGif.nombre,
-    ejercicioGif.nombreOriginal,
-    ejercicioGif.musculoObjetivo,
-  ].map(normalizar);
-
-  for (const ejercicio of maquina.ejercicios) {
-    const nombreEjercicio = normalizar(ejercicio.nombre);
-    if (
-      candidatos.some(
-        (candidato) =>
-          candidato === nombreEjercicio ||
-          candidato.includes(nombreEjercicio) ||
-          nombreEjercicio.includes(candidato),
-      )
-    ) {
-      return ejercicio;
-    }
-  }
-
-  return null;
-}
-
-interface DetalleEjercicioGenerado {
-  categoria: string;
-  descripcion: string;
-  gruposMusculares: string[];
-  instrucciones: string[];
-}
-
-function generarDetalleEjercicio(
-  maquina: Maquina,
-  ejercicioGif: EjercicioGif,
-): DetalleEjercicioGenerado {
-  const secundarios = maquina.musculosSecundarios.slice(0, 2);
-  const musculos = [ejercicioGif.musculoObjetivo, ...secundarios].filter(
-    (m, i, arr) => m && arr.indexOf(m) === i,
-  );
-  const categoria = maquina.categoria || "Fortalecimiento";
-  const objetivoPorDificultad: Record<EjercicioGif["dificultad"], string> = {
-    Principiante:
-      "aprender la técnica base con control del movimiento y postura segura",
-    Intermedio:
-      "desarrollar fuerza e hipertrofia manteniendo una ejecución estable",
-    Avanzado:
-      "aumentar intensidad y control bajo mayor carga sin perder técnica",
-  };
-
-  const descripcion =
-    `${ejercicioGif.nombre} en ${maquina.nombre} está orientado a trabajar principalmente ${ejercicioGif.musculoObjetivo.toLowerCase()}. ` +
-    `Se recomienda para ${objetivoPorDificultad[ejercicioGif.dificultad]}.`;
-
-  const instrucciones = [
-    "Ajusta asiento, respaldo o polea para que la articulación principal quede alineada con el eje de la máquina.",
-    `Inicia el movimiento de forma controlada, concentrando el esfuerzo en ${ejercicioGif.musculoObjetivo.toLowerCase()} y evitando impulsos.`,
-    "Regresa lentamente a la posición inicial, manteniendo tensión muscular y respiración constante.",
-    ...maquina.prevencionLesiones.slice(0, 2),
-  ];
-
-  return {
-    categoria,
-    descripcion,
-    gruposMusculares: musculos.length ? musculos : maquina.musculosPrincipales,
-    instrucciones,
-  };
-}
 
 export default function MachineDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -144,9 +65,7 @@ export default function MachineDetail() {
   }, [id]);
 
   const volver = () =>
-    router.canGoBack()
-      ? router.back()
-      : router.replace("/(app)/machines" as Href);
+    router.canGoBack() ? router.back() : router.replace("/(app)/machines");
 
   if (maquina === undefined) {
     return (
@@ -182,27 +101,13 @@ export default function MachineDetail() {
     setModalEjercicio(true);
     setCargandoDetalleEjercicio(true);
 
-    const relacionado = buscarEjercicioRelacionado(maquina, ejercicioGif);
-    const wgerId = relacionado?.wgerId ?? null;
-    if (!wgerId) {
-      setDetalleGenerado(generarDetalleEjercicio(maquina, ejercicioGif));
-      setCargandoDetalleEjercicio(false);
-      return;
-    }
-
-    try {
-      const detalle = await EjerciciosWgerController.obtenerPorId(wgerId);
-      if (!detalle) {
-        setDetalleGenerado(generarDetalleEjercicio(maquina, ejercicioGif));
-        return;
-      }
-      setDetalleEjercicio(detalle);
-    } catch (error) {
-      console.error("Error al cargar detalle del ejercicio:", error);
-      setDetalleGenerado(generarDetalleEjercicio(maquina, ejercicioGif));
-    } finally {
-      setCargandoDetalleEjercicio(false);
-    }
+    const resultado = await MaquinasController.obtenerDetalleEjercicio(
+      maquina,
+      ejercicioGif,
+    );
+    if (resultado.origen === "wger") setDetalleEjercicio(resultado.detalle);
+    else setDetalleGenerado(resultado.detalle);
+    setCargandoDetalleEjercicio(false);
   };
 
   return (
@@ -259,9 +164,10 @@ export default function MachineDetail() {
             activeOpacity={0.85}
             className="mb-4 overflow-hidden rounded-2xl"
             onPress={() =>
-              router.push(
-                `/(app)/machines/escaner?maquinaId=${maquina.id}` as Href,
-              )
+              router.push({
+                pathname: "/(app)/machines/escaner",
+                params: { maquinaId: maquina.id },
+              })
             }
             accessibilityRole="button"
           >

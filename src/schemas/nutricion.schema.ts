@@ -27,6 +27,25 @@ export const registroIngestaSchema = z.object({
     .min(0, "Las calorías no pueden ser negativas")
     .max(10_000, "Valor de calorías demasiado alto"),
   cantidad: z.string().max(100).optional(),
+  proteinas: z
+    .number()
+    .min(0, "Las proteínas no pueden ser negativas")
+    .max(1_000)
+    .optional()
+    .default(0),
+  carbohidratos: z
+    .number()
+    .min(0, "Los carbohidratos no pueden ser negativos")
+    .max(1_000)
+    .optional()
+    .default(0),
+  grasas: z
+    .number()
+    .min(0, "Las grasas no pueden ser negativas")
+    .max(1_000)
+    .optional()
+    .default(0),
+  fdcId: z.number().int().positive().optional(),
 });
 
 export type RegistroIngestaInput = z.infer<typeof registroIngestaSchema>;

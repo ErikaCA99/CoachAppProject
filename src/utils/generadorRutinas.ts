@@ -11,6 +11,11 @@ import type {
  *
  * El `RutinasController` combina esta estructura con ejercicios reales
  * (obtenidos vía `EjerciciosWgerController`) para armar la `Rutina` final.
+ *
+ * Además define el ESPACIO DE SALIDA del modelo de IA (TensorFlow Lite):
+ * `PLANTILLAS_SEMANALES` y `ESQUEMAS_CARGA` son las clases que predice la red.
+ * El índice de cada elemento es la clase; no reordenar ni insertar en medio
+ * sin reentrenar el modelo (agregar al final y subir la versión).
  */
 
 export interface ParametrosSerie {
@@ -32,6 +37,19 @@ export interface PlanHeuristico {
   bloques: BloqueDia[];
 }
 
+export interface PlantillaSemanal {
+  id: string;
+  diasPorSemana: number;
+  enfasisCardio: boolean;
+  bloques: BloqueDia[];
+}
+
+export interface EsquemaCarga {
+  id: string;
+  descripcion: string;
+  parametros: ParametrosSerie;
+}
+
 // IDs de categoría reales de wger (confirmados vía /api/v2/exercisecategory/).
 const CATEGORIA = {
   ABDOMINALES: 10,
@@ -44,18 +62,46 @@ const CATEGORIA = {
   HOMBROS: 13,
 } as const;
 
-const PARAMETROS_POR_OBJETIVO: Record<ObjetivoUsuario, ParametrosSerie> = {
-  perder_peso: { series: 3, repeticiones: 15, descansoSegundos: 45 },
-  ganar_masa: { series: 4, repeticiones: 9, descansoSegundos: 90 },
-  mantenimiento: { series: 3, repeticiones: 12, descansoSegundos: 60 },
-  resistencia: { series: 3, repeticiones: 18, descansoSegundos: 30 },
+// ── Esquemas de carga (salida "esquema" del modelo) ──────────────────
+
+export const ESQUEMAS_CARGA: readonly EsquemaCarga[] = [
+  {
+    id: "metabolico",
+    descripcion: "Alto volumen y descanso corto para gasto calórico",
+    parametros: { series: 3, repeticiones: 15, descansoSegundos: 45 },
+  },
+  {
+    id: "hipertrofia",
+    descripcion: "Volumen moderado-alto en rango de hipertrofia",
+    parametros: { series: 4, repeticiones: 9, descansoSegundos: 90 },
+  },
+  {
+    id: "general",
+    descripcion: "Acondicionamiento general / mantenimiento",
+    parametros: { series: 3, repeticiones: 12, descansoSegundos: 60 },
+  },
+  {
+    id: "resistencia",
+    descripcion: "Repeticiones altas y descanso mínimo",
+    parametros: { series: 3, repeticiones: 18, descansoSegundos: 30 },
+  },
+];
+
+/** Índice en `ESQUEMAS_CARGA` que la heurística asigna a cada objetivo. */
+const ESQUEMA_POR_OBJETIVO: Record<ObjetivoUsuario, number> = {
+  perder_peso: 0,
+  ganar_masa: 1,
+  mantenimiento: 2,
+  resistencia: 3,
 };
 
-const DIAS_POR_NIVEL: Record<NivelExperiencia, number> = {
+export const DIAS_POR_NIVEL: Record<NivelExperiencia, number> = {
   principiante: 3,
   intermedio: 4,
   avanzado: 5,
 };
+
+// ── Bloques diarios ──────────────────────────────────────────────────
 
 const BLOQUE_EMPUJE: BloqueDia = {
   enfoque: "Pecho, Hombros y Brazos",
@@ -83,53 +129,173 @@ const BLOQUE_FULL: BloqueDia = {
   cantidadEjercicios: 6,
 };
 
-function bloquesPorDias(
-  diasPorSemana: number,
-  objetivo: ObjetivoUsuario,
-): BloqueDia[] {
-  const enfasisCardio =
-    objetivo === "perder_peso" || objetivo === "resistencia";
+// ── Plantillas semanales (salida "plantilla" del modelo) ─────────────
 
-  switch (diasPorSemana) {
-    case 3:
-      return enfasisCardio
-        ? [BLOQUE_EMPUJE, BLOQUE_CARDIO, BLOQUE_PIERNA]
-        : [BLOQUE_EMPUJE, BLOQUE_TIRON, BLOQUE_PIERNA];
-    case 4:
-      return enfasisCardio
-        ? [BLOQUE_EMPUJE, BLOQUE_TIRON, BLOQUE_CARDIO, BLOQUE_PIERNA]
-        : [BLOQUE_EMPUJE, BLOQUE_TIRON, BLOQUE_PIERNA, BLOQUE_FULL];
-    case 5:
-    default:
-      return enfasisCardio
-        ? [
-            BLOQUE_EMPUJE,
-            BLOQUE_TIRON,
-            BLOQUE_PIERNA,
-            BLOQUE_CARDIO,
-            BLOQUE_FULL,
-          ]
-        : [
-            BLOQUE_EMPUJE,
-            BLOQUE_TIRON,
-            BLOQUE_PIERNA,
-            BLOQUE_EMPUJE,
-            BLOQUE_TIRON,
-          ];
-  }
+export const PLANTILLAS_SEMANALES: readonly PlantillaSemanal[] = [
+  {
+    id: "3d_fuerza",
+    diasPorSemana: 3,
+    enfasisCardio: false,
+    bloques: [BLOQUE_EMPUJE, BLOQUE_TIRON, BLOQUE_PIERNA],
+  },
+  {
+    id: "3d_cardio",
+    diasPorSemana: 3,
+    enfasisCardio: true,
+    bloques: [BLOQUE_EMPUJE, BLOQUE_CARDIO, BLOQUE_PIERNA],
+  },
+  {
+    id: "4d_fuerza",
+    diasPorSemana: 4,
+    enfasisCardio: false,
+    bloques: [BLOQUE_EMPUJE, BLOQUE_TIRON, BLOQUE_PIERNA, BLOQUE_FULL],
+  },
+  {
+    id: "4d_cardio",
+    diasPorSemana: 4,
+    enfasisCardio: true,
+    bloques: [BLOQUE_EMPUJE, BLOQUE_TIRON, BLOQUE_CARDIO, BLOQUE_PIERNA],
+  },
+  {
+    id: "5d_fuerza",
+    diasPorSemana: 5,
+    enfasisCardio: false,
+    bloques: [
+      BLOQUE_EMPUJE,
+      BLOQUE_TIRON,
+      BLOQUE_PIERNA,
+      BLOQUE_EMPUJE,
+      BLOQUE_TIRON,
+    ],
+  },
+  {
+    id: "5d_cardio",
+    diasPorSemana: 5,
+    enfasisCardio: true,
+    bloques: [
+      BLOQUE_EMPUJE,
+      BLOQUE_TIRON,
+      BLOQUE_PIERNA,
+      BLOQUE_CARDIO,
+      BLOQUE_FULL,
+    ],
+  },
+];
+
+/** Índice de la plantilla para N días (acotado a 3..5) con o sin énfasis en cardio. */
+export function indicePlantilla(
+  diasPorSemana: number,
+  enfasisCardio: boolean,
+): number {
+  const dias = Math.min(5, Math.max(3, Math.round(diasPorSemana)));
+  return PLANTILLAS_SEMANALES.findIndex(
+    (p) => p.diasPorSemana === dias && p.enfasisCardio === enfasisCardio,
+  );
 }
 
-/** Punto de entrada: dado un objetivo y nivel, arma la estructura semanal. */
+/**
+ * Traduce un par de clases (plantilla, esquema) a un `PlanHeuristico`.
+ * Lo usan tanto la heurística como el modelo de IA, para que ambos
+ * produzcan exactamente la misma estructura de salida.
+ */
+export function construirPlan(
+  indicePlantillaSemanal: number,
+  indiceEsquema: number,
+): PlanHeuristico {
+  const plantilla = PLANTILLAS_SEMANALES[indicePlantillaSemanal];
+  const esquema = ESQUEMAS_CARGA[indiceEsquema];
+  if (!plantilla || !esquema) {
+    throw new Error(
+      `Clase fuera de rango (plantilla=${indicePlantillaSemanal}, esquema=${indiceEsquema})`,
+    );
+  }
+  return {
+    diasPorSemana: plantilla.diasPorSemana,
+    parametrosSerie: { ...esquema.parametros },
+    bloques: plantilla.bloques,
+  };
+}
+
+// ── Política de decisión (etiquetas del modelo de IA) ─────────────────
+//
+// Reglas basadas en recomendaciones generales de prescripción de ejercicio
+// (ACSM / OMS). Son a la vez:
+//   1. el respaldo (fallback) cuando el modelo TFLite no está disponible, y
+//   2. la función con la que se etiqueta el dataset de entrenamiento
+//      (`ml/entrenar_modelo_rutinas.py::etiquetar` es un port EXACTO de
+//      `decidirClases`; si cambias una regla aquí, cámbiala allá y reentrena).
+
+/** A partir de este IMC se prioriza el trabajo cardiovascular. */
+export const UMBRAL_IMC_CARDIO = 30;
+/** Adultos mayores: intensidad moderada (sin hipertrofia ni circuitos metabólicos). */
+export const EDAD_ADULTO_MAYOR = 60;
+/** Adolescentes: sin cargas de hipertrofia. */
+export const EDAD_MINIMA_HIPERTROFIA = 16;
+
+export interface PerfilPlan {
+  objetivo: ObjetivoUsuario;
+  nivel: NivelExperiencia;
+  edad?: number;
+  imc?: number;
+  diasDisponibles?: number;
+}
+
+export interface ClasesPlan {
+  indicePlantilla: number;
+  indiceEsquema: number;
+}
+
+export function decidirClases(perfil: PerfilPlan): ClasesPlan {
+  const { objetivo, nivel, edad, imc, diasDisponibles } = perfil;
+
+  // Días: los que el usuario puede, sin superar lo recomendado para su nivel.
+  const maximoNivel = DIAS_POR_NIVEL[nivel];
+  const dias = Math.min(diasDisponibles ?? maximoNivel, maximoNivel);
+
+  // Énfasis cardiovascular por objetivo o por IMC de obesidad.
+  const enfasisCardio =
+    objetivo === "perder_peso" ||
+    objetivo === "resistencia" ||
+    (imc !== undefined && imc >= UMBRAL_IMC_CARDIO);
+
+  // Esquema de carga por objetivo, moderado por edad.
+  let esquema = ESQUEMA_POR_OBJETIVO[objetivo];
+  const HIPERTROFIA = ESQUEMA_POR_OBJETIVO.ganar_masa;
+  const METABOLICO = ESQUEMA_POR_OBJETIVO.perder_peso;
+  const GENERAL = ESQUEMA_POR_OBJETIVO.mantenimiento;
+  if (
+    edad !== undefined &&
+    edad >= EDAD_ADULTO_MAYOR &&
+    (esquema === HIPERTROFIA || esquema === METABOLICO)
+  ) {
+    esquema = GENERAL;
+  }
+  if (
+    edad !== undefined &&
+    edad < EDAD_MINIMA_HIPERTROFIA &&
+    esquema === HIPERTROFIA
+  ) {
+    esquema = GENERAL;
+  }
+
+  return {
+    indicePlantilla: indicePlantilla(dias, enfasisCardio),
+    indiceEsquema: esquema,
+  };
+}
+
+/**
+ * Punto de entrada de la heurística: arma la estructura semanal.
+ * Sin `datos` extra se comporta exactamente como la versión original
+ * (solo objetivo y nivel).
+ */
 export function generarPlanHeuristico(
   objetivo: ObjetivoUsuario,
   nivel: NivelExperiencia,
+  datos: Omit<PerfilPlan, "objetivo" | "nivel"> = {},
 ): PlanHeuristico {
-  const diasPorSemana = DIAS_POR_NIVEL[nivel];
-  return {
-    diasPorSemana,
-    parametrosSerie: PARAMETROS_POR_OBJETIVO[objetivo],
-    bloques: bloquesPorDias(diasPorSemana, objetivo),
-  };
+  const clases = decidirClases({ objetivo, nivel, ...datos });
+  return construirPlan(clases.indicePlantilla, clases.indiceEsquema);
 }
 
 /** Reparte una cantidad total de ejercicios entre N categorías lo más parejo posible. */

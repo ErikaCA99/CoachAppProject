@@ -128,7 +128,7 @@ export default function TargetSelectionScreen() {
           <BotonPrimario
             titulo="Siguiente"
             deshabilitado={!completo}
-            onPress={() => router.push("/(onboarding)/RoutineChoiceScreen")}
+            onPress={() => router.push("/(onboarding)/datos-fisicos")}
           />
         </View>
       </View>

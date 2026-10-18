@@ -1,22 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, type Href } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
+  Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
+import { AppHeader } from "@/components/ui/AppHeader";
+import { ErrorCarga } from "@/components/ui/ErrorCarga";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
-import { MaquinasController } from "@/controllers/MaquinasController";
 import { RutinasController } from "@/controllers/RutinasController";
+import { useErrorDeCarga } from "@/hooks/useErrorDeCarga";
+import { useIrAMaquina } from "@/hooks/useIrAMaquina";
 import type { EjercicioRutina, Rutina } from "@/models/entities/Rutina";
-import type { ConId } from "@/services/firebase/firestoreService";
+import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 
 function RutinaActivaCard({
@@ -53,8 +56,8 @@ function RutinaActivaCard({
             key={dia.dia}
             className="mb-2 overflow-hidden rounded-xl bg-background"
           >
-            <TouchableOpacity
-              className="flex-row items-center justify-between p-3.5"
+            <Pressable
+              className="flex-row items-center justify-between p-3.5 active:bg-primary-light/10"
               onPress={() => setDiaExpandido(expandido ? null : dia.dia)}
             >
               <Text className="flex-1 pr-2 text-sm font-bold text-foreground">
@@ -65,13 +68,13 @@ function RutinaActivaCard({
                 size={18}
                 color={palette.textMuted}
               />
-            </TouchableOpacity>
+            </Pressable>
             {expandido && (
               <View className="px-3.5 pb-3.5">
                 {dia.ejercicios.map((ejercicio, indice) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={`${ejercicio.maquinaId}-${indice}`}
-                    className="mb-2 flex-row items-center rounded-lg border border-border p-2.5"
+                    className="mb-2 flex-row items-center rounded-lg border border-border p-2.5 active:scale-[0.98] active:bg-primary-light/10"
                     onPress={() => onIrAMaquina(ejercicio)}
                   >
                     {ejercicio.imagenUrl ? (
@@ -95,12 +98,12 @@ function RutinaActivaCard({
                       >
                         {ejercicio.nombre}
                       </Text>
-                      <Text className="text-[11px] text-text-muted">
+                      <Text className="text-xs text-text-secondary">
                         {ejercicio.series} series × {ejercicio.repeticiones}{" "}
                         reps · {ejercicio.descansoSegundos}s descanso
                       </Text>
                     </View>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
                 {dia.ejercicios.length === 0 && (
                   <Text className="text-xs text-text-muted">
@@ -120,49 +123,40 @@ export default function RoutinesScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
 
-  /** Abre la ficha de la máquina del ejercicio (si el ejercicio usa una máquina del catálogo). */
-  const irAMaquina = async (ejercicio: EjercicioRutina) => {
-    try {
-      const maquinaId =
-        ejercicio.maquinaCatalogoId ??
-        (await MaquinasController.buscarPorWgerId(ejercicio.maquinaId))?.id;
-      if (maquinaId) {
-        router.push(`/(app)/machines/${maquinaId}` as Href);
-      } else {
-        Alert.alert(
-          ejercicio.nombre,
-          "Este ejercicio no usa ninguna máquina del catálogo (por ejemplo, es con peso libre).",
-        );
-      }
-    } catch (error) {
-      console.error("Error al buscar la máquina del ejercicio:", error);
-      Alert.alert("Error", "No se pudo abrir la ficha de la máquina.");
-    }
-  };
+  const irAMaquina = useIrAMaquina();
 
   const [rutinas, setRutinas] = useState<ConId<Rutina>[]>([]);
   const [rutinaActivaId, setRutinaActivaId] = useState<string | null>(null);
   const [cargandoPerfil, setCargandoPerfil] = useState(true);
   const [cargandoRutinas, setCargandoRutinas] = useState(true);
+  const { error, intento, reportar, reintentar } = useErrorDeCarga();
 
   useEffect(() => {
     if (!user) return;
 
-    const unsubPerfil = AuthController.observarPerfil(user.uid, (perfil) => {
-      setRutinaActivaId(perfil?.rutinaActivaId ?? null);
-      setCargandoPerfil(false);
-    });
+    const unsubPerfil = AuthController.observarPerfil(
+      user.uid,
+      (perfil) => {
+        setRutinaActivaId(perfil?.rutinaActivaId ?? null);
+        setCargandoPerfil(false);
+      },
+      (causa) => reportar("perfil", causa),
+    );
 
-    const unsubRutinas = RutinasController.observar(user.uid, (lista) => {
-      setRutinas(lista);
-      setCargandoRutinas(false);
-    });
+    const unsubRutinas = RutinasController.observar(
+      user.uid,
+      (lista) => {
+        setRutinas(lista);
+        setCargandoRutinas(false);
+      },
+      (causa) => reportar("rutinas", causa),
+    );
 
     return () => {
       unsubPerfil();
       unsubRutinas();
     };
-  }, [user]);
+  }, [user, intento, reportar]);
 
   const rutinaActiva = rutinas.find((r) => r.id === rutinaActivaId) ?? null;
   const otrasRutinas = rutinas.filter((r) => r.id !== rutinaActivaId);
@@ -188,6 +182,14 @@ export default function RoutinesScreen() {
     ]);
   };
 
+  if (error) {
+    return (
+      <View className="flex-1 justify-center bg-background">
+        <ErrorCarga mensaje={error} onReintentar={reintentar} />
+      </View>
+    );
+  }
+
   if (cargandoPerfil || cargandoRutinas) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
@@ -202,12 +204,15 @@ export default function RoutinesScreen() {
       contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <Text className="mb-1 text-2xl font-bold text-foreground">Rutinas</Text>
-      <Text className="mb-6 text-sm text-text-muted">
-        {rutinaActiva
-          ? "Tu plan de entrenamiento actual"
-          : "Aún no tienes una rutina activa"}
-      </Text>
+      <AppHeader
+        title="Rutinas"
+        subtitle={
+          rutinaActiva
+            ? "Tu plan de entrenamiento actual"
+            : "Aún no tienes una rutina activa"
+        }
+        onProfilePress={() => router.push("/(app)/perfil")}
+      />
 
       {rutinaActiva ? (
         <RutinaActivaCard
@@ -221,45 +226,45 @@ export default function RoutinesScreen() {
         />
       ) : (
         <View className="mb-4 flex-row gap-3">
-          <TouchableOpacity
-            className="flex-1 items-center rounded-2xl border border-primary bg-primary-light/20 p-5"
-            onPress={() => router.push("/(app)/routines/generar" as Href)}
+          <Pressable
+            className="flex-1 items-center rounded-2xl border border-primary bg-primary-light/20 p-5 active:scale-[0.98] active:opacity-85"
+            onPress={() => router.push("/(app)/routines/generar")}
           >
             <Ionicons name="sparkles" size={28} color={palette.primary} />
             <Text className="mt-2 text-center text-sm font-bold text-foreground">
               Generar con IA
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 items-center rounded-2xl border border-accent-strong bg-accent/10 p-5"
-            onPress={() => router.push("/(app)/routines/personalizada" as Href)}
+          </Pressable>
+          <Pressable
+            className="flex-1 items-center rounded-2xl border border-accent-strong bg-accent/10 p-5 active:scale-[0.98] active:opacity-85"
+            onPress={() => router.push("/(app)/routines/personalizada")}
           >
             <Ionicons name="create" size={28} color={palette.accentStrong} />
             <Text className="mt-2 text-center text-sm font-bold text-foreground">
               Crear personalizada
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
       {rutinaActiva && (
         <View className="mt-4 flex-row gap-3">
-          <TouchableOpacity
-            className="flex-1 items-center rounded-2xl border border-border p-3.5"
-            onPress={() => router.push("/(app)/routines/generar" as Href)}
+          <Pressable
+            className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
+            onPress={() => router.push("/(app)/routines/generar")}
           >
             <Text className="text-xs font-bold text-foreground">
               Generar otra con IA
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 items-center rounded-2xl border border-border p-3.5"
-            onPress={() => router.push("/(app)/routines/personalizada" as Href)}
+          </Pressable>
+          <Pressable
+            className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
+            onPress={() => router.push("/(app)/routines/personalizada")}
           >
             <Text className="text-xs font-bold text-foreground">
               Crear personalizada
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
@@ -277,21 +282,27 @@ export default function RoutinesScreen() {
                 <Text className="text-sm font-semibold text-foreground">
                   {rutina.nombre}
                 </Text>
-                <Text className="mt-0.5 text-xs text-text-muted">
+                <Text className="mt-0.5 text-xs text-text-secondary">
                   {rutina.diasPorSemana} días/semana ·{" "}
-                  {rutina.tipo === "ia" ? "Generada con IA" : "Personalizada"}
+                  {rutina.tipo !== "ia"
+                    ? "Personalizada"
+                    : rutina.origenPlan === "modelo"
+                      ? `Generada con IA · modelo v${rutina.versionModelo}`
+                      : rutina.origenPlan === "heuristica"
+                        ? "Generada con IA · reglas de respaldo"
+                        : "Generada con IA"}
                 </Text>
               </View>
-              <TouchableOpacity
-                className="mr-2 rounded-lg bg-primary px-3 py-2"
+              <Pressable
+                className="mr-2 rounded-lg bg-primary px-3 py-2 active:scale-95 active:opacity-85"
                 onPress={() => handleActivar(rutina.id)}
               >
                 <Text className="text-xs font-bold text-background">
                   Activar
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="rounded-lg border border-error p-2"
+              </Pressable>
+              <Pressable
+                className="rounded-lg border border-error p-2 active:scale-95 active:opacity-70"
                 onPress={() => handleEliminar(rutina.id)}
               >
                 <Ionicons
@@ -299,7 +310,7 @@ export default function RoutinesScreen() {
                   size={16}
                   color={palette.error}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           ))}
         </View>

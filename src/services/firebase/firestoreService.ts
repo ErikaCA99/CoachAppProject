@@ -10,11 +10,13 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   type DocumentData,
   type FirestoreError,
   type Unsubscribe,
 } from "firebase/firestore";
 
+import type { ConId } from "@/models/types";
 import { auth, db } from "@/services/firebase/firebase";
 
 /**
@@ -26,7 +28,19 @@ import { auth, db } from "@/services/firebase/firebase";
  * nunca deben usar `collection`/`doc`/`getDocs` etc. directamente.
  */
 
-export type ConId<T> = T & { id: string };
+/**
+ * Arma el modelo de un documento: agrega el `id` y convierte los `Timestamp`
+ * de primer nivel (`creadoEn`, `actualizadoEn`...) a `Date`, para que los
+ * modelos, controladores y vistas no dependan del SDK de Firestore.
+ * (Un `serverTimestamp()` aún sin resolver llega como `null` y se respeta.)
+ */
+function aModelo<T>(id: string, datos: DocumentData): ConId<T> {
+  const convertidos: Record<string, unknown> = {};
+  for (const [clave, valor] of Object.entries(datos)) {
+    convertidos[clave] = valor instanceof Timestamp ? valor.toDate() : valor;
+  }
+  return { id, ...convertidos } as ConId<T>;
+}
 
 /**
  * Quita las claves cuyo valor es `undefined`.
@@ -52,30 +66,39 @@ function limpiarUndefined<T extends object>(datos: T): T {
 }
 
 /**
- * Manejador de errores por defecto para los listeners en tiempo real.
+ * Decide qué hacer cuando un listener en tiempo real falla.
  *
  * Sin un `onError`, un error de `onSnapshot` (p. ej. `permission-denied`)
  * se reporta como "Uncaught Error in snapshot listener" y la pantalla se
- * queda esperando datos que nunca llegan (spinner infinito). Con este
- * manejador:
+ * queda esperando datos que nunca llegan (spinner infinito). Por eso:
  *  - Al cerrar sesión, Firestore reintenta los listeners activos sin
  *    credenciales y recibe `permission-denied` justo antes de que las
- *    pantallas se desmonten. Es esperado, así que se ignora en silencio.
- *  - En cualquier otro caso se registra un aviso legible y se entrega un
- *    resultado vacío para que la UI salga del estado de carga.
+ *    pantallas se desmonten. Es esperado: se ignora en silencio (se entrega
+ *    vacío) y NUNCA llega al `onError` de la pantalla.
+ *  - Si el llamador pasó `onError`, recibe el error real y decide qué
+ *    mostrar (así la UI distingue "falló la carga" de "no hay datos").
+ *  - Si no lo pasó, se registra un aviso legible y se entrega vacío para que
+ *    la UI salga del estado de carga (comportamiento histórico).
  */
 function manejarErrorListener(
-  coleccionPath: string,
+  ruta: string,
   error: FirestoreError,
   entregarVacio: () => void,
+  onError?: (error: FirestoreError) => void,
 ): void {
   const esCierreDeSesion =
     error.code === "permission-denied" && !auth.currentUser;
-  if (!esCierreDeSesion) {
-    console.warn(
-      `[Firestore] Listener de "${coleccionPath}" falló (${error.code}): ${error.message}`,
-    );
+  if (esCierreDeSesion) {
+    entregarVacio();
+    return;
   }
+  if (onError) {
+    onError(error);
+    return;
+  }
+  console.warn(
+    `[Firestore] Listener de "${ruta}" falló (${error.code}): ${error.message}`,
+  );
   entregarVacio();
 }
 
@@ -121,7 +144,7 @@ export async function obtenerPorId<T>(
 ): Promise<ConId<T> | null> {
   const snapshot = await getDoc(doc(db, coleccionPath, id));
   if (!snapshot.exists()) return null;
-  return { id: snapshot.id, ...(snapshot.data() as T) };
+  return aModelo<T>(snapshot.id, snapshot.data());
 }
 
 /** Lista todos los documentos de una colección, opcionalmente ordenados. */
@@ -138,7 +161,7 @@ export async function listar<T>(
     : coleccionRef;
 
   const snapshot = await getDocs(consulta);
-  return snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as T) }));
+  return snapshot.docs.map((d) => aModelo<T>(d.id, d.data()));
 }
 
 /** Actualiza parcialmente un documento. Agrega `actualizadoEn` (server timestamp). */
@@ -189,12 +212,15 @@ export function observar<T>(
   return onSnapshot(
     consulta,
     (snapshot) => {
-      callback(snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as T) })));
+      callback(snapshot.docs.map((d) => aModelo<T>(d.id, d.data())));
     },
-    (error) => {
-      if (opciones.onError) opciones.onError(error);
-      else manejarErrorListener(coleccionPath, error, () => callback([]));
-    },
+    (error) =>
+      manejarErrorListener(
+        coleccionPath,
+        error,
+        () => callback([]),
+        opciones.onError,
+      ),
   );
 }
 
@@ -209,18 +235,16 @@ export function observarDocumento<T>(
     doc(db, coleccionPath, id),
     (snapshot) => {
       callback(
-        snapshot.exists()
-          ? { id: snapshot.id, ...(snapshot.data() as T) }
-          : null,
+        snapshot.exists() ? aModelo<T>(snapshot.id, snapshot.data()) : null,
       );
     },
-    (error) => {
-      if (onError) onError(error);
-      else
-        manejarErrorListener(`${coleccionPath}/${id}`, error, () =>
-          callback(null),
-        );
-    },
+    (error) =>
+      manejarErrorListener(
+        `${coleccionPath}/${id}`,
+        error,
+        () => callback(null),
+        onError,
+      ),
   );
 }
 
