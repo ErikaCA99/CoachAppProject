@@ -86,7 +86,7 @@ export function BuscadorAlimentos({
           <Text className="text-base font-bold text-foreground">
             Buscar alimento
           </Text>
-          <Text className="text-[11px] text-text-muted">
+          <Text className="text-xs text-text-muted">
             Datos: USDA FoodData Central · valores por 100 g
           </Text>
         </View>
@@ -123,11 +123,11 @@ export function BuscadorAlimentos({
       {/* Detalle del alimento seleccionado */}
       {seleccionado ? (
         <View className="mt-3 rounded-2xl border border-primary/30 bg-primary/5 p-3.5">
-          <Text className="text-[11px] text-text-muted" numberOfLines={2}>
+          <Text className="text-xs text-text-muted" numberOfLines={2}>
             {seleccionado.descripcionEs || seleccionado.descripcion}
           </Text>
 
-          <Text className="mb-1 mt-3 text-[11px] font-bold tracking-wider text-text-muted">
+          <Text className="mb-1 mt-3 text-xs font-bold tracking-wider text-text-muted">
             NOMBRE EN TU REGISTRO
           </Text>
           <TextInput
@@ -138,7 +138,7 @@ export function BuscadorAlimentos({
             className="h-10 rounded-xl border border-border/60 bg-white px-3 text-sm text-foreground"
           />
 
-          <Text className="mb-1 mt-3 text-[11px] font-bold tracking-wider text-text-muted">
+          <Text className="mb-1 mt-3 text-xs font-bold tracking-wider text-text-muted">
             CANTIDAD (G)
           </Text>
           <View className="flex-row items-center gap-2">
@@ -258,7 +258,7 @@ export function BuscadorAlimentos({
                     >
                       {alimento.descripcionEs || alimento.descripcion}
                     </Text>
-                    <Text className="mt-0.5 text-[11px] text-text-muted">
+                    <Text className="mt-0.5 text-xs text-text-muted">
                       P: {alimento.proteinasPor100g}g · C:{" "}
                       {alimento.carbohidratosPor100g}g · G:{" "}
                       {alimento.grasasPor100g}g
@@ -268,9 +268,7 @@ export function BuscadorAlimentos({
                     <Text className="text-sm font-bold text-primary">
                       {alimento.caloriasPor100g}
                     </Text>
-                    <Text className="text-[10px] text-text-muted">
-                      kcal/100g
-                    </Text>
+                    <Text className="text-xs text-text-muted">kcal/100g</Text>
                   </View>
                 </TouchableOpacity>
               ))}

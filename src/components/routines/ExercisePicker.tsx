@@ -34,7 +34,12 @@ export function SelectorEjercicios({
           <Text className="text-lg font-bold text-foreground">
             Elegir ejercicio
           </Text>
-          <TouchableOpacity onPress={onCerrar}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar selector de ejercicios"
+            hitSlop={12}
+            onPress={onCerrar}
+          >
             <Ionicons name="close" size={26} color={palette.foreground} />
           </TouchableOpacity>
         </View>
@@ -62,6 +67,7 @@ export function SelectorEjercicios({
             contentContainerStyle={{ padding: 20, paddingTop: 0 }}
             renderItem={({ item }) => (
               <TouchableOpacity
+                accessibilityRole="button"
                 className="mb-2.5 flex-row items-center rounded-xl border border-border p-2.5"
                 onPress={() => onSeleccionar(item)}
               >
@@ -86,7 +92,7 @@ export function SelectorEjercicios({
                   >
                     {item.nombre}
                   </Text>
-                  <Text className="text-[11px] text-text-muted">
+                  <Text className="text-xs text-text-muted">
                     {item.categoria}
                   </Text>
                 </View>

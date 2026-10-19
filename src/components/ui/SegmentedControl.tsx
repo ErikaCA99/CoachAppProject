@@ -85,9 +85,11 @@ const styles = StyleSheet.create({
   },
   opcionDefault: {
     flex: 1,
+    minHeight: 44,
     paddingVertical: 8,
   },
   opcionSm: {
+    minHeight: 32,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },

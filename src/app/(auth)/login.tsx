@@ -108,6 +108,8 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             className="-mt-2 mb-5 self-end"
+            accessibilityRole="link"
+            hitSlop={{ top: 16, bottom: 16, left: 12, right: 12 }}
             onPress={handleRecuperar}
             disabled={ocupado}
           >

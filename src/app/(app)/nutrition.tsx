@@ -30,6 +30,7 @@ import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
 import type { Usuario } from "@/models/entities/User";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type VistaNutricion = "diario" | "imc";
 
@@ -44,6 +45,7 @@ function obtenerFechaHoyFormateada(): string {
 }
 
 export default function NutricionScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuthStore();
   const [vista, setVista] = useState<VistaNutricion>("diario");
@@ -187,7 +189,7 @@ export default function NutricionScreen() {
       className="flex-1 bg-background"
       contentContainerStyle={{
         padding: 20,
-        paddingTop: 56,
+        paddingTop: insets.top + 24,
         paddingBottom: 40,
       }}
       showsVerticalScrollIndicator={false}

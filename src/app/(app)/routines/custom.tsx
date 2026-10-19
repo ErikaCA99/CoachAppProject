@@ -83,7 +83,8 @@ export default function RutinaPersonalizadaScreen() {
         </Text>
         {puedeAgregarDia && (
           <TouchableOpacity
-            className="flex-row items-center rounded-full bg-primary-light/30 px-3 py-1.5"
+            accessibilityRole="button"
+            className="min-h-11 flex-row items-center rounded-full bg-primary-light/30 px-4"
             onPress={agregarDia}
           >
             <Ionicons name="add" size={16} color={palette.primary} />
@@ -102,11 +103,13 @@ export default function RutinaPersonalizadaScreen() {
         {dias.map((dia, indice) => (
           <TouchableOpacity
             key={dia.dia}
-            className={`mr-2 flex-row items-center rounded-full border px-4 py-2 ${
+            className={`mr-2 flex-row items-center min-h-11 rounded-full border px-4 ${
               diaActivo === indice
                 ? "border-primary bg-primary"
                 : "border-border bg-background"
             }`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: diaActivo === indice }}
             onPress={() => setDiaActivo(indice)}
           >
             <Text
@@ -119,8 +122,10 @@ export default function RutinaPersonalizadaScreen() {
             {puedeQuitarDia && (
               <TouchableOpacity
                 className="ml-2"
+                accessibilityRole="button"
+                accessibilityLabel={`Quitar día ${dia.dia}`}
+                hitSlop={14}
                 onPress={() => quitarDia(indice)}
-                hitSlop={8}
               >
                 <Ionicons
                   name="close-circle"
@@ -173,17 +178,23 @@ export default function RutinaPersonalizadaScreen() {
             >
               {ejercicio.nombre}
             </Text>
-            <Text className="text-[11px] text-text-muted">
+            <Text className="text-xs text-text-muted">
               {ejercicio.series} series × {ejercicio.repeticiones} reps
             </Text>
           </View>
-          <TouchableOpacity onPress={() => quitarEjercicio(indice)} hitSlop={8}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Quitar ejercicio"
+            hitSlop={14}
+            onPress={() => quitarEjercicio(indice)}
+          >
             <Ionicons name="trash-outline" size={18} color={palette.error} />
           </TouchableOpacity>
         </View>
       ))}
 
       <TouchableOpacity
+        accessibilityRole="button"
         className="mb-8 flex-row items-center justify-center rounded-2xl border border-dashed border-primary p-4"
         onPress={() => setModalVisible(true)}
       >
@@ -194,6 +205,7 @@ export default function RutinaPersonalizadaScreen() {
       </TouchableOpacity>
 
       <TouchableOpacity
+        accessibilityRole="button"
         className="items-center rounded-2xl bg-primary p-4"
         onPress={handleGuardar}
         disabled={guardando}

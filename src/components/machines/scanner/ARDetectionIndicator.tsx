@@ -42,7 +42,7 @@ export function IndicadorDeteccionAR({
             size={12}
             color={confirmada ? palette.primaryLight : palette.secondary}
           />
-          <Text className="ml-1 text-[11px] font-semibold text-white/80">
+          <Text className="ml-1 text-xs font-semibold text-white/80">
             {etiqueta}
           </Text>
         </View>

@@ -78,9 +78,7 @@ export function CaloriasGauge({
             <Text className="text-2xl font-extrabold text-foreground">
               {resumen.caloriasConsumidas}
             </Text>
-            <Text className="text-[11px] font-semibold text-text-muted">
-              kcal
-            </Text>
+            <Text className="text-xs font-semibold text-text-muted">kcal</Text>
           </View>
         </View>
 
@@ -94,7 +92,7 @@ export function CaloriasGauge({
           </Text>
           {origenMeta?.personalizada ? (
             <View className="mt-2 self-start rounded-full bg-primary/10 px-2.5 py-1">
-              <Text className="text-[10px] font-bold text-primary">
+              <Text className="text-xs font-bold text-primary">
                 PERSONALIZADA
               </Text>
             </View>
@@ -107,7 +105,7 @@ export function CaloriasGauge({
               accessibilityLabel="Completar perfil para personalizar la meta"
               className="mt-2 self-start rounded-full bg-secondary/30 px-2.5 py-1"
             >
-              <Text className="text-[10px] font-bold text-accent-strong">
+              <Text className="text-xs font-bold text-accent-strong">
                 META GENÉRICA · COMPLETA TU{" "}
                 {(origenMeta?.faltantes ?? ["peso", "altura", "edad"])
                   .map((d) => NOMBRE_DATO[d].toUpperCase())
@@ -119,7 +117,7 @@ export function CaloriasGauge({
       </View>
 
       {origenMeta?.personalizada && origenMeta.detalle ? (
-        <Text className="-mt-1 mb-3 text-[10px] leading-4 text-text-muted">
+        <Text className="-mt-1 mb-3 text-xs leading-4 text-text-muted">
           TMB {origenMeta.detalle.tmb} kcal × actividad{" "}
           {origenMeta.detalle.factorActividad}
           {origenMeta.detalle.ajusteObjetivo !== 0
@@ -135,7 +133,7 @@ export function CaloriasGauge({
         {/* Proteínas */}
         <View>
           <View className="mb-1 flex-row items-center justify-between text-xs">
-            <Text className="text-[11px] font-bold tracking-wider text-text-secondary">
+            <Text className="text-xs font-bold tracking-wider text-text-secondary">
               PROTEÍNAS
             </Text>
             <Text className="text-xs font-semibold text-text-muted">
@@ -159,7 +157,7 @@ export function CaloriasGauge({
         {/* Carbohidratos */}
         <View>
           <View className="mb-1 flex-row items-center justify-between text-xs">
-            <Text className="text-[11px] font-bold tracking-wider text-text-secondary">
+            <Text className="text-xs font-bold tracking-wider text-text-secondary">
               CARBOHIDRATOS
             </Text>
             <Text className="text-xs font-semibold text-text-muted">
@@ -183,7 +181,7 @@ export function CaloriasGauge({
         {/* Grasas */}
         <View>
           <View className="mb-1 flex-row items-center justify-between text-xs">
-            <Text className="text-[11px] font-bold tracking-wider text-text-secondary">
+            <Text className="text-xs font-bold tracking-wider text-text-secondary">
               GRASAS
             </Text>
             <Text className="text-xs font-semibold text-text-muted">

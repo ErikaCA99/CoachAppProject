@@ -20,6 +20,7 @@ import {
 } from "@/models/entities/User";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 type Fase = "cargando_perfil" | "formulario" | "generando" | "error";
@@ -30,6 +31,7 @@ type Fase = "cargando_perfil" | "formulario" | "generando" | "error";
  * antes de generar.
  */
 export default function GenerarRutinaScreen() {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const router = useRouter();
   const limpiarDestinoPendiente = useOnboardingStore(
@@ -111,6 +113,7 @@ export default function GenerarRutinaScreen() {
           No se pudo generar tu rutina. Verifica tu conexión e intenta de nuevo.
         </Text>
         <TouchableOpacity
+          accessibilityRole="button"
           className="mt-4 rounded-xl bg-primary px-6 py-3"
           onPress={() => setFase("generando")}
         >
@@ -123,7 +126,11 @@ export default function GenerarRutinaScreen() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 40 }}
+      contentContainerStyle={{
+        padding: 20,
+        paddingTop: insets.top + 24,
+        paddingBottom: 40,
+      }}
       showsVerticalScrollIndicator={false}
     >
       <Text className="mb-2 text-2xl font-bold text-foreground">
@@ -145,11 +152,13 @@ export default function GenerarRutinaScreen() {
           return (
             <TouchableOpacity
               key={valor}
-              className={`flex-row items-center rounded-full border px-4 py-2.5 ${
+              className={`flex-row items-center min-h-11 rounded-full border px-4 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
               }`}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
               onPress={() => setObjetivo(valor)}
             >
               <Ionicons
@@ -188,6 +197,8 @@ export default function GenerarRutinaScreen() {
                   ? "border-primary bg-primary-light/30"
                   : "border-border bg-background"
               }`}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
               onPress={() => setNivel(valor)}
             >
               <Text className="text-sm font-bold text-foreground">
@@ -202,6 +213,7 @@ export default function GenerarRutinaScreen() {
       </View>
 
       <TouchableOpacity
+        accessibilityRole="button"
         className={`items-center rounded-2xl p-4 ${
           objetivo && nivel ? "bg-primary" : "bg-text-muted"
         }`}

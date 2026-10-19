@@ -52,7 +52,7 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
           <Text className="text-base font-bold text-foreground">
             Reporte de progreso
           </Text>
-          <Text className="text-[11px] text-text-muted">
+          <Text className="text-xs text-text-muted">
             Peso, IMC, entrenamientos y alimentación en PDF
           </Text>
         </View>

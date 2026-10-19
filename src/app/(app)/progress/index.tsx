@@ -28,6 +28,7 @@ import { useProgresoScreen } from "@/hooks/useProgressScreen";
 import { useAuthStore } from "@/store/auth.store";
 import type { ResultadoAccion } from "@/types/actionResult";
 import { ETIQUETAS_IMC, type BmiCategory } from "@/utils/bmiCalculator";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: ANCHO_PANTALLA } = Dimensions.get("window");
 
@@ -41,6 +42,7 @@ function colorCategoriaIMC(categoria: BmiCategory): string {
 }
 
 export default function ProgressScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const pesoInputRef = useRef<TextInput>(null);
   const irAMaquina = useIrAMaquina();
@@ -114,7 +116,11 @@ export default function ProgressScreen() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 40 }}
+      contentContainerStyle={{
+        padding: 20,
+        paddingTop: insets.top + 24,
+        paddingBottom: 40,
+      }}
       showsVerticalScrollIndicator={false}
     >
       <AppHeader
@@ -338,6 +344,7 @@ export default function ProgressScreen() {
               </View>
             </View>
             <TouchableOpacity
+              accessibilityRole="button"
               className="items-center rounded-2xl bg-primary p-4"
               activeOpacity={0.85}
               onPress={handleRegistrar}
@@ -391,6 +398,8 @@ export default function ProgressScreen() {
                     </Text>
                   </View>
                   <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Eliminar registro"
                     onPress={() => handleEliminar(registro.id)}
                     activeOpacity={0.7}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

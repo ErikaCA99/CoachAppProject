@@ -5,13 +5,13 @@
  * (bg-primary, text-foreground, border-border...) en vez de este objeto.
  */
 export const palette = {
-  primary: "#32a685",
+  primary: "#1a8062",
   primaryLight: "#add9d1",
   /** Extremo oscuro de los degradados de botones/tarjetas (solo props nativas). */
-  primaryDark: "#1f8a6a",
+  primaryDark: "#146a50",
   secondary: "#f2c0a2",
   accent: "#f29580",
-  accentStrong: "#d95032",
+  accentStrong: "#c0391b",
   background: "#ffffff",
   surface: "#add9d1",
   foreground: "#1f2937",
@@ -19,7 +19,7 @@ export const palette = {
   textSecondary: "#4b5563",
   textMuted: "#6b7280",
   border: "#add9d1",
-  success: "#32a685",
+  success: "#1a8062",
   warning: "#f2c0a2",
-  error: "#d95032",
+  error: "#c0391b",
 } as const;

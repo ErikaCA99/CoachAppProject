@@ -115,7 +115,7 @@ export function FormularioAlimento({
         <View className="border-t border-border/30 p-4 pt-3">
           {/* Nombre del alimento */}
           <View className="mb-3.5">
-            <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+            <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
               NOMBRE DEL ALIMENTO
             </Text>
             <TextInput
@@ -130,7 +130,7 @@ export function FormularioAlimento({
           {/* Fila 1: Calorías y Proteínas */}
           <View className="mb-3.5 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
                 CALORÍAS (KCAL)
               </Text>
               <TextInput
@@ -144,7 +144,7 @@ export function FormularioAlimento({
             </View>
 
             <View className="flex-1">
-              <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
                 PROTEÍNAS (G)
               </Text>
               <TextInput
@@ -161,7 +161,7 @@ export function FormularioAlimento({
           {/* Fila 2: Carbohidratos y Grasas */}
           <View className="mb-4 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
                 CARBOHIDRATOS (G)
               </Text>
               <TextInput
@@ -175,7 +175,7 @@ export function FormularioAlimento({
             </View>
 
             <View className="flex-1">
-              <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
                 GRASAS (G)
               </Text>
               <TextInput

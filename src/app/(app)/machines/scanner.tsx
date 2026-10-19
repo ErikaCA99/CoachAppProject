@@ -369,7 +369,7 @@ export default function EscanerScreen() {
                 <Ionicons name="locate-outline" size={18} color="#ffffff" />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="text-[11px] text-white/80">
+                <Text className="text-xs text-white/80">
                   {esSugerida ? "Máquina detectada" : "Máquina confirmada"}
                 </Text>
                 <Text
@@ -395,7 +395,7 @@ export default function EscanerScreen() {
                 <View
                   className={`ml-2 rounded-full px-2 py-0.5 ${ETIQUETA_DIFICULTAD[e.dificultad]}`}
                 >
-                  <Text className="text-[10px] font-bold text-white">
+                  <Text className="text-xs font-bold text-white">
                     {e.dificultad}
                   </Text>
                 </View>

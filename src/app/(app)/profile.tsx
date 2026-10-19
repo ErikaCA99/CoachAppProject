@@ -26,8 +26,10 @@ import {
   type Usuario,
 } from "@/models/entities/User";
 import { useAuthStore } from "@/store/auth.store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PerfilScreen() {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { signOutFromGoogle } = useGoogleAuth();
   const router = useRouter();
@@ -142,7 +144,11 @@ export default function PerfilScreen() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerStyle={{ padding: 20, paddingTop: 60, paddingBottom: 40 }}
+      contentContainerStyle={{
+        padding: 20,
+        paddingTop: insets.top + 24,
+        paddingBottom: 40,
+      }}
       showsVerticalScrollIndicator={false}
     >
       <AppHeader title="Mi Perfil" onBackPress={() => router.back()} />
@@ -175,11 +181,13 @@ export default function PerfilScreen() {
           return (
             <Pressable
               key={valor}
-              className={`rounded-full border px-4 py-2 active:scale-95 active:opacity-80 ${
+              className={`min-h-11 rounded-full border px-4 active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
               }`}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
               onPress={() => handleCambiarObjetivo(valor)}
             >
               <Text
@@ -208,11 +216,13 @@ export default function PerfilScreen() {
           return (
             <Pressable
               key={valor}
-              className={`rounded-full border px-4 py-2 active:scale-95 active:opacity-80 ${
+              className={`min-h-11 rounded-full border px-4 active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
               }`}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
               onPress={() => handleCambiarNivel(valor)}
             >
               <Text
@@ -242,6 +252,8 @@ export default function PerfilScreen() {
                   : "border-border bg-background"
               }`}
               onPress={() => handleCambiarDias(valor)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
               accessibilityLabel={`${valor} días por semana`}
             >
               <Text
@@ -294,6 +306,7 @@ export default function PerfilScreen() {
         </View>
       </View>
       <Pressable
+        accessibilityRole="button"
         className="mb-8 mt-2 items-center rounded-2xl bg-primary p-3.5 active:scale-[0.98] active:opacity-85"
         onPress={handleGuardarMedidas}
         disabled={guardando}
@@ -305,6 +318,7 @@ export default function PerfilScreen() {
       </Pressable>
 
       <Pressable
+        accessibilityRole="button"
         className="flex-row items-center justify-center rounded-2xl border border-error p-4 active:scale-[0.98] active:bg-error/10"
         onPress={handleCerrarSesion}
       >

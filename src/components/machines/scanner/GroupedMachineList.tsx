@@ -101,7 +101,7 @@ export function ListaMaquinasAgrupada({
               <Text className="ml-2 flex-1 text-[13px] font-bold text-foreground">
                 {categoria}
               </Text>
-              <Text className="text-[11px] font-semibold text-text-muted">
+              <Text className="text-xs font-semibold text-text-muted">
                 {maquinas.length}
               </Text>
             </View>

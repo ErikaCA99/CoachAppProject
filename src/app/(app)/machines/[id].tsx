@@ -145,14 +145,14 @@ export default function MachineDetail() {
             className="absolute right-4 rounded-full bg-background px-3 py-1 shadow-sm"
             style={{ top: insets.top + 14 }}
           >
-            <Text className="text-[11px] font-semibold text-primary">
+            <Text className="text-xs font-semibold text-primary">
               {maquina.categoria}
             </Text>
           </View>
         </View>
 
         <View className="px-4">
-          <Text className="text-[11px] font-bold uppercase tracking-wider text-primary">
+          <Text className="text-xs font-bold uppercase tracking-wider text-primary">
             {maquina.categoria}
           </Text>
           <Text className="mb-4 text-2xl font-bold text-foreground">
@@ -226,7 +226,7 @@ export default function MachineDetail() {
                 </View>
               ))}
             </View>
-            <Text className="mt-2 text-[10px] text-text-muted">
+            <Text className="mt-2 text-xs text-text-muted">
               ★ músculo principal
             </Text>
           </SeccionFicha>
@@ -303,7 +303,7 @@ export default function MachineDetail() {
                       style={{ width: "100%", aspectRatio: 1 }}
                     />
                     <Text
-                      className="p-1.5 text-[10px] text-text-muted"
+                      className="p-1.5 text-xs text-text-muted"
                       numberOfLines={2}
                     >
                       {v.nombre}
@@ -314,7 +314,7 @@ export default function MachineDetail() {
             </SeccionFicha>
           )}
 
-          <Text className="mb-2 text-center text-[10px] leading-4 text-text-muted">
+          <Text className="mb-2 text-center text-xs leading-4 text-text-muted">
             Animaciones: WorkoutX · Ejercicios: wger y free-exercise-db · Fotos:
             Chelo Sports.{"\n"}
             Esta guía no reemplaza la supervisión de un entrenador.
@@ -379,7 +379,7 @@ export default function MachineDetail() {
 
           {ejercicioGifSeleccionado && (
             <View className="mb-3">
-              <Text className="mb-1 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+              <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Demostración (GIF)
               </Text>
               <View className="overflow-hidden rounded-xl bg-white">
@@ -406,7 +406,7 @@ export default function MachineDetail() {
                 <>
                   {detalleEjercicio.imagenUrl && (
                     <View className="mb-3">
-                      <Text className="mb-1 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                      <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-text-secondary">
                         Imagen del ejercicio
                       </Text>
                       <View className="overflow-hidden rounded-xl bg-white">
@@ -419,21 +419,21 @@ export default function MachineDetail() {
                     </View>
                   )}
 
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Categoría
                   </Text>
                   <Text className="mb-3 text-sm text-foreground">
                     {detalleEjercicio.categoria}
                   </Text>
 
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     ¿Para qué sirve?
                   </Text>
                   <Text className="mb-3 text-sm leading-5 text-text-secondary">
                     {detalleEjercicio.descripcion}
                   </Text>
 
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Músculos trabajados
                   </Text>
                   <Text className="mb-3 text-sm text-text-secondary">
@@ -443,7 +443,7 @@ export default function MachineDetail() {
 
                   {detalleEjercicio.instrucciones.length > 0 && (
                     <>
-                      <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                      <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                         Cómo hacerlo
                       </Text>
                       <View className="mb-3 mt-1">
@@ -465,28 +465,28 @@ export default function MachineDetail() {
 
               {!detalleEjercicio && detalleGenerado && (
                 <>
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Categoría
                   </Text>
                   <Text className="mb-3 text-sm text-foreground">
                     {detalleGenerado.categoria}
                   </Text>
 
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     ¿Para qué sirve?
                   </Text>
                   <Text className="mb-3 text-sm leading-5 text-text-secondary">
                     {detalleGenerado.descripcion}
                   </Text>
 
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Músculos trabajados
                   </Text>
                   <Text className="mb-3 text-sm text-text-secondary">
                     {detalleGenerado.gruposMusculares.join(", ")}
                   </Text>
 
-                  <Text className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  <Text className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Cómo hacerlo
                   </Text>
                   <View className="mb-3 mt-1">

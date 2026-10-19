@@ -113,7 +113,7 @@ export default function RoutineChoiceScreen() {
                     size={10}
                     color={palette.background}
                   />
-                  <Text className="ml-1 text-[10px] font-semibold text-background">
+                  <Text className="ml-1 text-xs font-semibold text-background">
                     Recomendado
                   </Text>
                 </View>

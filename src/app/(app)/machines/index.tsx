@@ -143,7 +143,7 @@ export default function MachinesScreen() {
             )}
           </View>
 
-          <Text className="mb-2 mt-4 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+          <Text className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-text-secondary">
             Grupo muscular
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -162,7 +162,7 @@ export default function MachinesScreen() {
             ))}
           </ScrollView>
 
-          <Text className="mb-2 mt-3 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+          <Text className="mb-2 mt-3 text-xs font-bold uppercase tracking-wider text-text-secondary">
             Tipo
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>

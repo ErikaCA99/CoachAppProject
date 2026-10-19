@@ -28,7 +28,7 @@ export function CampoTexto({
 
   return (
     <View className="mb-4">
-      <Text className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+      <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-text-secondary">
         {etiqueta}
       </Text>
       <View className="relative">

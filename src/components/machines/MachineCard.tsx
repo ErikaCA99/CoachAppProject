@@ -31,7 +31,7 @@ export function TarjetaMaquina({ maquina, onPress }: TarjetaMaquinaProps) {
         >
           {maquina.nombre}
         </Text>
-        <Text className="mt-1 text-[11px] font-semibold text-primary">
+        <Text className="mt-1 text-xs font-semibold text-primary">
           {maquina.categoria}
         </Text>
       </View>

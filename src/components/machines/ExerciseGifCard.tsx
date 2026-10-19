@@ -48,7 +48,7 @@ export function TarjetaEjercicioGif({
           {ejercicio.nombre}
         </Text>
         <View className={`mt-1.5 self-start rounded-full px-2 py-0.5 ${fondo}`}>
-          <Text className={`text-[10px] font-bold ${texto}`}>
+          <Text className={`text-xs font-bold ${texto}`}>
             {ejercicio.dificultad}
           </Text>
         </View>

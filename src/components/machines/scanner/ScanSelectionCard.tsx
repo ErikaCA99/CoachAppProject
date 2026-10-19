@@ -70,19 +70,19 @@ export function TarjetaSeleccionEscaneo({
                 size={11}
                 color={palette.accentStrong}
               />
-              <Text className="ml-1 text-[11px] font-bold text-foreground">
+              <Text className="ml-1 text-xs font-bold text-foreground">
                 Sugerida · {Math.round(confianzaSugerencia * 100)} %
               </Text>
             </View>
           ) : (
             <View className="flex-row items-center rounded-full bg-primary px-2 py-0.5">
               <Ionicons name="checkmark-circle" size={12} color="#ffffff" />
-              <Text className="ml-1 text-[11px] font-bold text-white">
+              <Text className="ml-1 text-xs font-bold text-white">
                 Seleccionada
               </Text>
             </View>
           )}
-          <Text className="text-[11px] font-semibold text-primary">
+          <Text className="text-xs font-semibold text-primary">
             {maquina.categoria}
           </Text>
         </View>

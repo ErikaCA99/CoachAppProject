@@ -49,9 +49,7 @@ function Contador({
 }) {
   return (
     <View className="flex-1 items-center rounded-xl bg-primary-light/20 py-2">
-      <Text className="text-[11px] font-semibold text-text-muted">
-        {etiqueta}
-      </Text>
+      <Text className="text-xs font-semibold text-text-muted">{etiqueta}</Text>
       <View className="mt-1 flex-row items-center">
         <TouchableOpacity
           onPress={() => onCambiar(Math.max(min, valor - paso))}
@@ -208,7 +206,7 @@ export function ModalAgregarRutina({
           </Text>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+            <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
               Ejercicio
             </Text>
             {ejercicios.map((e, i) => {
@@ -237,7 +235,7 @@ export function ModalAgregarRutina({
               );
             })}
 
-            <Text className="mb-2 mt-3 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+            <Text className="mb-2 mt-3 text-xs font-bold uppercase tracking-wider text-text-secondary">
               Día · {rutina.nombre}
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -263,7 +261,7 @@ export function ModalAgregarRutina({
                       Día {d.dia}
                     </Text>
                     <Text
-                      className={`max-w-[120px] text-[10px] ${
+                      className={`max-w-[120px] text-xs ${
                         activo ? "text-background/90" : "text-text-muted"
                       }`}
                       numberOfLines={1}

@@ -27,13 +27,13 @@ const COLOR_CATEGORIA: Record<
   { bg: string; text: string; dot: string }
 > = {
   BAJO: { bg: "bg-surface/30", text: "text-foreground", dot: "#add9d1" },
-  NORMALIDAD: { bg: "bg-primary/15", text: "text-primary", dot: "#32a685" },
+  NORMALIDAD: { bg: "bg-primary/15", text: "text-primary", dot: "#1a8062" },
   SOBREPESO: {
     bg: "bg-secondary/30",
     text: "text-accent-strong",
     dot: "#f2c0a2",
   },
-  OBESIDAD: { bg: "bg-accent/20", text: "text-error", dot: "#d95032" },
+  OBESIDAD: { bg: "bg-accent/20", text: "text-error", dot: "#c0391b" },
 };
 
 export function CalculadoraIMCCard({
@@ -100,7 +100,7 @@ export function CalculadoraIMCCard({
       {/* Inputs de peso y altura */}
       <View className="mb-4 flex-row gap-3">
         <View className="flex-1">
-          <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+          <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
             PESO (KG)
           </Text>
           <TextInput
@@ -114,7 +114,7 @@ export function CalculadoraIMCCard({
         </View>
 
         <View className="flex-1">
-          <Text className="mb-1.5 text-[11px] font-bold tracking-wider text-text-muted">
+          <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
             ALTURA (CM)
           </Text>
           <TextInput

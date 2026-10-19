@@ -32,7 +32,7 @@ export function SeguimientoSemanal({
       <View className="flex-row justify-between">
         {dias.map((dia) => (
           <View key={dia.fecha} className="items-center gap-1.5">
-            <Text className="text-[11px] font-semibold text-text-secondary">
+            <Text className="text-xs font-semibold text-text-secondary">
               {dia.etiqueta}
             </Text>
             <View

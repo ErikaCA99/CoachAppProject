@@ -14,8 +14,10 @@ import type { Usuario } from "@/models/entities/User";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const router = useRouter();
 
@@ -70,7 +72,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={palette.background} />
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 20, paddingTop: 50 }}
+        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 24 }}
         showsVerticalScrollIndicator={false}
       >
         <AppHeader
@@ -101,7 +103,8 @@ export default function HomeScreen() {
           </Text>
           <View className="flex-row gap-3">
             <Pressable
-              className="rounded-xl bg-background px-5 py-2.5 active:scale-[0.97] active:opacity-85"
+              accessibilityRole="button"
+              className="min-h-11 justify-center rounded-xl bg-background px-5 active:scale-[0.97] active:opacity-85"
               onPress={() =>
                 router.push(
                   rutinaActiva ? "/(app)/routines" : "/(app)/routines/generate",
@@ -114,7 +117,8 @@ export default function HomeScreen() {
             </Pressable>
             {rutinaActiva && (
               <Pressable
-                className="rounded-xl bg-background/25 px-5 py-2.5 active:scale-[0.97] active:opacity-80"
+                accessibilityRole="button"
+                className="min-h-11 justify-center rounded-xl bg-background/25 px-5 active:scale-[0.97] active:opacity-80"
                 onPress={() => router.push("/(app)/routines")}
               >
                 <Text className="text-sm font-bold text-background">
@@ -164,6 +168,7 @@ export default function HomeScreen() {
         <Text className="mb-4 text-xl font-bold text-foreground">Explorar</Text>
 
         <Pressable
+          accessibilityRole="button"
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-primary bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={() => router.push("/(app)/routines/generate")}
         >
@@ -186,6 +191,7 @@ export default function HomeScreen() {
         </Pressable>
 
         <Pressable
+          accessibilityRole="button"
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={() => router.push("/(app)/machines")}
         >
@@ -208,6 +214,7 @@ export default function HomeScreen() {
         </Pressable>
 
         <Pressable
+          accessibilityRole="button"
           className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent-strong bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={handleEscanear}
         >

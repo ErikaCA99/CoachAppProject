@@ -2,10 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
 
 import { palette } from "@/constants/palette";
-import {
-  NIVELES_EXPERIENCIA,
-  OBJETIVOS_USUARIO,
-} from "@/models/entities/User";
+import { NIVELES_EXPERIENCIA, OBJETIVOS_USUARIO } from "@/models/entities/User";
 import type { Rutina } from "@/models/entities/Routine";
 
 interface RutinaActivaResumenProps {
@@ -27,7 +24,7 @@ export function RutinaActivaResumen({ rutina }: RutinaActivaResumenProps) {
       end={{ x: 1, y: 1 }}
       style={{ borderRadius: 20, padding: 20 }}
     >
-      <Text className="text-[11px] font-bold uppercase tracking-wider text-background/80">
+      <Text className="text-xs font-bold uppercase tracking-wider text-background/80">
         Rutina activa
       </Text>
       <Text className="mb-3 mt-0.5 text-lg font-bold text-background">

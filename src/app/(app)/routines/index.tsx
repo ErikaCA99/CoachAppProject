@@ -21,6 +21,7 @@ import { useIrAMaquina } from "@/hooks/useGoToMachine";
 import type { EjercicioRutina, Rutina } from "@/models/entities/Routine";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function RutinaActivaCard({
   rutina,
@@ -45,7 +46,7 @@ function RutinaActivaCard({
           </Text>
         </View>
         <View className="rounded-full bg-primary px-3 py-1">
-          <Text className="text-[10px] font-bold text-background">ACTIVA</Text>
+          <Text className="text-xs font-bold text-background">ACTIVA</Text>
         </View>
       </View>
 
@@ -57,6 +58,7 @@ function RutinaActivaCard({
             className="mb-2 overflow-hidden rounded-xl bg-background"
           >
             <Pressable
+              accessibilityRole="button"
               className="flex-row items-center justify-between p-3.5 active:bg-primary-light/10"
               onPress={() => setDiaExpandido(expandido ? null : dia.dia)}
             >
@@ -73,6 +75,7 @@ function RutinaActivaCard({
               <View className="px-3.5 pb-3.5">
                 {dia.ejercicios.map((ejercicio, indice) => (
                   <Pressable
+                    accessibilityRole="button"
                     key={`${ejercicio.maquinaId}-${indice}`}
                     className="mb-2 flex-row items-center rounded-lg border border-border p-2.5 active:scale-[0.98] active:bg-primary-light/10"
                     onPress={() => onIrAMaquina(ejercicio)}
@@ -120,6 +123,7 @@ function RutinaActivaCard({
 }
 
 export default function RoutinesScreen() {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const router = useRouter();
 
@@ -201,7 +205,11 @@ export default function RoutinesScreen() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 40 }}
+      contentContainerStyle={{
+        padding: 20,
+        paddingTop: insets.top + 24,
+        paddingBottom: 40,
+      }}
       showsVerticalScrollIndicator={false}
     >
       <AppHeader
@@ -227,6 +235,7 @@ export default function RoutinesScreen() {
       ) : (
         <View className="mb-4 flex-row gap-3">
           <Pressable
+            accessibilityRole="button"
             className="flex-1 items-center rounded-2xl border border-primary bg-primary-light/20 p-5 active:scale-[0.98] active:opacity-85"
             onPress={() => router.push("/(app)/routines/generate")}
           >
@@ -236,6 +245,7 @@ export default function RoutinesScreen() {
             </Text>
           </Pressable>
           <Pressable
+            accessibilityRole="button"
             className="flex-1 items-center rounded-2xl border border-accent-strong bg-accent/10 p-5 active:scale-[0.98] active:opacity-85"
             onPress={() => router.push("/(app)/routines/custom")}
           >
@@ -250,6 +260,7 @@ export default function RoutinesScreen() {
       {rutinaActiva && (
         <View className="mt-4 flex-row gap-3">
           <Pressable
+            accessibilityRole="button"
             className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
             onPress={() => router.push("/(app)/routines/generate")}
           >
@@ -258,6 +269,7 @@ export default function RoutinesScreen() {
             </Text>
           </Pressable>
           <Pressable
+            accessibilityRole="button"
             className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
             onPress={() => router.push("/(app)/routines/custom")}
           >
@@ -294,7 +306,8 @@ export default function RoutinesScreen() {
                 </Text>
               </View>
               <Pressable
-                className="mr-2 rounded-lg bg-primary px-3 py-2 active:scale-95 active:opacity-85"
+                accessibilityRole="button"
+                className="mr-2 min-h-11 justify-center rounded-lg bg-primary px-4 active:scale-95 active:opacity-85"
                 onPress={() => handleActivar(rutina.id)}
               >
                 <Text className="text-xs font-bold text-background">
@@ -302,7 +315,9 @@ export default function RoutinesScreen() {
                 </Text>
               </Pressable>
               <Pressable
-                className="rounded-lg border border-error p-2 active:scale-95 active:opacity-70"
+                className="h-11 w-11 items-center justify-center rounded-lg border border-error active:scale-95 active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel="Eliminar rutina"
                 onPress={() => handleEliminar(rutina.id)}
               >
                 <Ionicons
