@@ -2,9 +2,9 @@ import type {
   NivelExperiencia,
   ObjetivoUsuario,
   Usuario,
-} from "@/models/entities/Usuario";
-import { DIAS_POR_NIVEL } from "@/utils/generadorRutinas";
-import { calcularIMC } from "@/utils/imcCalculator";
+} from "@/models/entities/User";
+import { DIAS_POR_NIVEL } from "@/utils/routineGenerator";
+import { calcularIMC } from "@/utils/bmiCalculator";
 
 /**
  * Contrato de ENTRADA del modelo de rutinas con IA (TensorFlow Lite).

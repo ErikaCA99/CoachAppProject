@@ -12,13 +12,13 @@ import {
 } from "react-native";
 
 import { AppHeader } from "@/components/ui/AppHeader";
-import { ErrorCarga } from "@/components/ui/ErrorCarga";
+import { ErrorCarga } from "@/components/ui/LoadError";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
-import { RutinasController } from "@/controllers/RutinasController";
-import { useErrorDeCarga } from "@/hooks/useErrorDeCarga";
-import { useIrAMaquina } from "@/hooks/useIrAMaquina";
-import type { EjercicioRutina, Rutina } from "@/models/entities/Rutina";
+import { RutinasController } from "@/controllers/RoutinesController";
+import { useErrorDeCarga } from "@/hooks/useLoadError";
+import { useIrAMaquina } from "@/hooks/useGoToMachine";
+import type { EjercicioRutina, Rutina } from "@/models/entities/Routine";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -211,7 +211,7 @@ export default function RoutinesScreen() {
             ? "Tu plan de entrenamiento actual"
             : "Aún no tienes una rutina activa"
         }
-        onProfilePress={() => router.push("/(app)/perfil")}
+        onProfilePress={() => router.push("/(app)/profile")}
       />
 
       {rutinaActiva ? (
@@ -228,7 +228,7 @@ export default function RoutinesScreen() {
         <View className="mb-4 flex-row gap-3">
           <Pressable
             className="flex-1 items-center rounded-2xl border border-primary bg-primary-light/20 p-5 active:scale-[0.98] active:opacity-85"
-            onPress={() => router.push("/(app)/routines/generar")}
+            onPress={() => router.push("/(app)/routines/generate")}
           >
             <Ionicons name="sparkles" size={28} color={palette.primary} />
             <Text className="mt-2 text-center text-sm font-bold text-foreground">
@@ -237,7 +237,7 @@ export default function RoutinesScreen() {
           </Pressable>
           <Pressable
             className="flex-1 items-center rounded-2xl border border-accent-strong bg-accent/10 p-5 active:scale-[0.98] active:opacity-85"
-            onPress={() => router.push("/(app)/routines/personalizada")}
+            onPress={() => router.push("/(app)/routines/custom")}
           >
             <Ionicons name="create" size={28} color={palette.accentStrong} />
             <Text className="mt-2 text-center text-sm font-bold text-foreground">
@@ -251,7 +251,7 @@ export default function RoutinesScreen() {
         <View className="mt-4 flex-row gap-3">
           <Pressable
             className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
-            onPress={() => router.push("/(app)/routines/generar")}
+            onPress={() => router.push("/(app)/routines/generate")}
           >
             <Text className="text-xs font-bold text-foreground">
               Generar otra con IA
@@ -259,7 +259,7 @@ export default function RoutinesScreen() {
           </Pressable>
           <Pressable
             className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
-            onPress={() => router.push("/(app)/routines/personalizada")}
+            onPress={() => router.push("/(app)/routines/custom")}
           >
             <Text className="text-xs font-bold text-foreground">
               Crear personalizada

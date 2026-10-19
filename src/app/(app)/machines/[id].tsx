@@ -14,17 +14,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ImagenStorage } from "@/components/maquinas/ImagenStorage";
-import { ModalAgregarRutina } from "@/components/maquinas/ModalAgregarRutina";
-import { ListaPuntos, SeccionFicha } from "@/components/maquinas/SeccionFicha";
-import { TarjetaEjercicioGif } from "@/components/maquinas/TarjetaEjercicioGif";
-import { BotonPrimario } from "@/components/ui/BotonPrimario";
+import { ImagenStorage } from "@/components/machines/StorageImage";
+import { ModalAgregarRutina } from "@/components/machines/AddToRoutineModal";
+import { ListaPuntos, SeccionFicha } from "@/components/machines/SheetSection";
+import { TarjetaEjercicioGif } from "@/components/machines/ExerciseGifCard";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { palette } from "@/constants/palette";
-import { MaquinasController } from "@/controllers/MaquinasController";
-import type { EjercicioWger } from "@/models/entities/EjercicioWger";
-import type { EjercicioGif, Maquina } from "@/models/entities/Maquina";
+import { MaquinasController } from "@/controllers/MachinesController";
+import type { EjercicioWger } from "@/models/entities/WgerExercise";
+import type { EjercicioGif, Maquina } from "@/models/entities/Machine";
 import { useAuthStore } from "@/store/auth.store";
-import type { DetalleEjercicioGenerado } from "@/utils/ejercicioMaquina";
+import type { DetalleEjercicioGenerado } from "@/utils/machineExercise";
 
 const ALTO_PORTADA = 300;
 /** Máximo de fotos de variantes en la galería, para no descargar decenas. */
@@ -165,7 +165,7 @@ export default function MachineDetail() {
             className="mb-4 overflow-hidden rounded-2xl"
             onPress={() =>
               router.push({
-                pathname: "/(app)/machines/escaner",
+                pathname: "/(app)/machines/scanner",
                 params: { maquinaId: maquina.id },
               })
             }

@@ -4,7 +4,7 @@ import { create, isAxiosError } from "axios";
  * Cliente crudo de USDA FoodData Central (https://fdc.nal.usda.gov/api-guide).
  * Sin conocimiento de dominio: solo tipos y llamadas HTTP tal como los
  * devuelve la API. El mapeo a la entidad `AlimentoUSDA` vive en
- * `src/models/repositories/alimentoRepository.ts`.
+ * `src/models/repositories/foodRepository.ts`.
  *
  * Límite: 1.000 solicitudes/hora por key. Datos en dominio público (CC0).
  */

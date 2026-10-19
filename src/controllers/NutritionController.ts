@@ -1,28 +1,28 @@
-import type { AlimentoUSDA } from "@/models/entities/AlimentoUSDA";
-import type { RegistroNutricional } from "@/models/entities/RegistroNutricional";
-import { buscarAlimentos } from "@/models/repositories/alimentoRepository";
+import type { AlimentoUSDA } from "@/models/entities/USDAFood";
+import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
+import { buscarAlimentos } from "@/models/repositories/foodRepository";
 import {
   eliminarRegistroNutricion,
   guardarRegistroIMC,
   guardarRegistroIngesta,
   listarRegistrosNutricion,
   observarRegistrosNutricion,
-} from "@/models/repositories/nutricionRepository";
+} from "@/models/repositories/nutritionRepository";
 import {
   registroIMCSchema,
   registroIngestaSchema,
-} from "@/schemas/nutricion.schema";
+} from "@/schemas/nutrition.schema";
 import type { ConId } from "@/models/types";
 import {
   calcularIMC,
   clasificarIMC,
   type BmiCategory,
-} from "@/utils/imcCalculator";
+} from "@/utils/bmiCalculator";
 import {
   METAS_POR_DEFECTO,
   type MetasNutricionales,
-} from "@/utils/metasNutricionales";
-import { traducirConsulta } from "@/utils/traductorAlimentos";
+} from "@/utils/nutritionGoals";
+import { traducirConsulta } from "@/utils/foodTranslator";
 
 export interface ResultadoIMC {
   bmi: number;
@@ -139,7 +139,7 @@ export {
   METAS_POR_DEFECTO,
   type MetasNutricionales,
   type ResultadoMetas,
-} from "@/utils/metasNutricionales";
+} from "@/utils/nutritionGoals";
 
 export interface ResumenNutricionalDiario {
   caloriasConsumidas: number;
@@ -237,7 +237,7 @@ export function calcularResumenDiario(
 
 /**
  * Controlador (capa de negocio) para la funcionalidad de nutrición.
- * La Vista (`app/(app)/nutricion.tsx`) solo llama a este controlador;
+ * La Vista (`app/(app)/nutrition.tsx`) solo llama a este controlador;
  * nunca importa `utils/imcCalculator` ni el repositorio directamente.
  */
 export const NutritionController = {

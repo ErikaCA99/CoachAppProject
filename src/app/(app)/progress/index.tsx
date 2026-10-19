@@ -13,21 +13,21 @@ import {
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
-import { ListaDiasRutina } from "@/components/progreso/ListaDiasRutina";
-import { RutinaActivaResumen } from "@/components/progreso/RutinaActivaResumen";
-import { SeguimientoSemanal } from "@/components/progreso/SeguimientoSemanal";
-import { TarjetaReporte } from "@/components/progreso/TarjetaReporte";
+import { ListaDiasRutina } from "@/components/progress/RoutineDaysList";
+import { RutinaActivaResumen } from "@/components/progress/ActiveRoutineSummary";
+import { SeguimientoSemanal } from "@/components/progress/WeeklyTracking";
+import { TarjetaReporte } from "@/components/progress/ReportCard";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorCarga } from "@/components/ui/ErrorCarga";
+import { ErrorCarga } from "@/components/ui/LoadError";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { palette } from "@/constants/palette";
-import { ProgresoController } from "@/controllers/ProgresoController";
-import { useIrAMaquina } from "@/hooks/useIrAMaquina";
-import { useProgresoScreen } from "@/hooks/useProgresoScreen";
+import { ProgresoController } from "@/controllers/ProgressController";
+import { useIrAMaquina } from "@/hooks/useGoToMachine";
+import { useProgresoScreen } from "@/hooks/useProgressScreen";
 import { useAuthStore } from "@/store/auth.store";
-import type { ResultadoAccion } from "@/types/resultadoAccion";
-import { ETIQUETAS_IMC, type BmiCategory } from "@/utils/imcCalculator";
+import type { ResultadoAccion } from "@/types/actionResult";
+import { ETIQUETAS_IMC, type BmiCategory } from "@/utils/bmiCalculator";
 
 const { width: ANCHO_PANTALLA } = Dimensions.get("window");
 
@@ -120,7 +120,7 @@ export default function ProgressScreen() {
       <AppHeader
         title="Progreso"
         subtitle="Sigue tu avance y rutinas"
-        onProfilePress={() => router.push("/(app)/perfil")}
+        onProfilePress={() => router.push("/(app)/profile")}
       />
 
       {/* Reporte personalizado en PDF (OE7) */}
@@ -469,7 +469,7 @@ export default function ProgressScreen() {
           actionButton={{
             label: "Generar rutina",
             icon: "sparkles-outline",
-            onPress: () => router.push("/(app)/routines/generar"),
+            onPress: () => router.push("/(app)/routines/generate"),
           }}
         />
       )}

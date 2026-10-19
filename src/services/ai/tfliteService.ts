@@ -10,7 +10,7 @@ import { NUM_FEATURES } from "@/services/ai/features";
  * Lite vía `react-native-fast-tflite`). Sin reglas de negocio: carga el
  * modelo, ejecuta y devuelve las probabilidades crudas.
  *
- * Contrato del modelo (ver `ml/resultados/metadata_modelo.json`):
+ * Contrato del modelo (ver `ml/results/model_metadata.json`):
  *   entrada: float32 [1, 10]  (features.ts, VERSION_FEATURES = 1)
  *   salida:  float32 [1, 10]  → [0:6] plantilla, [6:10] esquema
  */

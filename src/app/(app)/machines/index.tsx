@@ -13,17 +13,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ChipFiltro } from "@/components/maquinas/ChipFiltro";
-import { TarjetaMaquina } from "@/components/maquinas/TarjetaMaquina";
+import { ChipFiltro } from "@/components/machines/FilterChip";
+import { TarjetaMaquina } from "@/components/machines/MachineCard";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { palette } from "@/constants/palette";
-import { MaquinasController } from "@/controllers/MaquinasController";
+import { MaquinasController } from "@/controllers/MachinesController";
 import {
   TIPOS_MAQUINA,
   type Maquina,
   type TipoMaquina,
-} from "@/models/entities/Maquina";
+} from "@/models/entities/Machine";
 
 const TIPOS = Object.entries(TIPOS_MAQUINA) as [
   TipoMaquina,
@@ -113,9 +113,9 @@ export default function MachinesScreen() {
             secondaryAction={{
               icon: "scan",
               label: "Escanear una máquina",
-              onPress: () => router.push("/(app)/machines/escaner"),
+              onPress: () => router.push("/(app)/machines/scanner"),
             }}
-            onProfilePress={() => router.push("/(app)/perfil")}
+            onProfilePress={() => router.push("/(app)/profile")}
           />
 
           <View className="mt-4 flex-row items-center rounded-2xl border border-primary-light bg-background px-3">

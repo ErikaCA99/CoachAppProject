@@ -51,7 +51,7 @@ export default function AppLayout() {
       />
       <Tabs.Screen name="routines" options={{ href: null }} />
       <Tabs.Screen
-        name="nutricion"
+        name="nutrition"
         options={{
           title: "Nutrición",
           tabBarIcon: ({ color, size }) => (
@@ -60,7 +60,7 @@ export default function AppLayout() {
         }}
       />
       {/* href: null => navegable con router.push, pero oculta de la tab bar */}
-      <Tabs.Screen name="perfil" options={{ href: null }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

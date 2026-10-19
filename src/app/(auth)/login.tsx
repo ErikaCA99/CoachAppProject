@@ -11,10 +11,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthHeader } from "@/components/auth/AuthHeader";
-import { BotonGoogle } from "@/components/auth/BotonGoogle";
-import { BotonPrimario } from "@/components/ui/BotonPrimario";
-import { CampoTexto } from "@/components/ui/CampoTexto";
-import { SeparadorTexto } from "@/components/ui/SeparadorTexto";
+import { BotonGoogle } from "@/components/auth/GoogleButton";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { CampoTexto } from "@/components/ui/TextField";
+import { SeparadorTexto } from "@/components/ui/TextDivider";
 import { AuthController } from "@/controllers/AuthController";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import { useAuthStore } from "@/store/auth.store";
