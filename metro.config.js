@@ -26,4 +26,4 @@ if (Array.isArray(config.resolver.blockList)) {
   config.resolver.blockList = exclusionList;
 }
 
-module.exports = withNativeWind(config, { input: "./src/global.css" });
+module.exports = withNativeWind(config, { input: "./src/global.css", inlineRem: 16 });

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "CoachApp",
-    "slug": "coach-app",
+    "slug": "cocha-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
