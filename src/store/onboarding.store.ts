@@ -1,10 +1,7 @@
 import type { Href } from "expo-router";
 import { create } from "zustand";
 
-import type {
-  NivelExperiencia,
-  ObjetivoUsuario,
-} from "@/models/entities/User";
+import type { NivelExperiencia, ObjetivoUsuario } from "@/models/entities/User";
 import type { DatosFisicosInput } from "@/schemas/user.schema";
 
 /**

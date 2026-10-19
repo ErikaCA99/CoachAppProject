@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-import {
-  OPCIONES_DIAS_DISPONIBLES,
-  RANGO_EDAD,
-} from "@/models/entities/User";
+import { OPCIONES_DIAS_DISPONIBLES, RANGO_EDAD } from "@/models/entities/User";
 
 // ── Tipos base reutilizables ─────────────────────────────────────────
 

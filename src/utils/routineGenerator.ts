@@ -1,7 +1,4 @@
-import type {
-  NivelExperiencia,
-  ObjetivoUsuario,
-} from "@/models/entities/User";
+import type { NivelExperiencia, ObjetivoUsuario } from "@/models/entities/User";
 
 /**
  * Heurística pura para armar la estructura de una rutina semanal.

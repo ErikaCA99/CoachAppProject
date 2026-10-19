@@ -243,10 +243,10 @@ export function calcularResumenReporte(datos: DatosReporte): ResumenReporte {
 // ──────────────────────────────────────────────────────────────────────────
 
 const COLOR = {
-  primario: "#32a685",
+  primario: "#1a8062",
   primarioClaro: "#add9d1",
   acento: "#f29580",
-  acentoFuerte: "#d95032",
+  acentoFuerte: "#c0391b",
   texto: "#1f2937",
   textoSuave: "#6b7280",
   borde: "#e5e7eb",

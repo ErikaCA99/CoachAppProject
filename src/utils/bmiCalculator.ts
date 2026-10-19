@@ -40,10 +40,10 @@ export interface RangoReferenciaIMC {
 
 export const TABLA_REFERENCIA_IMC: readonly RangoReferenciaIMC[] = [
   { categoria: "Bajo peso", rango: "< 18.5", color: "#add9d1" },
-  { categoria: "Normal", rango: "18.5 – 24.9", color: "#32a685" },
+  { categoria: "Normal", rango: "18.5 – 24.9", color: "#1a8062" },
   { categoria: "Sobrepeso", rango: "25 – 29.9", color: "#f2c0a2" },
   { categoria: "Obesidad I", rango: "30 – 34.9", color: "#f29580" },
-  { categoria: "Obesidad II+", rango: "≥ 35", color: "#d95032" },
+  { categoria: "Obesidad II+", rango: "≥ 35", color: "#c0391b" },
 ] as const;
 
 /** Mensaje de contexto para el usuario según su categoría de IMC. */

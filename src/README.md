@@ -5,13 +5,13 @@ Este archivo existe para que cualquiera que lea el código directamente en GitHu
 carpetas de este proyecto al patrón Modelo-Vista-Controlador definido en el
 Capítulo 3 del proyecto de grado.
 
-| Capa (proyecto de grado) | Rol en MVC | Carpeta(s) en este repositorio |
-|---|---|---|
-| Presentación | **Vista** | `app/` (pantallas — rutas de Expo Router) y `components/` (componentes de UI reutilizables que las pantallas de `app/` consumen) |
-| Lógica de Negocio | **Controlador** | `controllers/` (casos de uso) y `utils/` (reglas puras, p. ej. `bmiCalculator.ts`) |
-| Modelo de datos y persistencia | **Modelo** | `models/entities/` (tipos), `models/repositories/` (acceso a datos) |
-| Integraciones externas (Firebase, TensorFlow Lite) | Servicios (transversal) | `services/firebase/` |
-| Configuración visual (colores, tipografía) | Fuera del patrón MVC — tokens de diseño consumidos por la Vista | `constants/` |
+| Capa (proyecto de grado)                           | Rol en MVC                                                      | Carpeta(s) en este repositorio                                                                                                   |
+| -------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación                                       | **Vista**                                                       | `app/` (pantallas — rutas de Expo Router) y `components/` (componentes de UI reutilizables que las pantallas de `app/` consumen) |
+| Lógica de Negocio                                  | **Controlador**                                                 | `controllers/` (casos de uso) y `utils/` (reglas puras, p. ej. `bmiCalculator.ts`)                                               |
+| Modelo de datos y persistencia                     | **Modelo**                                                      | `models/entities/` (tipos), `models/repositories/` (acceso a datos)                                                              |
+| Integraciones externas (Firebase, TensorFlow Lite) | Servicios (transversal)                                         | `services/firebase/`                                                                                                             |
+| Configuración visual (colores, tipografía)         | Fuera del patrón MVC — tokens de diseño consumidos por la Vista | `constants/`                                                                                                                     |
 
 **Por qué `app/` + `components/` y no una única carpeta `views/`.** Expo Router
 —el enrutador oficial de Expo usado en este proyecto— exige que las pantallas

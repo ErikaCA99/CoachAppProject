@@ -5,10 +5,7 @@ import type {
   Rutina,
 } from "@/models/entities/Routine";
 import { OBJETIVOS_USUARIO } from "@/models/entities/User";
-import type {
-  NivelExperiencia,
-  ObjetivoUsuario,
-} from "@/models/entities/User";
+import type { NivelExperiencia, ObjetivoUsuario } from "@/models/entities/User";
 import {
   actualizarRutina,
   eliminarRutina,
