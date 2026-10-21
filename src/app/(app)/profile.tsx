@@ -146,8 +146,8 @@ export default function PerfilScreen() {
       className="flex-1 bg-background"
       contentContainerStyle={{
         padding: 20,
-        paddingTop: insets.top + 24,
-        paddingBottom: 40,
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 120,
       }}
       showsVerticalScrollIndicator={false}
     >
@@ -181,7 +181,7 @@ export default function PerfilScreen() {
           return (
             <Pressable
               key={valor}
-              className={`min-h-11 rounded-full border px-4 active:scale-95 active:opacity-80 ${
+              className={`min-h-11 items-center justify-center rounded-full border px-4 py-2.5 active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
@@ -216,7 +216,7 @@ export default function PerfilScreen() {
           return (
             <Pressable
               key={valor}
-              className={`min-h-11 rounded-full border px-4 active:scale-95 active:opacity-80 ${
+              className={`min-h-11 items-center justify-center rounded-full border px-4 py-2.5 active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
@@ -246,7 +246,7 @@ export default function PerfilScreen() {
           return (
             <Pressable
               key={valor}
-              className={`h-10 w-10 items-center justify-center rounded-full border active:scale-95 active:opacity-80 ${
+              className={`h-11 w-11 items-center justify-center rounded-full border active:scale-95 active:opacity-80 ${
                 activo
                   ? "border-primary bg-primary"
                   : "border-border bg-background"
@@ -273,7 +273,7 @@ export default function PerfilScreen() {
         <View className="flex-1">
           <Text className="mb-1 text-xs text-text-muted">Edad</Text>
           <TextInput
-            className="rounded-xl border border-border bg-primary-light/20 p-3 text-base text-foreground"
+            className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
             keyboardType="number-pad"
             value={edad}
             onChangeText={setEdad}
@@ -285,7 +285,7 @@ export default function PerfilScreen() {
         <View className="flex-1">
           <Text className="mb-1 text-xs text-text-muted">Altura (cm)</Text>
           <TextInput
-            className="rounded-xl border border-border bg-primary-light/20 p-3 text-base text-foreground"
+            className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
             keyboardType="numeric"
             value={altura}
             onChangeText={setAltura}
@@ -296,7 +296,7 @@ export default function PerfilScreen() {
         <View className="flex-1">
           <Text className="mb-1 text-xs text-text-muted">Peso (kg)</Text>
           <TextInput
-            className="rounded-xl border border-border bg-primary-light/20 p-3 text-base text-foreground"
+            className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
             keyboardType="numeric"
             value={peso}
             onChangeText={setPeso}

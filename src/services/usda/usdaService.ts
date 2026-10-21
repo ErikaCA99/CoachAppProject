@@ -1,5 +1,7 @@
 import { create, isAxiosError } from "axios";
 
+import { env } from "@/config/env";
+
 /**
  * Cliente crudo de USDA FoodData Central (https://fdc.nal.usda.gov/api-guide).
  * Sin conocimiento de dominio: solo tipos y llamadas HTTP tal como los
@@ -10,7 +12,7 @@ import { create, isAxiosError } from "axios";
  */
 
 const USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
-const API_KEY = process.env.EXPO_PUBLIC_FOOD_DATA_API_KEY;
+const API_KEY = env.foodDataApiKey;
 
 /**
  * Solo alimentos genéricos (no marcas comerciales de EE. UU.).

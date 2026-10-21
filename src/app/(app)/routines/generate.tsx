@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import { RoutineGeneratingLoader } from "@/components/routines/RoutineGeneratingLoader";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
 import { RutinasController } from "@/controllers/RoutinesController";
@@ -41,6 +42,8 @@ export default function GenerarRutinaScreen() {
   const [fase, setFase] = useState<Fase>("cargando_perfil");
   const [objetivo, setObjetivo] = useState<ObjetivoUsuario | null>(null);
   const [nivel, setNivel] = useState<NivelExperiencia | null>(null);
+  // true cuando la rutina ya se guardó; el loader corre a 100 % y navega.
+  const [terminado, setTerminado] = useState(false);
 
   useEffect(() => {
     limpiarDestinoPendiente();
@@ -70,12 +73,14 @@ export default function GenerarRutinaScreen() {
   }, [user]);
 
   useEffect(() => {
-    if (fase !== "generando" || !user || !objetivo || !nivel) return;
+    if (fase !== "generando" || terminado || !user || !objetivo || !nivel) {
+      return;
+    }
     let activo = true;
 
     RutinasController.generarRutinaConIA(user.uid, objetivo, nivel)
       .then(() => {
-        if (activo) router.replace("/(app)/routines");
+        if (activo) setTerminado(true);
       })
       .catch((error) => {
         console.error("Error al generar rutina con IA:", error);
@@ -85,22 +90,25 @@ export default function GenerarRutinaScreen() {
     return () => {
       activo = false;
     };
-  }, [fase, user, objetivo, nivel, router]);
+  }, [fase, terminado, user, objetivo, nivel]);
 
-  if (fase === "cargando_perfil" || fase === "generando") {
+  const irARutinas = useCallback(() => {
+    router.replace("/(app)/routines");
+  }, [router]);
+
+  if (fase === "generando") {
+    return (
+      <RoutineGeneratingLoader terminado={terminado} onTerminar={irARutinas} />
+    );
+  }
+
+  if (fase === "cargando_perfil") {
     return (
       <View className="flex-1 items-center justify-center bg-background p-6">
         <ActivityIndicator size="large" color={palette.primary} />
         <Text className="mt-4 text-center text-base font-semibold text-foreground">
-          {fase === "generando"
-            ? "Generando tu rutina personalizada..."
-            : "Cargando tu perfil..."}
+          Cargando tu perfil...
         </Text>
-        {fase === "generando" && (
-          <Text className="mt-2 text-center text-sm text-text-muted">
-            Estamos eligiendo los mejores ejercicios para tu objetivo
-          </Text>
-        )}
       </View>
     );
   }
@@ -115,7 +123,10 @@ export default function GenerarRutinaScreen() {
         <TouchableOpacity
           accessibilityRole="button"
           className="mt-4 rounded-xl bg-primary px-6 py-3"
-          onPress={() => setFase("generando")}
+          onPress={() => {
+            setTerminado(false);
+            setFase("generando");
+          }}
         >
           <Text className="text-sm font-bold text-background">Reintentar</Text>
         </TouchableOpacity>

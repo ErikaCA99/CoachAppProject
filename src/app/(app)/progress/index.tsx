@@ -114,23 +114,26 @@ export default function ProgressScreen() {
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{
-        padding: 20,
-        paddingTop: insets.top + 24,
-        paddingBottom: 40,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <AppHeader
-        title="Progreso"
-        subtitle="Sigue tu avance y rutinas"
-        onProfilePress={() => router.push("/(app)/profile")}
-      />
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      {/* Encabezado fijo: protege la barra de estado y mantiene accesible la navegación */}
+      <View className="px-5 pt-3">
+        <AppHeader
+          title="Progreso"
+          subtitle="Sigue tu avance y rutinas"
+          onProfilePress={() => router.push("/(app)/profile")}
+        />
+      </View>
 
-      {/* Reporte personalizado en PDF (OE7) */}
-      {uid ? <TarjetaReporte usuarioId={uid} /> : null}
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 90,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Reporte personalizado en PDF (OE7) */}
+        {uid ? <TarjetaReporte usuarioId={uid} /> : null}
 
       <View className="mb-6">
         <SegmentedControl
@@ -482,6 +485,7 @@ export default function ProgressScreen() {
           }}
         />
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

@@ -1,5 +1,7 @@
 import { NativeModules } from "react-native";
 
+import { env } from "@/config/env";
+
 /**
  * True si el módulo nativo de Google Sign-In está registrado en el binario.
  * En Expo Go será false — se necesita un Development Build.
@@ -26,7 +28,7 @@ export function configureGoogleSignIn(): void {
     require("@react-native-google-signin/google-signin") as typeof import("@react-native-google-signin/google-signin");
   /* eslint-enable @typescript-eslint/no-require-imports */
   GoogleSignin.configure({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    webClientId: env.googleWebClientId,
     offlineAccess: false,
     scopes: ["profile", "email"],
   });
