@@ -1,20 +1,23 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ProgresoPasos } from "@/components/onboarding/StepProgress";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { CampoTexto } from "@/components/ui/TextField";
-import { palette } from "@/constants/palette";
-import { OPCIONES_DIAS_DISPONIBLES } from "@/models/entities/User";
+import { Text } from "@/components/ui/Typography";
+import {
+  GENEROS_USUARIO,
+  OPCIONES_DIAS_DISPONIBLES,
+  type GeneroUsuario,
+} from "@/models/entities/User";
 import {
   datosFisicosSchema,
   type DatosFisicosInput,
@@ -55,6 +58,9 @@ export default function PhysicalDataScreen() {
   const [dias, setDias] = useState<number | null>(
     datosFisicos?.diasDisponibles ?? null,
   );
+  const [genero, setGenero] = useState<GeneroUsuario | null>(
+    datosFisicos?.genero ?? null,
+  );
   const [errores, setErrores] = useState<Partial<Record<Campo, string>>>({});
 
   const cambiar = (campo: keyof FormularioTexto) => (valor: string) => {
@@ -69,8 +75,14 @@ export default function PhysicalDataScreen() {
     }
   };
 
+  const elegirGenero = (valor: GeneroUsuario) => {
+    setGenero(valor);
+    if (errores.genero) setErrores((prev) => ({ ...prev, genero: undefined }));
+  };
+
   const handleSiguiente = () => {
     const resultado = datosFisicosSchema.safeParse({
+      genero: genero ?? undefined,
       edad: aNumero(form.edad),
       altura: aNumero(form.altura),
       pesoActual: aNumero(form.pesoActual),
@@ -96,13 +108,7 @@ export default function PhysicalDataScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View className="flex-1 bg-primary-light/15 px-5 pt-6">
-          <TouchableOpacity
-            className="mb-4 h-10 w-10 items-center justify-center rounded-full bg-primary-light/30"
-            onPress={() => router.back()}
-            accessibilityLabel="Volver"
-          >
-            <Ionicons name="arrow-back" size={22} color={palette.foreground} />
-          </TouchableOpacity>
+          <ProgresoPasos paso={2} onBack={() => router.back()} />
 
           <Text className="text-2xl font-bold text-foreground">
             Cuéntanos sobre ti
@@ -117,6 +123,47 @@ export default function PhysicalDataScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            <Text className="mb-2 text-sm font-semibold uppercase tracking-wider text-text-secondary">
+              Género
+            </Text>
+            <View className="mb-4 flex-row gap-3">
+              {(
+                Object.entries(GENEROS_USUARIO) as [
+                  GeneroUsuario,
+                  (typeof GENEROS_USUARIO)[GeneroUsuario],
+                ][]
+              ).map(([valor, info]) => {
+                const activo = genero === valor;
+                return (
+                  <TouchableOpacity
+                    key={valor}
+                    className={`min-h-12 flex-1 items-center justify-center rounded-xl border ${
+                      activo
+                        ? "border-primary bg-primary-light/30"
+                        : "border-primary-light bg-background"
+                    }`}
+                    onPress={() => elegirGenero(valor)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: activo }}
+                  >
+                    <Text
+                      className={`text-sm ${
+                        activo
+                          ? "font-semibold text-primary"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {info.etiqueta}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {errores.genero ? (
+              <Text className="-mt-2 mb-4 text-sm text-error">
+                {errores.genero}
+              </Text>
+            ) : null}
             <CampoTexto
               etiqueta="Edad (años)"
               keyboardType="number-pad"
@@ -182,7 +229,7 @@ export default function PhysicalDataScreen() {
               })}
             </View>
             {errores.diasDisponibles ? (
-              <Text className="mt-2 text-xs text-error">
+              <Text className="mt-2 text-sm text-error">
                 {errores.diasDisponibles}
               </Text>
             ) : null}

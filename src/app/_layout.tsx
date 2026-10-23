@@ -1,12 +1,21 @@
 import "../global.css";
 
+import {
+  SplineSans_400Regular,
+  SplineSans_500Medium,
+  SplineSans_600SemiBold,
+  SplineSans_700Bold,
+  useFonts,
+} from "@expo-google-fonts/spline-sans";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
+import { ToastHost } from "@/components/ui/ToastHost";
 import { configureGoogleSignIn } from "@/config/googleSignIn";
 import { useAuthListener } from "@/hooks/useAuthListener";
 import { usePerfilListener } from "@/hooks/useProfileListener";
+import { useReducirMovimiento } from "@/hooks/useReducedMotion";
 import { useAuthStore } from "@/store/auth.store";
 
 // Mantener el splash nativo hasta saber a qué grupo de rutas ir.
@@ -31,6 +40,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
  * basta con que cambie el estado del store.
  */
 export default function RootLayout() {
+  const reducir = useReducirMovimiento();
   const user = useAuthStore((s) => s.user);
   const perfilCompleto = useAuthStore((s) => s.perfilCompleto);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
@@ -45,33 +55,53 @@ export default function RootLayout() {
   // Firestore usuarios/{uid} → Zustand (perfilCompleto)
   usePerfilListener();
 
+  // Spline Sans (sistema de diseño). Si no carga, la app sigue con la fuente
+  // del sistema en vez de quedarse en el splash.
+  const [fuentesCargadas, errorFuentes] = useFonts({
+    SplineSans_400Regular,
+    SplineSans_500Medium,
+    SplineSans_600SemiBold,
+    SplineSans_700Bold,
+  });
+
   const haySesion = !!user;
   const listo =
-    hasHydrated && authInicializado && (!haySesion || perfilCompleto !== null);
+    (fuentesCargadas || !!errorFuentes) &&
+    hasHydrated &&
+    authInicializado &&
+    (!haySesion || perfilCompleto !== null);
 
   useEffect(() => {
     if (listo) SplashScreen.hideAsync().catch(() => {});
   }, [listo]);
 
   return (
-    <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
-      {/* Público: bienvenida y login/registro. Sigue disponible mientras se
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: reducir ? "none" : "fade",
+        }}
+      >
+        {/* Público: bienvenida y login/registro. Sigue disponible mientras se
           carga el perfil tras iniciar sesión, para no mostrar una pantalla
           vacía entre el login y el onboarding/home. */}
-      <Stack.Protected guard={!haySesion || perfilCompleto === null}>
-        <Stack.Protected guard={!haySesion}>
-          <Stack.Screen name="index" />
+        <Stack.Protected guard={!haySesion || perfilCompleto === null}>
+          <Stack.Protected guard={!haySesion}>
+            <Stack.Screen name="index" />
+          </Stack.Protected>
+          <Stack.Screen name="(auth)" />
         </Stack.Protected>
-        <Stack.Screen name="(auth)" />
-      </Stack.Protected>
 
-      <Stack.Protected guard={haySesion && perfilCompleto === false}>
-        <Stack.Screen name="(onboarding)" />
-      </Stack.Protected>
+        <Stack.Protected guard={haySesion && perfilCompleto === false}>
+          <Stack.Screen name="(onboarding)" />
+        </Stack.Protected>
 
-      <Stack.Protected guard={haySesion && perfilCompleto === true}>
-        <Stack.Screen name="(app)" />
-      </Stack.Protected>
-    </Stack>
+        <Stack.Protected guard={haySesion && perfilCompleto === true}>
+          <Stack.Screen name="(app)" />
+        </Stack.Protected>
+      </Stack>
+      <ToastHost />
+    </>
   );
 }

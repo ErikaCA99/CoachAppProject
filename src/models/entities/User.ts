@@ -1,7 +1,13 @@
 export type ObjetivoUsuario =
   "perder_peso" | "ganar_masa" | "mantenimiento" | "resistencia";
 export type NivelExperiencia = "principiante" | "intermedio" | "avanzado";
-export type GeneroUsuario = "masculino" | "femenino" | "otro";
+export type GeneroUsuario = "masculino" | "femenino";
+
+/** Opciones de género para la UI (el modelo de IA solo distingue estas dos). */
+export const GENEROS_USUARIO: Record<GeneroUsuario, { etiqueta: string }> = {
+  masculino: { etiqueta: "Masculino" },
+  femenino: { etiqueta: "Femenino" },
+};
 
 /** Metadatos legibles en español para mostrar en la UI. */
 export const OBJETIVOS_USUARIO: Record<

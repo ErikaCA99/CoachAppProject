@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, TouchableOpacity } from "react-native";
+import { TouchableOpacity } from "react-native";
+
+import { Text } from "@/components/ui/Typography";
 
 interface BotonGoogleProps {
   onPress: () => void;

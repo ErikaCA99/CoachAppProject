@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthHeader } from "@/components/auth/AuthHeader";
@@ -13,6 +7,7 @@ import { BotonGoogle } from "@/components/auth/GoogleButton";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { CampoTexto } from "@/components/ui/TextField";
 import { SeparadorTexto } from "@/components/ui/TextDivider";
+import { Text } from "@/components/ui/Typography";
 import { AuthController } from "@/controllers/AuthController";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import {
@@ -160,7 +155,7 @@ export default function RegisterScreen() {
             deshabilitado={ocupado}
           />
 
-          <Text className="mt-5 text-center text-xs text-text-muted">
+          <Text className="mt-5 text-center text-sm text-text-muted">
             Al registrarte aceptas nuestros{" "}
             <Text className="font-semibold text-primary">
               Términos de Servicio

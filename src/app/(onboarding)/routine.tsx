@@ -2,19 +2,16 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ProgresoPasos } from "@/components/onboarding/StepProgress";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
+import { toast } from "@/utils/toast";
 
 /**
  * Onboarding · Paso 3 (final): cómo generar la primera rutina.
@@ -56,8 +53,7 @@ export default function RoutineChoiceScreen() {
       setPerfilCompleto(true);
     } catch (error) {
       console.error("Error al completar el onboarding:", error);
-      Alert.alert(
-        "Error",
+      toast.error(
         "No pudimos guardar tus datos. Revisa tu conexión e intenta nuevamente.",
       );
       setGuardando(false);
@@ -67,6 +63,10 @@ export default function RoutineChoiceScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 bg-primary-light/15 px-5 pt-6">
+        <ProgresoPasos
+          paso={3}
+          onBack={guardando ? undefined : () => router.back()}
+        />
         <Text className="text-2xl font-bold text-foreground">
           ¿Cómo quieres tu rutina?
         </Text>
@@ -113,12 +113,12 @@ export default function RoutineChoiceScreen() {
                     size={10}
                     color={palette.background}
                   />
-                  <Text className="ml-1 text-xs font-semibold text-background">
+                  <Text className="ml-1 text-sm font-semibold text-background">
                     Recomendado
                   </Text>
                 </View>
               </View>
-              <Text className="mt-1 text-[13px] text-background/90">
+              <Text className="mt-1 text-sm text-background/90">
                 La IA crea una rutina optimizada en base a tu objetivo y nivel
                 de experiencia
               </Text>
@@ -159,7 +159,7 @@ export default function RoutineChoiceScreen() {
             <Text className="mt-4 text-lg font-bold text-foreground">
               Crear personalizada
             </Text>
-            <Text className="mt-1 text-[13px] text-text-muted">
+            <Text className="mt-1 text-sm text-text-muted">
               Diseña tu propia rutina eligiendo los ejercicios, días y enfoque
               de cada sesión
             </Text>
@@ -170,7 +170,10 @@ export default function RoutineChoiceScreen() {
           {guardando ? (
             <ActivityIndicator color={palette.primary} />
           ) : (
-            <TouchableOpacity onPress={() => finalizar(null)}>
+            <TouchableOpacity
+              className="min-h-11 justify-center px-4"
+              onPress={() => finalizar(null)}
+            >
               <Text className="text-sm font-semibold text-text-muted underline">
                 Saltar por ahora
               </Text>

@@ -1,10 +1,8 @@
 import { useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -15,9 +13,11 @@ import { BotonGoogle } from "@/components/auth/GoogleButton";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { CampoTexto } from "@/components/ui/TextField";
 import { SeparadorTexto } from "@/components/ui/TextDivider";
+import { Text } from "@/components/ui/Typography";
 import { AuthController } from "@/controllers/AuthController";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import { useAuthStore } from "@/store/auth.store";
+import { toast } from "@/utils/toast";
 
 /**
  * Inicio de sesión. No navega manualmente: cuando Firebase confirma la
@@ -55,20 +55,17 @@ export default function LoginScreen() {
 
   const handleRecuperar = async () => {
     if (!email.trim()) {
-      Alert.alert(
-        "Recuperar contraseña",
-        "Escribe tu correo electrónico y vuelve a tocar el enlace.",
+      setError(
+        "Escribe tu correo y vuelve a tocar «¿Olvidaste tu contraseña?»",
       );
       return;
     }
+    setError(null);
     try {
       await AuthController.recuperarContrasena(email);
-      Alert.alert(
-        "Revisa tu correo",
-        "Te enviamos un enlace para restablecer tu contraseña.",
-      );
+      toast.exito("Te enviamos un enlace para restablecer tu contraseña.");
     } catch (err) {
-      Alert.alert("Error", AuthController.mensajeDeError(err));
+      setError(AuthController.mensajeDeError(err));
     }
   };
 
@@ -113,7 +110,7 @@ export default function LoginScreen() {
             onPress={handleRecuperar}
             disabled={ocupado}
           >
-            <Text className="text-xs font-semibold text-primary">
+            <Text className="text-sm font-semibold text-primary">
               ¿Olvidaste tu contraseña?
             </Text>
           </TouchableOpacity>

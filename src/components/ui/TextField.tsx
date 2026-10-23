@@ -1,13 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  type TextInputProps,
-} from "react-native";
+import { TouchableOpacity, View, type TextInputProps } from "react-native";
 
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 interface CampoTextoProps extends TextInputProps {
@@ -28,7 +23,7 @@ export function CampoTexto({
 
   return (
     <View className="mb-4">
-      <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+      <Text className="mb-1.5 text-sm font-semibold uppercase tracking-wider text-text-secondary">
         {etiqueta}
       </Text>
       <View className="relative">
@@ -57,7 +52,7 @@ export function CampoTexto({
           </TouchableOpacity>
         )}
       </View>
-      {error ? <Text className="mt-1 text-xs text-error">{error}</Text> : null}
+      {error ? <Text className="mt-1 text-sm text-error">{error}</Text> : null}
     </View>
   );
 }

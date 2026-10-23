@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 type NombreIcono = ComponentProps<typeof Ionicons>["name"];
@@ -49,7 +50,7 @@ export function AppHeader({
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Volver"
-            className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-primary-light/30"
+            className="mr-3 h-11 w-11 items-center justify-center rounded-full bg-primary-light/30"
           >
             <Ionicons name="arrow-back" size={22} color={palette.foreground} />
           </TouchableOpacity>

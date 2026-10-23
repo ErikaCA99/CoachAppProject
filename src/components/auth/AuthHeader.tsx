@@ -1,5 +1,7 @@
 import { useRouter } from "expo-router";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
+
+import { Text } from "@/components/ui/Typography";
 
 type ModoAuth = "login" | "registro";
 

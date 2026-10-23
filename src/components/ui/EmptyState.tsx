@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
+import { EntradaAnimada } from "@/components/ui/AnimatedEntrance";
 import { palette } from "@/constants/palette";
 
 type NombreIcono = ComponentProps<typeof Ionicons>["name"];
@@ -38,43 +40,45 @@ export function EmptyState({
   compact = false,
 }: EmptyStateProps) {
   return (
-    <View
-      className={`items-center justify-center px-6 ${compact ? "py-6" : "py-12"}`}
-    >
-      <View className="h-16 w-16 items-center justify-center rounded-full bg-primary-light/30">
-        <Ionicons name={icon} size={30} color={palette.primary} />
-      </View>
+    <EntradaAnimada>
+      <View
+        className={`items-center justify-center px-6 ${compact ? "py-6" : "py-12"}`}
+      >
+        <View className="h-16 w-16 items-center justify-center rounded-full bg-primary-light/30">
+          <Ionicons name={icon} size={30} color={palette.primary} />
+        </View>
 
-      <Text className="mt-4 text-center text-base font-bold text-foreground">
-        {title}
-      </Text>
-
-      {description ? (
-        <Text className="mt-1.5 max-w-[280px] text-center text-sm leading-5 text-text-secondary">
-          {description}
+        <Text className="mt-4 text-center text-base font-bold text-foreground">
+          {title}
         </Text>
-      ) : null}
 
-      {actionButton ? (
-        <TouchableOpacity
-          onPress={actionButton.onPress}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={actionButton.label}
-          className="mt-5 flex-row items-center gap-2 rounded-2xl bg-primary px-5 py-3"
-        >
-          {actionButton.icon ? (
-            <Ionicons
-              name={actionButton.icon}
-              size={18}
-              color={palette.background}
-            />
-          ) : null}
-          <Text className="text-sm font-bold text-background">
-            {actionButton.label}
+        {description ? (
+          <Text className="mt-1.5 max-w-[280px] text-center text-sm leading-5 text-text-secondary">
+            {description}
           </Text>
-        </TouchableOpacity>
-      ) : null}
-    </View>
+        ) : null}
+
+        {actionButton ? (
+          <TouchableOpacity
+            onPress={actionButton.onPress}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={actionButton.label}
+            className="mt-5 flex-row items-center gap-2 rounded-2xl bg-primary px-5 py-3"
+          >
+            {actionButton.icon ? (
+              <Ionicons
+                name={actionButton.icon}
+                size={18}
+                color={palette.background}
+              />
+            ) : null}
+            <Text className="text-sm font-bold text-background">
+              {actionButton.label}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    </EntradaAnimada>
   );
 }

@@ -1,11 +1,13 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+
+import { Text } from "@/components/ui/Typography";
 
 /** Línea horizontal con un texto centrado ("o continúa con"). */
 export function SeparadorTexto({ texto }: { texto: string }) {
   return (
     <View className="my-5 flex-row items-center">
       <View className="h-px flex-1 bg-primary-light" />
-      <Text className="mx-3 text-xs text-text-muted">{texto}</Text>
+      <Text className="mx-3 text-sm text-text-muted">{texto}</Text>
       <View className="h-px flex-1 bg-primary-light" />
     </View>
   );

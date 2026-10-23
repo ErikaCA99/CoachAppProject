@@ -17,7 +17,9 @@ export const nivelExperienciaSchema = z.enum([
   "avanzado",
 ]);
 
-export const generoUsuarioSchema = z.enum(["masculino", "femenino", "otro"]);
+export const generoUsuarioSchema = z.enum(["masculino", "femenino"], {
+  error: "Elige una opción",
+});
 
 export const edadSchema = z
   .number({ error: "Ingresa tu edad" })
@@ -87,6 +89,7 @@ export type ObjetivoYNivelInput = z.infer<typeof objetivoYNivelSchema>;
 // ── Datos físicos (onboarding · paso 2) ──────────────────────────────
 
 export const datosFisicosSchema = z.object({
+  genero: generoUsuarioSchema,
   edad: edadSchema,
   altura: alturaSchema,
   pesoActual: pesoSchema,

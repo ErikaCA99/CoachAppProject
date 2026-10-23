@@ -1,8 +1,17 @@
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
+import { useAnimacionPresion } from "@/hooks/usePressAnimation";
+
+const TouchableAnimado = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface BotonPrimarioProps {
   titulo: string;
@@ -22,13 +31,18 @@ export function BotonPrimario({
   icono,
 }: BotonPrimarioProps) {
   const inactivo = deshabilitado || cargando;
+  const presion = useAnimacionPresion(inactivo);
 
   return (
-    <TouchableOpacity
+    <TouchableAnimado
       onPress={onPress}
+      onPressIn={presion.onPressIn}
+      onPressOut={presion.onPressOut}
+      style={presion.estilo}
       disabled={inactivo}
       activeOpacity={0.85}
       accessibilityRole="button"
+      accessibilityLabel={titulo}
       accessibilityState={{ disabled: inactivo, busy: cargando }}
       className="rounded-2xl shadow-sm"
     >
@@ -60,6 +74,6 @@ export function BotonPrimario({
           </>
         )}
       </LinearGradient>
-    </TouchableOpacity>
+    </TouchableAnimado>
   );
 }

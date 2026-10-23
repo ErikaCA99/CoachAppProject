@@ -1,5 +1,6 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 interface OpcionSegmento<T extends string> {
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   textoSm: {
-    fontSize: 12,
+    fontSize: 13,
   },
   textoActivo: {
     color: palette.foreground,

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import { AuthController } from "@/controllers/AuthController";
 import { useAuthStore } from "@/store/auth.store";
+import { useOnboardingStore } from "@/store/onboarding.store";
 
 /**
  * Listener que sincroniza la sesión de Firebase Auth con el store de Zustand.
@@ -25,6 +26,8 @@ export function useAuthListener(): void {
         setUser(usuario); // setUser valida con Zod antes de guardar
       } else {
         logout();
+        // El borrador del onboarding es de la cuenta que cerró sesión.
+        useOnboardingStore.getState().reset();
       }
       setLoading(false);
       setAuthInicializado(true);

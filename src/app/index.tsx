@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Dimensions, Image, Text, View } from "react-native";
+import { Dimensions, Image, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -13,7 +14,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-[#c9fffc]">
+    <SafeAreaView className="flex-1 bg-primary-light/15">
       <View className="p-2" style={{ height: SCREEN_HEIGHT * 0.58 }}>
         <Image
           className="h-full w-full rounded-3xl"
@@ -28,9 +29,11 @@ export default function WelcomeScreen() {
             source={require("@/assets/images/logo-coachapp.png")}
             className="h-9 w-9 rounded-xl"
           />
-          <Text className="ml-2.5 text-2xl font-bold text-white">CoachApp</Text>
+          <Text className="ml-2.5 text-2xl font-bold text-foreground">
+            CoachApp
+          </Text>
         </View>
-        <Text className="mx-8 mt-3 text-center text-sm text-gray-300">
+        <Text className="mx-8 mt-3 text-center text-sm text-text-secondary">
           Disfruta de la mejor experiencia del deporte con rutinas
           personalizadas y guías de ejercicios
         </Text>
