@@ -6,6 +6,8 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-ux-android/
+dist-ux-review/
 web-build/
 expo-env.d.ts
 
@@ -82,6 +84,9 @@ logs/
 # Salidas locales de scripts y asistentes de IA (seeds, descargas temporales)
 _tmp/
 Claude outputs/
+skills-lock.json
+.agents/
+.kiro/
 .claude/settings.local.json
 
 # Instalador local de Antigravity CLI (no pertenece al proyecto)
