@@ -5,10 +5,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
@@ -16,10 +14,16 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HojaConfirmacionMaquina } from "@/components/machines/scanner/MachineConfirmationSheet";
+import {
+  HojaSugerenciasMaquina,
+  type SugerenciaMaquina,
+} from "@/components/machines/scanner/SuggestionsSheet";
 import { IndicadorDeteccionAR } from "@/components/machines/scanner/ARDetectionIndicator";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import type { DificultadEjercicio, Maquina } from "@/models/entities/Machine";
+import { toast } from "@/utils/toast";
 
 type Fase = "inicio" | "escaneando" | "analizando" | "eligiendo" | "detectada";
 
@@ -128,6 +132,10 @@ export default function EscanerScreen() {
     maquinaId: string;
     confianza: number;
   } | null>(null);
+  /** Las tres candidatas del modelo cuando no está seguro (vacío si no hay modelo). */
+  const [sugerencias, setSugerencias] = useState<SugerenciaMaquina[]>([]);
+  /** El usuario descartó las candidatas y busca en el catálogo completo. */
+  const [verCatalogo, setVerCatalogo] = useState(false);
 
   // Máquina preseleccionada desde su ficha ("Ver en Realidad Aumentada").
   useEffect(() => {
@@ -153,6 +161,8 @@ export default function EscanerScreen() {
   const reiniciarEscaneo = () => {
     setMaquina(null);
     setSugerencia(null);
+    setSugerencias([]);
+    setVerCatalogo(false);
     setFase("escaneando");
   };
 
@@ -173,11 +183,23 @@ export default function EscanerScreen() {
         ? { maquinaId: resultado.maquina.id, confianza: resultado.confianza }
         : null,
     );
-    setMaquina(resultado?.maquina ?? null);
+    setVerCatalogo(false);
     if (resultado && !resultado.requiereConfirmacion) {
+      setSugerencias([]);
+      setMaquina(resultado.maquina);
       setFase("detectada");
       return;
     }
+    // Con baja confianza no se preselecciona nada: se ofrecen las candidatas.
+    setMaquina(null);
+    setSugerencias(
+      resultado
+        ? [
+            { maquina: resultado.maquina, confianza: resultado.confianza },
+            ...resultado.alternativas,
+          ]
+        : [],
+    );
 
     try {
       // Sin modelo o con baja confianza: el usuario confirma la máquina.
@@ -186,9 +208,8 @@ export default function EscanerScreen() {
     } catch (error) {
       console.error("No se pudo cargar el catálogo de máquinas:", error);
       setFase("escaneando");
-      Alert.alert(
-        "No se pudo cargar el catálogo",
-        "Verifica tu conexión e inténtalo nuevamente.",
+      toast.error(
+        "No se pudo cargar el catálogo. Verifica tu conexión e inténtalo nuevamente.",
       );
     }
   };
@@ -235,7 +256,7 @@ export default function EscanerScreen() {
           <Ionicons name="arrow-back" size={18} color="#ffffff" />
         </TouchableOpacity>
         <View className="rounded-full bg-white/15 px-4 py-1.5">
-          <Text className="text-xs font-bold text-white">Escáner AR</Text>
+          <Text className="text-sm font-bold text-white">Escáner AR</Text>
         </View>
         <View className="h-9 w-9" />
       </View>
@@ -270,7 +291,7 @@ export default function EscanerScreen() {
             <Text className="mt-6 text-xl font-bold text-white">
               {maquina ? maquina.nombre : "Escanea una Máquina"}
             </Text>
-            <Text className="mt-2 text-center text-[13px] leading-5 text-white/70">
+            <Text className="mt-2 text-center text-sm leading-5 text-white/70">
               {maquina
                 ? "Apunta tu cámara a la máquina para ver sus ejercicios en realidad aumentada"
                 : "Apunta tu cámara a cualquier máquina del gimnasio para ver ejercicios en realidad aumentada"}
@@ -336,7 +357,7 @@ export default function EscanerScreen() {
               accessibilityLabel="Capturar"
             />
             <View className="rounded-2xl bg-white/10 px-4 py-3">
-              <Text className="text-center text-xs text-white/80">
+              <Text className="text-center text-sm text-white/80">
                 Mantén la cámara enfocada en la máquina y toca el botón
               </Text>
             </View>
@@ -347,7 +368,19 @@ export default function EscanerScreen() {
           <ActivityIndicator color="#ffffff" style={{ marginBottom: 24 }} />
         )}
 
-        {fase === "eligiendo" && (
+        {fase === "eligiendo" && sugerencias.length > 0 && !verCatalogo && (
+          <HojaSugerenciasMaquina
+            sugerencias={sugerencias}
+            onElegir={(elegida) => {
+              setMaquina(elegida);
+              setFase("detectada");
+            }}
+            onNinguna={() => setVerCatalogo(true)}
+            onReintentar={reiniciarEscaneo}
+          />
+        )}
+
+        {fase === "eligiendo" && (sugerencias.length === 0 || verCatalogo) && (
           <HojaConfirmacionMaquina
             catalogo={catalogo}
             seleccionada={maquina}
@@ -369,7 +402,7 @@ export default function EscanerScreen() {
                 <Ionicons name="locate-outline" size={18} color="#ffffff" />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="text-xs text-white/80">
+                <Text className="text-sm text-white/80">
                   {esSugerida ? "Máquina detectada" : "Máquina confirmada"}
                 </Text>
                 <Text
@@ -387,7 +420,7 @@ export default function EscanerScreen() {
                 className="mb-2 flex-row items-center justify-between rounded-xl bg-white/15 px-3 py-2.5"
               >
                 <Text
-                  className="flex-1 text-[13px] font-semibold text-white"
+                  className="flex-1 text-sm font-semibold text-white"
                   numberOfLines={1}
                 >
                   {e.nombre}
@@ -395,7 +428,7 @@ export default function EscanerScreen() {
                 <View
                   className={`ml-2 rounded-full px-2 py-0.5 ${ETIQUETA_DIFICULTAD[e.dificultad]}`}
                 >
-                  <Text className="text-xs font-bold text-white">
+                  <Text className="text-sm font-bold text-white">
                     {e.dificultad}
                   </Text>
                 </View>

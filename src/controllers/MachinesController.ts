@@ -18,9 +18,11 @@ import {
 import {
   buscarEjercicioRelacionado,
   generarDetalleEjercicio,
+  posesDeEjercicio,
   type DetalleEjercicioGenerado,
 } from "@/utils/machineExercise";
 import { normalizarTexto } from "@/utils/text";
+import { obtenerAnimacionExacta } from "@/models/repositories/exerciseDbRepository";
 
 export interface FiltrosMaquinas {
   busqueda?: string;
@@ -41,6 +43,8 @@ export interface ResultadoEscaneo {
   confianza: number;
   /** `true` si la confianza no alcanza el umbral: el usuario debe confirmar. */
   requiereConfirmacion: boolean;
+  /** Las siguientes candidatas (hasta 2) tras la principal, de más a menos probable. */
+  alternativas: { maquina: Maquina; confianza: number }[];
 }
 
 /** Detalle de un ejercicio de la ficha: de wger si existe, o generado localmente. */
@@ -54,6 +58,26 @@ export type DetalleEjercicioResuelto =
  * importan Firestore, Storage ni el repositorio.
  */
 export const MaquinasController = {
+  /** Alternativa opcional a WorkoutX; no sustituye los datos del catálogo. */
+  async obtenerAnimacionAlternativa(
+    ejercicio: EjercicioGif,
+    signal: AbortSignal,
+  ) {
+    const cancelacion = new AbortController();
+    const cancelar = () => cancelacion.abort();
+    if (signal.aborted) cancelacion.abort();
+    signal.addEventListener("abort", cancelar, { once: true });
+    const tiempoLimite = setTimeout(cancelar, 12000);
+    try {
+      return await obtenerAnimacionExacta(
+        ejercicio.nombreOriginal,
+        cancelacion.signal,
+      );
+    } finally {
+      clearTimeout(tiempoLimite);
+      signal.removeEventListener("abort", cancelar);
+    }
+  },
   /** Catálogo completo, ordenado por categoría y nombre. */
   async listar(filtros: FiltrosMaquinas = {}): Promise<Maquina[]> {
     return MaquinasController.filtrar(await listarMaquinas(), filtros);
@@ -154,6 +178,9 @@ export const MaquinasController = {
     };
   },
 
+  /** Fotos de posición inicial y final de un ejercicio de la ficha (puede ser vacío). */
+  posesDeEjercicio,
+
   /** URL de descarga de una ruta de Storage guardada en el catálogo. */
   async obtenerUrl(ruta: string): Promise<string> {
     return obtenerUrlArchivo(ruta);
@@ -170,10 +197,21 @@ export const MaquinasController = {
     if (!resultado) return null;
     const maquina = await obtenerMaquina(resultado.maquinaId);
     if (!maquina) return null;
+    const alternativas = (
+      await Promise.all(
+        resultado.alternativas.map(async (alternativa) => {
+          const candidata = await obtenerMaquina(alternativa.maquinaId);
+          return candidata
+            ? { maquina: candidata, confianza: alternativa.confianza }
+            : null;
+        }),
+      )
+    ).filter((a): a is { maquina: Maquina; confianza: number } => a !== null);
     return {
       maquina,
       confianza: resultado.confianza,
       requiereConfirmacion: resultado.confianza < CONFIANZA_MINIMA,
+      alternativas,
     };
   },
 };

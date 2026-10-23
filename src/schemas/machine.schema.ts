@@ -50,6 +50,7 @@ export const maquinaSchema = z.object({
         dificultad: z.enum(["Principiante", "Intermedio", "Avanzado"]),
         musculoObjetivo: z.string(),
         gifPath: ruta,
+        imagenPoses: ruta.nullable().default(null),
       }),
     )
     .default([]),

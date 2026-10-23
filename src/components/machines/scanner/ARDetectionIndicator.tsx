@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { ImagenStorage } from "@/components/machines/StorageImage";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { Maquina } from "@/models/entities/Machine";
 
@@ -42,11 +43,11 @@ export function IndicadorDeteccionAR({
             size={12}
             color={confirmada ? palette.primaryLight : palette.secondary}
           />
-          <Text className="ml-1 text-xs font-semibold text-white/80">
+          <Text className="ml-1 text-sm font-semibold text-white/80">
             {etiqueta}
           </Text>
         </View>
-        <Text className="text-[13px] font-bold text-white" numberOfLines={1}>
+        <Text className="text-sm font-bold text-white" numberOfLines={1}>
           {maquina.nombre}
         </Text>
       </View>

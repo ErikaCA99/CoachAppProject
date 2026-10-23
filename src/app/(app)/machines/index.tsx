@@ -7,8 +7,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +15,7 @@ import { ChipFiltro } from "@/components/machines/FilterChip";
 import { TarjetaMaquina } from "@/components/machines/MachineCard";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import {
@@ -143,7 +142,7 @@ export default function MachinesScreen() {
             )}
           </View>
 
-          <Text className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-text-secondary">
+          <Text className="mb-2 mt-4 text-sm font-bold uppercase tracking-wider text-text-secondary">
             Grupo muscular
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -162,7 +161,7 @@ export default function MachinesScreen() {
             ))}
           </ScrollView>
 
-          <Text className="mb-2 mt-3 text-xs font-bold uppercase tracking-wider text-text-secondary">
+          <Text className="mb-2 mt-3 text-sm font-bold uppercase tracking-wider text-text-secondary">
             Tipo
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -236,7 +235,7 @@ export default function MachinesScreen() {
                 }
                 description={
                   catalogo.length === 0
-                    ? "Carga las máquinas con el script de seed para ver el catálogo completo."
+                    ? "Aún no hay máquinas disponibles. Intenta de nuevo más tarde."
                     : "No hay máquinas con esos filtros. Prueba con otra búsqueda o categoría."
                 }
                 actionButton={

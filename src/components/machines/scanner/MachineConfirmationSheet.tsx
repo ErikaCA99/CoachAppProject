@@ -1,16 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
 import { ListaMaquinasAgrupada } from "@/components/machines/scanner/GroupedMachineList";
 import { TarjetaSeleccionEscaneo } from "@/components/machines/scanner/ScanSelectionCard";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import type { Maquina } from "@/models/entities/Machine";
@@ -105,7 +100,7 @@ export function HojaConfirmacionMaquina({
             expandirTodo={buscando}
           />
         ) : (
-          <Text className="py-6 text-center text-xs text-text-muted">
+          <Text className="py-6 text-center text-sm text-text-muted">
             No hay máquinas que coincidan con “{busqueda.trim()}”.
           </Text>
         )}

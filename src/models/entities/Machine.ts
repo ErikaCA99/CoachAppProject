@@ -45,6 +45,12 @@ export interface EjercicioGif {
   dificultad: DificultadEjercicio;
   musculoObjetivo: string;
   gifPath: string; // ruta de Storage
+  /**
+   * Imagen única con la pose inicial y la final lado a lado (ruta de
+   * Storage). Si falta, la ficha usa las fotos del ejercicio relacionado o,
+   * en último caso, el GIF.
+   */
+  imagenPoses?: string | null;
 }
 
 export interface Maquina {

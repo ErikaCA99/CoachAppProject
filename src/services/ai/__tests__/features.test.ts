@@ -57,9 +57,8 @@ describe("construirFeatures", () => {
     ]);
   });
 
-  it("género 'otro' no activa ninguna de las dos columnas", () => {
+  it("sin género no activa ninguna de las dos columnas", () => {
     const v = construirFeatures({
-      genero: "otro",
       objetivo: "resistencia",
       nivel: "avanzado",
     });

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { useState, type ReactNode } from "react";
+import { Pressable, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 type Variante = "normal" | "alerta" | "error";
@@ -26,6 +27,7 @@ interface SeccionFichaProps {
   icono: React.ComponentProps<typeof Ionicons>["name"];
   variante?: Variante;
   children: ReactNode;
+  plegable?: boolean;
 }
 
 /** Tarjeta de sección de la ficha de una máquina (Descripción, Músculos...). */
@@ -34,17 +36,41 @@ export function SeccionFicha({
   icono,
   variante = "normal",
   children,
+  plegable = false,
 }: SeccionFichaProps) {
   const estilo = ESTILOS[variante];
+  const [expandida, setExpandida] = useState(false);
+  const abierta = !plegable || expandida;
   return (
     <View className={`mb-4 rounded-2xl border p-4 ${estilo.contenedor}`}>
-      <View className="mb-3 flex-row items-center">
-        <Ionicons name={icono} size={18} color={estilo.icono} />
-        <Text className="ml-2 text-base font-bold text-foreground">
+      <Pressable
+        disabled={!plegable}
+        onPress={() => setExpandida((valor) => !valor)}
+        accessibilityRole={plegable ? "button" : "header"}
+        accessibilityState={plegable ? { expanded: abierta } : undefined}
+        accessibilityLabel={titulo}
+        style={({ pressed }) => ({ opacity: pressed ? 0.65 : 1 })}
+        className="min-h-12 flex-row items-center"
+      >
+        <Ionicons
+          name={icono}
+          size={20}
+          color={estilo.icono}
+          accessible={false}
+        />
+        <Text className="ml-2 flex-1 text-base font-bold text-foreground">
           {titulo}
         </Text>
-      </View>
-      {children}
+        {plegable && (
+          <Ionicons
+            name={abierta ? "chevron-up" : "chevron-down"}
+            size={20}
+            color={palette.primary}
+            accessible={false}
+          />
+        )}
+      </Pressable>
+      {abierta && <View className="mt-2">{children}</View>}
     </View>
   );
 }
@@ -66,7 +92,7 @@ export function ListaPuntos({ puntos, icono, colorIcono }: ListaPuntosProps) {
             color={colorIcono}
             style={{ marginTop: 2 }}
           />
-          <Text className="ml-2 flex-1 text-[13px] leading-5 text-text-secondary">
+          <Text className="ml-2 flex-1 text-sm leading-6 text-text-secondary">
             {punto}
           </Text>
         </View>

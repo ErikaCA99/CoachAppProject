@@ -1,6 +1,7 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 import { ImagenStorage } from "@/components/machines/StorageImage";
+import { Text } from "@/components/ui/Typography";
 import type {
   DificultadEjercicio,
   EjercicioGif,

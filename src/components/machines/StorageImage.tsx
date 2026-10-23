@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image, type ImageContentFit } from "expo-image";
-import { ActivityIndicator, View, type ViewStyle } from "react-native";
+import { useEffect, useRef } from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  View,
+  type ViewStyle,
+} from "react-native";
 
 import { palette } from "@/constants/palette";
 import { useUrlStorage } from "@/hooks/useStorageUrl";
@@ -19,6 +25,7 @@ interface ImagenStorageProps {
   /** Ícono si no hay imagen o no se pudo cargar. */
   iconoVacio?: React.ComponentProps<typeof Ionicons>["name"];
   accessibilityLabel?: string;
+  autoplay?: boolean;
 }
 
 /**
@@ -31,8 +38,16 @@ export function ImagenStorage({
   contentFit = "contain",
   iconoVacio = "barbell-outline",
   accessibilityLabel,
+  autoplay = true,
 }: ImagenStorageProps) {
   const url = useUrlStorage(ruta);
+  const imagenRef = useRef<Image>(null);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    if (autoplay) void imagenRef.current?.startAnimating();
+    else void imagenRef.current?.stopAnimating();
+  }, [autoplay]);
 
   if (url === undefined) {
     return (
@@ -61,9 +76,16 @@ export function ImagenStorage({
 
   return (
     <Image
+      ref={imagenRef}
       source={{ uri: url }}
       style={style}
       contentFit={contentFit}
+      autoplay={autoplay}
+      onLoad={() => {
+        if (Platform.OS !== "web" && !autoplay) {
+          void imagenRef.current?.stopAnimating();
+        }
+      }}
       cachePolicy="memory-disk"
       transition={200}
       accessibilityLabel={accessibilityLabel}

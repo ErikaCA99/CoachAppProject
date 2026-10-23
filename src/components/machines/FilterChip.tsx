@@ -1,4 +1,6 @@
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
+
+import { Text } from "@/components/ui/Typography";
 
 interface ChipFiltroProps {
   texto: string;
@@ -17,7 +19,7 @@ export function ChipFiltro({ texto, activo, onPress }: ChipFiltroProps) {
       accessibilityState={{ selected: activo }}
     >
       <Text
-        className={`text-xs font-semibold ${
+        className={`text-sm font-semibold ${
           activo ? "text-background" : "text-text-secondary"
         }`}
       >

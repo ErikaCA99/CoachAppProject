@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 import { IconoGrupoMuscular } from "@/components/machines/scanner/MuscleGroupIcon";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { GrupoMaquinas } from "@/controllers/MachinesController";
 import { TIPOS_MAQUINA, type Maquina } from "@/models/entities/Machine";
@@ -45,7 +46,7 @@ function FilaMaquina({
         color={seleccionada ? palette.primaryDark : palette.textMuted}
       />
       <Text
-        className={`ml-3 flex-1 text-[13px] ${
+        className={`ml-3 flex-1 text-sm ${
           seleccionada
             ? "font-bold text-foreground"
             : "font-medium text-text-secondary"
@@ -98,10 +99,10 @@ export function ListaMaquinasAgrupada({
               accessibilityRole="header"
             >
               <IconoGrupoMuscular categoria={categoria} tamano="sm" />
-              <Text className="ml-2 flex-1 text-[13px] font-bold text-foreground">
+              <Text className="ml-2 flex-1 text-sm font-bold text-foreground">
                 {categoria}
               </Text>
-              <Text className="text-xs font-semibold text-text-muted">
+              <Text className="text-sm font-semibold text-text-muted">
                 {maquinas.length}
               </Text>
             </View>
@@ -129,7 +130,7 @@ export function ListaMaquinasAgrupada({
                     : `Mostrar ${ocultas} máquinas más de ${categoria}`
                 }
               >
-                <Text className="text-xs font-bold text-primary">
+                <Text className="text-sm font-bold text-primary">
                   {abierto ? "Menos" : `Más... (${ocultas})`}
                 </Text>
                 <Ionicons

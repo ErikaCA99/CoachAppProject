@@ -38,6 +38,19 @@ export function buscarEjercicioRelacionado(
   return null;
 }
 
+/**
+ * Rutas de las fotos de posición inicial y final de un ejercicio con GIF
+ * (las dos primeras imágenes de su ejercicio relacionado). Lista vacía si
+ * el catálogo no trae fotos de ese ejercicio.
+ */
+export function posesDeEjercicio(
+  maquina: Maquina,
+  ejercicioGif: EjercicioGif,
+): string[] {
+  const relacionado = buscarEjercicioRelacionado(maquina, ejercicioGif);
+  return relacionado ? relacionado.imagenes.slice(0, 2) : [];
+}
+
 export interface DetalleEjercicioGenerado {
   categoria: string;
   descripcion: string;

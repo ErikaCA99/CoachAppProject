@@ -1,9 +1,9 @@
 import { useRouter } from "expo-router";
 import { useCallback } from "react";
-import { Alert } from "react-native";
 
 import { MaquinasController } from "@/controllers/MachinesController";
 import type { EjercicioRutina } from "@/models/entities/Routine";
+import { toast } from "@/utils/toast";
 
 /**
  * Abre la ficha de la máquina de un ejercicio de rutina. Si el ejercicio no
@@ -21,14 +21,13 @@ export function useIrAMaquina() {
         if (id) {
           router.push({ pathname: "/(app)/machines/[id]", params: { id } });
         } else {
-          Alert.alert(
-            ejercicio.nombre,
-            "Este ejercicio no usa ninguna máquina del catálogo (por ejemplo, es con peso libre).",
+          toast.info(
+            `${ejercicio.nombre} no usa ninguna máquina del catálogo (por ejemplo, es con peso libre).`,
           );
         }
       } catch (error) {
         console.error("Error al buscar la máquina del ejercicio:", error);
-        Alert.alert("Error", "No se pudo abrir la ficha de la máquina.");
+        toast.error("No se pudo abrir la ficha de la máquina.");
       }
     },
     [router],

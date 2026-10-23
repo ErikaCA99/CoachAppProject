@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { ImagenStorage } from "@/components/machines/StorageImage";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { Maquina } from "@/models/entities/Machine";
 
@@ -29,7 +30,7 @@ export function TarjetaSeleccionEscaneo({
           <Text className="text-base font-bold text-foreground">
             ¿Qué máquina es?
           </Text>
-          <Text className="mt-0.5 text-xs leading-4 text-text-muted">
+          <Text className="mt-0.5 text-sm leading-5 text-text-muted">
             El reconocimiento automático aún está en desarrollo. Elígela en la
             lista.
           </Text>
@@ -70,19 +71,19 @@ export function TarjetaSeleccionEscaneo({
                 size={11}
                 color={palette.accentStrong}
               />
-              <Text className="ml-1 text-xs font-bold text-foreground">
+              <Text className="ml-1 text-sm font-bold text-foreground">
                 Sugerida · {Math.round(confianzaSugerencia * 100)} %
               </Text>
             </View>
           ) : (
             <View className="flex-row items-center rounded-full bg-primary px-2 py-0.5">
               <Ionicons name="checkmark-circle" size={12} color="#ffffff" />
-              <Text className="ml-1 text-xs font-bold text-white">
+              <Text className="ml-1 text-sm font-bold text-white">
                 Seleccionada
               </Text>
             </View>
           )}
-          <Text className="text-xs font-semibold text-primary">
+          <Text className="text-sm font-semibold text-primary">
             {maquina.categoria}
           </Text>
         </View>

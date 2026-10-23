@@ -3,21 +3,22 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { ErrorEnLinea } from "@/components/ui/InlineError";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { RutinasController } from "@/controllers/RoutinesController";
 import type { Maquina } from "@/models/entities/Machine";
 import type { Rutina } from "@/models/entities/Routine";
 import type { ConId } from "@/models/types";
+import { toast } from "@/utils/toast";
 
 interface ModalAgregarRutinaProps {
   visible: boolean;
@@ -49,7 +50,7 @@ function Contador({
 }) {
   return (
     <View className="flex-1 items-center rounded-xl bg-primary-light/20 py-2">
-      <Text className="text-xs font-semibold text-text-muted">{etiqueta}</Text>
+      <Text className="text-sm font-semibold text-text-muted">{etiqueta}</Text>
       <View className="mt-1 flex-row items-center">
         <TouchableOpacity
           onPress={() => onCambiar(Math.max(min, valor - paso))}
@@ -106,6 +107,7 @@ export function ModalAgregarRutina({
     PARAMETROS_POR_DEFECTO.repeticiones,
   );
   const [guardando, setGuardando] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
@@ -130,6 +132,7 @@ export function ModalAgregarRutina({
     if (!rutina || dia === null || !ejercicio?.wgerId) return;
 
     setGuardando(true);
+    setErrorGuardado(null);
     try {
       await RutinasController.agregarEjercicioADia(usuarioId, rutina.id, dia, {
         maquinaId: ejercicio.wgerId,
@@ -141,14 +144,15 @@ export function ModalAgregarRutina({
         descansoSegundos: PARAMETROS_POR_DEFECTO.descansoSegundos,
       });
       onCerrar();
-      Alert.alert(
-        "Listo",
+      toast.exito(
         `"${ejercicio.nombre}" se agregó al día ${dia} de tu rutina.`,
       );
     } catch (error) {
-      Alert.alert(
-        "No se pudo agregar",
-        error instanceof Error ? error.message : "Intenta nuevamente.",
+      // Dentro del Modal un toast quedaría tapado: el error va en línea.
+      setErrorGuardado(
+        error instanceof Error
+          ? `No se pudo agregar: ${error.message}`
+          : "No se pudo agregar. Intenta nuevamente.",
       );
     } finally {
       setGuardando(false);
@@ -173,7 +177,7 @@ export function ModalAgregarRutina({
             <Ionicons name="close" size={24} color={palette.foreground} />
           </TouchableOpacity>
         </View>
-        <Text className="mb-4 text-xs text-text-muted">{maquina.nombre}</Text>
+        <Text className="mb-4 text-sm text-text-muted">{maquina.nombre}</Text>
 
         {rutina === undefined ? (
           <ActivityIndicator
@@ -206,7 +210,7 @@ export function ModalAgregarRutina({
           </Text>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-text-secondary">
+            <Text className="mb-2 text-sm font-bold uppercase tracking-wider text-text-secondary">
               Ejercicio
             </Text>
             {ejercicios.map((e, i) => {
@@ -235,7 +239,7 @@ export function ModalAgregarRutina({
               );
             })}
 
-            <Text className="mb-2 mt-3 text-xs font-bold uppercase tracking-wider text-text-secondary">
+            <Text className="mb-2 mt-3 text-sm font-bold uppercase tracking-wider text-text-secondary">
               Día · {rutina.nombre}
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -254,14 +258,14 @@ export function ModalAgregarRutina({
                     accessibilityState={{ selected: activo }}
                   >
                     <Text
-                      className={`text-xs font-bold ${
+                      className={`text-sm font-bold ${
                         activo ? "text-background" : "text-foreground"
                       }`}
                     >
                       Día {d.dia}
                     </Text>
                     <Text
-                      className={`max-w-[120px] text-xs ${
+                      className={`max-w-[120px] text-sm ${
                         activo ? "text-background/90" : "text-text-muted"
                       }`}
                       numberOfLines={1}
@@ -291,6 +295,7 @@ export function ModalAgregarRutina({
             </View>
 
             <View className="mt-5">
+              <ErrorEnLinea mensaje={errorGuardado} />
               <BotonPrimario
                 titulo="Agregar"
                 onPress={guardar}
