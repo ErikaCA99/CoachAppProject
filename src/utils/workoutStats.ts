@@ -104,3 +104,19 @@ export function calcularResumenEntrenamientos(
     dias,
   };
 }
+
+/**
+ * Día de la rutina que toca entrenar: el siguiente (en orden cíclico) al
+ * último día completado. Sin historial —o si ese día ya no existe en la
+ * rutina— empieza por el primero. Devuelve `null` si la rutina no tiene días.
+ */
+export function calcularDiaSugerido(
+  diasRutina: readonly number[],
+  ultimoDiaCompletado: number | null,
+): number | null {
+  if (diasRutina.length === 0) return null;
+  if (ultimoDiaCompletado === null) return diasRutina[0];
+  const posicion = diasRutina.indexOf(ultimoDiaCompletado);
+  if (posicion === -1) return diasRutina[0];
+  return diasRutina[(posicion + 1) % diasRutina.length];
+}

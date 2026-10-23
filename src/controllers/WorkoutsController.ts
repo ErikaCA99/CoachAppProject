@@ -1,3 +1,4 @@
+import type { Rutina } from "@/models/entities/Routine";
 import type { Entrenamiento } from "@/models/entities/Workout";
 import {
   desmarcarEntrenamiento,
@@ -7,6 +8,7 @@ import {
 import { marcarEntrenamientoSchema } from "@/schemas/workout.schema";
 import type { ConId } from "@/models/types";
 import {
+  calcularDiaSugerido,
   calcularResumenEntrenamientos,
   formatearFechaISO,
   type ResumenEntrenamientos,
@@ -65,5 +67,21 @@ export const EntrenamientosController = {
   ): ConId<Entrenamiento> | null {
     const hoyISO = formatearFechaISO(ahora);
     return entrenamientos.find((e) => e.fecha === hoyISO) ?? null;
+  },
+
+  /**
+   * Día de la rutina que toca entrenar: el siguiente al último completado
+   * de esa misma rutina (la lista llega ordenada de más reciente a más
+   * antigua). `null` si la rutina no tiene días.
+   */
+  diaSugerido(
+    rutina: Pick<Rutina, "planSemanal"> & { id: string },
+    entrenamientos: ConId<Entrenamiento>[],
+  ): number | null {
+    const ultimo = entrenamientos.find((e) => e.rutinaId === rutina.id);
+    return calcularDiaSugerido(
+      rutina.planSemanal.map((d) => d.dia),
+      ultimo?.dia ?? null,
+    );
   },
 };

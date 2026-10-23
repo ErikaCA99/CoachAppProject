@@ -1,4 +1,5 @@
 import {
+  calcularDiaSugerido,
   calcularRacha,
   calcularResumenEntrenamientos,
   formatearFechaISO,
@@ -95,5 +96,27 @@ describe("calcularResumenEntrenamientos", () => {
     );
     expect(r.completadosSemana).toBe(0);
     expect(r.totalEntrenos).toBe(2);
+  });
+});
+
+describe("calcularDiaSugerido", () => {
+  it("empieza por el primer día sin historial", () => {
+    expect(calcularDiaSugerido([1, 2, 3], null)).toBe(1);
+  });
+
+  it("sugiere el día siguiente al último completado", () => {
+    expect(calcularDiaSugerido([1, 2, 3], 1)).toBe(2);
+  });
+
+  it("vuelve al primer día después del último", () => {
+    expect(calcularDiaSugerido([1, 2, 3], 3)).toBe(1);
+  });
+
+  it("si el último día ya no existe, empieza de nuevo", () => {
+    expect(calcularDiaSugerido([1, 2], 6)).toBe(1);
+  });
+
+  it("devuelve null si la rutina no tiene días", () => {
+    expect(calcularDiaSugerido([], null)).toBeNull();
   });
 });
