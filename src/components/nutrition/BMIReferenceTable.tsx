@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { TABLA_REFERENCIA_IMC } from "@/utils/bmiCalculator";
 

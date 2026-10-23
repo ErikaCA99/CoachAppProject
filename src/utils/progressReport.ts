@@ -99,7 +99,6 @@ export interface ResumenReporte {
 const ETIQUETA_GENERO: Record<string, string> = {
   masculino: "Masculino",
   femenino: "Femenino",
-  otro: "Otro",
 };
 
 const MS_DIA = 24 * 60 * 60 * 1000;

@@ -1,19 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import {
   PERIODOS_REPORTE,
   ReportesController,
   type PeriodoReporte,
 } from "@/controllers/ReportsController";
+import { toast } from "@/utils/toast";
 
 interface TarjetaReporteProps {
   usuarioId: string;
@@ -29,9 +25,10 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
     try {
       await ReportesController.generarYCompartir(usuarioId, periodo);
     } catch (error) {
-      Alert.alert(
-        "No se pudo generar el reporte",
-        error instanceof Error ? error.message : "Intenta nuevamente.",
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo generar el reporte. Intenta nuevamente.",
       );
     } finally {
       setGenerando(false);
@@ -52,7 +49,7 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
           <Text className="text-base font-bold text-foreground">
             Reporte de progreso
           </Text>
-          <Text className="text-xs text-text-muted">
+          <Text className="text-sm text-text-muted">
             Peso, IMC, entrenamientos y alimentación en PDF
           </Text>
         </View>
@@ -75,7 +72,7 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
               }`}
             >
               <Text
-                className={`text-xs font-semibold ${
+                className={`text-sm font-semibold ${
                   activo ? "text-background" : "text-foreground"
                 }`}
               >

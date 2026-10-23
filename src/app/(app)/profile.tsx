@@ -6,26 +6,28 @@ import {
   Alert,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 
 import { AppHeader } from "@/components/ui/AppHeader";
+import { Text, TextInput } from "@/components/ui/Typography";
+import { SelectorNivel } from "@/components/user/LevelSelector";
+import { SelectorObjetivo } from "@/components/user/GoalSelector";
 import { ErrorCarga } from "@/components/ui/LoadError";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
 import { useErrorDeCarga } from "@/hooks/useLoadError";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import {
-  NIVELES_EXPERIENCIA,
-  OBJETIVOS_USUARIO,
+  GENEROS_USUARIO,
   OPCIONES_DIAS_DISPONIBLES,
+  type GeneroUsuario,
   type NivelExperiencia,
   type ObjetivoUsuario,
   type Usuario,
 } from "@/models/entities/User";
 import { useAuthStore } from "@/store/auth.store";
+import { toast } from "@/utils/toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PerfilScreen() {
@@ -38,7 +40,6 @@ export default function PerfilScreen() {
   const [cargando, setCargando] = useState(true);
   const [edad, setEdad] = useState("");
   const [altura, setAltura] = useState("");
-  const [peso, setPeso] = useState("");
   const [guardando, setGuardando] = useState(false);
   const { error, intento, reportar, reintentar } = useErrorDeCarga();
 
@@ -51,7 +52,6 @@ export default function PerfilScreen() {
         setPerfil(datos);
         setEdad(datos?.edad ? String(datos.edad) : "");
         setAltura(datos?.altura ? String(datos.altura) : "");
-        setPeso(datos?.pesoActual ? String(datos.pesoActual) : "");
         setCargando(false);
       },
       (causa) => reportar("perfil", causa),
@@ -64,20 +64,17 @@ export default function PerfilScreen() {
     if (!user) return;
     const edadNum = parseInt(edad, 10);
     const alturaNum = parseFloat(altura);
-    const pesoNum = parseFloat(peso);
 
     setGuardando(true);
     try {
       await AuthController.actualizarPerfil(user.uid, {
         edad: edadNum > 0 ? edadNum : undefined,
         altura: alturaNum > 0 ? alturaNum : undefined,
-        pesoActual: pesoNum > 0 ? pesoNum : undefined,
       });
-      Alert.alert("Listo", "Tus datos se guardaron correctamente.");
+      toast.exito("Edad y altura guardadas.");
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
-      Alert.alert(
-        "Error",
+      toast.error(
         error instanceof Error
           ? error.message
           : "No se pudieron guardar tus datos.",
@@ -87,32 +84,49 @@ export default function PerfilScreen() {
     }
   };
 
-  const handleCambiarObjetivo = async (objetivo: ObjetivoUsuario) => {
+  /** Guarda un cambio de una sola opción y avisa del resultado. */
+  const guardarOpcion = async (
+    cambio: Partial<Usuario>,
+    exito: string,
+    fallo: string,
+  ) => {
     if (!user) return;
     try {
-      await AuthController.actualizarPerfil(user.uid, { objetivo });
+      await AuthController.actualizarPerfil(user.uid, cambio);
+      toast.exito(exito);
     } catch (error) {
-      console.error("Error al actualizar objetivo:", error);
+      console.error(fallo, error);
+      toast.error(fallo);
     }
   };
 
-  const handleCambiarNivel = async (nivel: NivelExperiencia) => {
-    if (!user) return;
-    try {
-      await AuthController.actualizarPerfil(user.uid, { nivel });
-    } catch (error) {
-      console.error("Error al actualizar nivel:", error);
-    }
-  };
+  const handleCambiarObjetivo = (objetivo: ObjetivoUsuario) =>
+    guardarOpcion(
+      { objetivo },
+      "Objetivo actualizado.",
+      "No se pudo actualizar tu objetivo.",
+    );
 
-  const handleCambiarDias = async (diasDisponibles: number) => {
-    if (!user) return;
-    try {
-      await AuthController.actualizarPerfil(user.uid, { diasDisponibles });
-    } catch (error) {
-      console.error("Error al actualizar días disponibles:", error);
-    }
-  };
+  const handleCambiarNivel = (nivel: NivelExperiencia) =>
+    guardarOpcion(
+      { nivel },
+      "Nivel actualizado.",
+      "No se pudo actualizar tu nivel.",
+    );
+
+  const handleCambiarGenero = (genero: GeneroUsuario) =>
+    guardarOpcion(
+      { genero },
+      "Género actualizado.",
+      "No se pudo actualizar tu género.",
+    );
+
+  const handleCambiarDias = (diasDisponibles: number) =>
+    guardarOpcion(
+      { diasDisponibles },
+      "Días disponibles actualizados.",
+      "No se pudieron actualizar tus días disponibles.",
+    );
 
   const handleCerrarSesion = () => {
     Alert.alert("Cerrar sesión", "¿Seguro que quieres salir?", [
@@ -170,71 +184,23 @@ export default function PerfilScreen() {
       </View>
 
       <Text className="mb-3 text-base font-bold text-foreground">Objetivo</Text>
-      <View className="mb-7 flex-row flex-wrap gap-2">
-        {(
-          Object.entries(OBJETIVOS_USUARIO) as [
-            ObjetivoUsuario,
-            (typeof OBJETIVOS_USUARIO)[ObjetivoUsuario],
-          ][]
-        ).map(([valor, info]) => {
-          const activo = perfil?.objetivo === valor;
-          return (
-            <Pressable
-              key={valor}
-              className={`min-h-11 items-center justify-center rounded-full border px-4 py-2.5 active:scale-95 active:opacity-80 ${
-                activo
-                  ? "border-primary bg-primary"
-                  : "border-border bg-background"
-              }`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: activo }}
-              onPress={() => handleCambiarObjetivo(valor)}
-            >
-              <Text
-                className={`text-xs font-semibold ${
-                  activo ? "text-background" : "text-foreground"
-                }`}
-              >
-                {info.etiqueta}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View className="mb-7">
+        <SelectorObjetivo
+          valor={perfil?.objetivo}
+          onCambiar={handleCambiarObjetivo}
+          variante="compacta"
+        />
       </View>
 
       <Text className="mb-3 text-base font-bold text-foreground">
         Nivel de experiencia
       </Text>
-      <View className="mb-7 flex-row flex-wrap gap-2">
-        {(
-          Object.entries(NIVELES_EXPERIENCIA) as [
-            NivelExperiencia,
-            (typeof NIVELES_EXPERIENCIA)[NivelExperiencia],
-          ][]
-        ).map(([valor, info]) => {
-          const activo = perfil?.nivel === valor;
-          return (
-            <Pressable
-              key={valor}
-              className={`min-h-11 items-center justify-center rounded-full border px-4 py-2.5 active:scale-95 active:opacity-80 ${
-                activo
-                  ? "border-primary bg-primary"
-                  : "border-border bg-background"
-              }`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: activo }}
-              onPress={() => handleCambiarNivel(valor)}
-            >
-              <Text
-                className={`text-xs font-semibold ${
-                  activo ? "text-background" : "text-foreground"
-                }`}
-              >
-                {info.etiqueta}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View className="mb-7">
+        <SelectorNivel
+          valor={perfil?.nivel}
+          onCambiar={handleCambiarNivel}
+          variante="compacta"
+        />
       </View>
 
       <Text className="mb-3 text-base font-bold text-foreground">
@@ -268,10 +234,43 @@ export default function PerfilScreen() {
         })}
       </View>
 
+      <Text className="mb-3 text-base font-bold text-foreground">Género</Text>
+      <View className="mb-7 flex-row flex-wrap gap-2">
+        {(
+          Object.entries(GENEROS_USUARIO) as [
+            GeneroUsuario,
+            (typeof GENEROS_USUARIO)[GeneroUsuario],
+          ][]
+        ).map(([valor, info]) => {
+          const activo = perfil?.genero === valor;
+          return (
+            <Pressable
+              key={valor}
+              className={`min-h-11 items-center justify-center rounded-full border px-4 py-2.5 active:scale-95 active:opacity-80 ${
+                activo
+                  ? "border-primary bg-primary"
+                  : "border-border bg-background"
+              }`}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: activo }}
+              onPress={() => handleCambiarGenero(valor)}
+            >
+              <Text
+                className={`text-sm font-semibold ${
+                  activo ? "text-background" : "text-foreground"
+                }`}
+              >
+                {info.etiqueta}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <Text className="mb-3 text-base font-bold text-foreground">Medidas</Text>
       <View className="mb-2 flex-row gap-3">
         <View className="flex-1">
-          <Text className="mb-1 text-xs text-text-muted">Edad</Text>
+          <Text className="mb-1 text-sm text-text-muted">Edad</Text>
           <TextInput
             className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
             keyboardType="number-pad"
@@ -283,7 +282,7 @@ export default function PerfilScreen() {
           />
         </View>
         <View className="flex-1">
-          <Text className="mb-1 text-xs text-text-muted">Altura (cm)</Text>
+          <Text className="mb-1 text-sm text-text-muted">Altura (cm)</Text>
           <TextInput
             className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
             keyboardType="numeric"
@@ -293,27 +292,38 @@ export default function PerfilScreen() {
             placeholderTextColor="#6b7280"
           />
         </View>
+      </View>
+
+      {/* El peso no se edita aquí: se registra en Progreso, que guarda el
+          historial y actualiza el peso actual del perfil. */}
+      <View className="mt-3 flex-row items-center rounded-xl border border-border bg-primary-light/20 p-3">
         <View className="flex-1">
-          <Text className="mb-1 text-xs text-text-muted">Peso (kg)</Text>
-          <TextInput
-            className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
-            keyboardType="numeric"
-            value={peso}
-            onChangeText={setPeso}
-            placeholder="70"
-            placeholderTextColor="#6b7280"
-          />
+          <Text className="text-sm text-text-muted">Peso actual</Text>
+          <Text className="text-base font-semibold text-foreground">
+            {perfil?.pesoActual ? `${perfil.pesoActual} kg` : "Sin registrar"}
+          </Text>
         </View>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="Registrar peso en Progreso"
+          className="min-h-11 flex-row items-center justify-center px-2 active:opacity-70"
+          onPress={() => router.push("/(app)/progress")}
+        >
+          <Text className="mr-1 text-sm font-semibold text-primary">
+            Registrar en Progreso
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color={palette.primary} />
+        </Pressable>
       </View>
       <Pressable
         accessibilityRole="button"
-        className="mb-8 mt-2 items-center rounded-2xl bg-primary p-3.5 active:scale-[0.98] active:opacity-85"
+        className="mb-8 mt-3 items-center rounded-2xl bg-primary p-3.5 active:scale-[0.98] active:opacity-85"
         onPress={handleGuardarMedidas}
         disabled={guardando}
         style={guardando ? { opacity: 0.6 } : undefined}
       >
         <Text className="text-sm font-bold text-background">
-          {guardando ? "Guardando..." : "Guardar medidas"}
+          {guardando ? "Guardando..." : "Guardar edad y altura"}
         </Text>
       </Pressable>
 

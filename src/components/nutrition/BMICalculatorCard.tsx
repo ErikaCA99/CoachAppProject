@@ -1,14 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
+import { ErrorEnLinea } from "@/components/ui/InlineError";
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { ResultadoIMC } from "@/controllers/NutritionController";
 import {
@@ -43,34 +38,31 @@ export function CalculadoraIMCCard({
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
   const [resultado, setResultado] = useState<ResultadoIMC | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCalcular = async () => {
     const pesoNum = parseFloat(peso.replace(",", "."));
     const alturaNum = parseFloat(altura.replace(",", "."));
 
     if (isNaN(pesoNum) || pesoNum <= 0) {
-      Alert.alert(
-        "Peso inválido",
-        "Por favor ingresa un peso válido en kilogramos (ej. 70).",
-      );
+      setError("Ingresa un peso válido en kilogramos (ej. 70).");
       return;
     }
 
     if (isNaN(alturaNum) || alturaNum <= 0) {
-      Alert.alert(
-        "Altura inválida",
-        "Por favor ingresa una altura válida en centímetros (ej. 175).",
-      );
+      setError("Ingresa una altura válida en centímetros (ej. 175).");
       return;
     }
 
+    setError(null);
     try {
       const res = await onCalcular(pesoNum, alturaNum);
       setResultado(res);
-    } catch (error) {
-      Alert.alert(
-        "Error al calcular",
-        error instanceof Error ? error.message : "Revisa los valores.",
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "No se pudo calcular. Revisa los valores.",
       );
     }
   };
@@ -79,6 +71,7 @@ export function CalculadoraIMCCard({
     setPeso("");
     setAltura("");
     setResultado(null);
+    setError(null);
   };
 
   return (
@@ -100,12 +93,15 @@ export function CalculadoraIMCCard({
       {/* Inputs de peso y altura */}
       <View className="mb-4 flex-row gap-3">
         <View className="flex-1">
-          <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+          <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
             PESO (KG)
           </Text>
           <TextInput
             value={peso}
-            onChangeText={setPeso}
+            onChangeText={(t) => {
+              setPeso(t);
+              setError(null);
+            }}
             placeholder="Ej. 70"
             keyboardType="numeric"
             placeholderTextColor="#9ca3af"
@@ -114,12 +110,15 @@ export function CalculadoraIMCCard({
         </View>
 
         <View className="flex-1">
-          <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+          <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
             ALTURA (CM)
           </Text>
           <TextInput
             value={altura}
-            onChangeText={setAltura}
+            onChangeText={(t) => {
+              setAltura(t);
+              setError(null);
+            }}
             placeholder="Ej. 175"
             keyboardType="numeric"
             placeholderTextColor="#9ca3af"
@@ -127,6 +126,8 @@ export function CalculadoraIMCCard({
           />
         </View>
       </View>
+
+      <ErrorEnLinea mensaje={error} />
 
       {/* Botón calcular */}
       <TouchableOpacity
@@ -151,7 +152,7 @@ export function CalculadoraIMCCard({
             <Text className="text-3xl font-black text-foreground">
               {resultado.bmi}
             </Text>
-            <Text className="text-xs font-semibold text-text-muted">IMC</Text>
+            <Text className="text-sm font-semibold text-text-muted">IMC</Text>
           </View>
 
           {/* Badge de categoría */}
@@ -159,14 +160,14 @@ export function CalculadoraIMCCard({
             className={`mt-1 rounded-full px-3 py-1 ${COLOR_CATEGORIA[resultado.category].bg}`}
           >
             <Text
-              className={`text-xs font-bold ${COLOR_CATEGORIA[resultado.category].text}`}
+              className={`text-sm font-bold ${COLOR_CATEGORIA[resultado.category].text}`}
             >
               {ETIQUETAS_IMC[resultado.category]}
             </Text>
           </View>
 
           {/* Mensaje descriptivo */}
-          <Text className="mt-2.5 text-center text-xs leading-4 text-text-secondary">
+          <Text className="mt-2.5 text-center text-sm leading-5 text-text-secondary">
             {obtenerMensajeIMC(resultado.category)}
           </Text>
 
@@ -175,7 +176,7 @@ export function CalculadoraIMCCard({
             activeOpacity={0.7}
             className="mt-3"
           >
-            <Text className="text-xs font-semibold text-text-muted">
+            <Text className="text-sm font-semibold text-text-muted">
               Limpiar campos
             </Text>
           </TouchableOpacity>

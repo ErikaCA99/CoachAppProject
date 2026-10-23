@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 
 import { AgregarRapido } from "@/components/nutrition/QuickAdd";
 import { BuscadorAlimentos } from "@/components/nutrition/FoodSearch";
@@ -30,6 +30,7 @@ import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
 import type { Usuario } from "@/models/entities/User";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
+import { toast } from "@/utils/toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type VistaNutricion = "diario" | "imc";
@@ -116,8 +117,7 @@ export default function NutricionScreen() {
         grasas: item.grasas,
       });
     } catch (error) {
-      Alert.alert(
-        "Error al agregar",
+      toast.error(
         error instanceof Error
           ? error.message
           : "No se pudo registrar el alimento.",
@@ -165,8 +165,7 @@ export default function NutricionScreen() {
     try {
       await NutritionController.eliminar(user.uid, id);
     } catch (error) {
-      Alert.alert(
-        "Error al eliminar",
+      toast.error(
         error instanceof Error
           ? error.message
           : "No se pudo eliminar el alimento.",

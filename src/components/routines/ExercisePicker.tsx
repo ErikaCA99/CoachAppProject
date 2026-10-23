@@ -4,12 +4,11 @@ import {
   FlatList,
   Image,
   Modal,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { useBuscarEjercicios } from "@/hooks/useExerciseSearch";
 import type { EjercicioWger } from "@/models/entities/WgerExercise";
@@ -92,7 +91,7 @@ export function SelectorEjercicios({
                   >
                     {item.nombre}
                   </Text>
-                  <Text className="text-xs text-text-muted">
+                  <Text className="text-sm text-text-muted">
                     {item.categoria}
                   </Text>
                 </View>

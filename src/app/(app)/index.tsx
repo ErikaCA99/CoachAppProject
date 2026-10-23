@@ -1,16 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StatusBar, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, StatusBar, View } from "react-native";
 
+import { RachaSemanal } from "@/components/home/WeekStreak";
 import { AppHeader } from "@/components/ui/AppHeader";
+import { EntradaAnimada } from "@/components/ui/AnimatedEntrance";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
-import { ProgresoController } from "@/controllers/ProgressController";
 import { RutinasController } from "@/controllers/RoutinesController";
+import { EntrenamientosController } from "@/controllers/WorkoutsController";
 import type { Rutina } from "@/models/entities/Routine";
 import type { Usuario } from "@/models/entities/User";
+import type { Entrenamiento } from "@/models/entities/Workout";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
@@ -33,35 +36,55 @@ export default function HomeScreen() {
 
   const [perfil, setPerfil] = useState<Usuario | null>(null);
   const [rutinas, setRutinas] = useState<ConId<Rutina>[]>([]);
-  const [totalRegistrosProgreso, setTotalRegistrosProgreso] = useState(0);
+  const [entrenamientos, setEntrenamientos] = useState<ConId<Entrenamiento>[]>(
+    [],
+  );
 
   useEffect(() => {
     if (!user) return;
 
     const unsubPerfil = AuthController.observarPerfil(user.uid, setPerfil);
     const unsubRutinas = RutinasController.observar(user.uid, setRutinas);
-
-    let activo = true;
-    ProgresoController.listar(user.uid)
-      .then((registros) => {
-        if (activo) setTotalRegistrosProgreso(registros.length);
-      })
-      .catch((error) => console.warn("No se pudo contar el progreso:", error));
+    const unsubEntrenos = EntrenamientosController.observar(
+      user.uid,
+      setEntrenamientos,
+    );
 
     return () => {
-      activo = false;
       unsubPerfil();
       unsubRutinas();
+      unsubEntrenos();
     };
   }, [user]);
 
   const rutinaActiva =
     rutinas.find((r) => r.id === perfil?.rutinaActivaId) ?? null;
-  const totalEjerciciosRutina =
-    rutinaActiva?.planSemanal.reduce(
-      (acc, dia) => acc + dia.ejercicios.length,
-      0,
-    ) ?? 0;
+  const resumenEntrenos = useMemo(
+    () => EntrenamientosController.resumen(entrenamientos),
+    [entrenamientos],
+  );
+
+  const diaSugerido = rutinaActiva
+    ? EntrenamientosController.diaSugerido(rutinaActiva, entrenamientos)
+    : null;
+
+  // Si ya entrenó hoy, la tarjeta anuncia el día que sigue en vez de "Hoy".
+  const yaEntrenoHoy = EntrenamientosController.deHoy(entrenamientos) !== null;
+  const diaDeHoy =
+    rutinaActiva?.planSemanal.find((d) => d.dia === diaSugerido) ?? null;
+
+  const handleEmpezar = () => {
+    if (rutinaActiva && diaSugerido !== null) {
+      router.push({
+        pathname: "/(app)/train",
+        params: { dia: String(diaSugerido) },
+      });
+    } else {
+      router.push(
+        rutinaActiva ? "/(app)/routines" : "/(app)/routines/generate",
+      );
+    }
+  };
 
   const handleEscanear = () => {
     router.push("/(app)/machines/scanner");
@@ -87,135 +110,66 @@ export default function HomeScreen() {
         />
 
         {/* Active Routine Card */}
-        <LinearGradient
-          colors={[palette.primary, palette.accent, palette.accentStrong]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 20, padding: 24, marginBottom: 24 }}
-        >
-          <Text className="mb-1.5 text-lg font-bold text-background">
-            {rutinaActiva ? "Mi Rutina Activa" : "Aún no tienes una rutina"}
-          </Text>
-          <Text className="mb-5 text-sm text-background/80">
-            {rutinaActiva
-              ? `${rutinaActiva.nombre} · ${rutinaActiva.diasPorSemana} días/semana`
-              : "Genera una con IA o arma la tuya en la pestaña Rutinas"}
-          </Text>
-          <View className="flex-row gap-3">
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-11 justify-center rounded-xl bg-background px-5 active:scale-[0.97] active:opacity-85"
-              onPress={() =>
-                router.push(
-                  rutinaActiva ? "/(app)/routines" : "/(app)/routines/generate",
-                )
-              }
-            >
-              <Text className="text-sm font-bold text-primary">
-                {rutinaActiva ? "Continuar" : "Generar rutina"}
-              </Text>
-            </Pressable>
-            {rutinaActiva && (
+        <EntradaAnimada>
+          <View className="mb-6 rounded-[20px] bg-primary p-6">
+            <Text className="mb-1.5 text-lg font-bold text-background">
+              {diaDeHoy
+                ? `${yaEntrenoHoy ? "Siguiente" : "Hoy"} · Día ${diaDeHoy.dia}`
+                : rutinaActiva
+                  ? "Mi Rutina Activa"
+                  : "Aún no tienes una rutina"}
+            </Text>
+            <Text className="mb-5 text-sm text-background">
+              {diaDeHoy
+                ? `${diaDeHoy.enfoque} · ${diaDeHoy.ejercicios.length} ejercicios`
+                : rutinaActiva
+                  ? `${rutinaActiva.nombre} · ${rutinaActiva.diasPorSemana} días/semana`
+                  : "Genera una con IA o arma la tuya en la pestaña Rutinas"}
+            </Text>
+            <View className="flex-row gap-3">
               <Pressable
                 accessibilityRole="button"
-                className="min-h-11 justify-center rounded-xl bg-background/25 px-5 active:scale-[0.97] active:opacity-80"
-                onPress={() => router.push("/(app)/routines")}
+                className="min-h-11 justify-center rounded-xl bg-background px-5 active:scale-[0.97] active:opacity-85"
+                onPress={handleEmpezar}
               >
-                <Text className="text-sm font-bold text-background">
-                  Ver Detalles
+                <Text className="text-sm font-bold text-primary">
+                  {!rutinaActiva
+                    ? "Generar rutina"
+                    : diaSugerido !== null
+                      ? `Empezar Día ${diaSugerido}`
+                      : "Continuar"}
                 </Text>
               </Pressable>
-            )}
+              {rutinaActiva && (
+                <Pressable
+                  accessibilityRole="button"
+                  className="min-h-11 justify-center rounded-xl border border-background px-5 active:scale-[0.97] active:opacity-80"
+                  onPress={() => router.push("/(app)/routines")}
+                >
+                  <Text className="text-sm font-bold text-background">
+                    Ver Detalles
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </View>
-        </LinearGradient>
+        </EntradaAnimada>
 
-        {/* Stats Row */}
-        <View className="mb-7 flex-row justify-between gap-2.5">
-          <View className="flex-1 items-center rounded-2xl border border-border bg-background p-4">
-            <Ionicons name="barbell" size={22} color={palette.primary} />
-            <Text className="mt-2 text-xl font-bold text-foreground">
-              {totalEjerciciosRutina}
-            </Text>
-            <Text className="mt-1 text-xs text-text-secondary">
-              Ejercicios activos
-            </Text>
-          </View>
-          <View className="flex-1 items-center rounded-2xl border border-border bg-background p-4">
-            <Ionicons name="calendar" size={22} color={palette.accent} />
-            <Text className="mt-2 text-xl font-bold text-foreground">
-              {rutinaActiva?.diasPorSemana ?? 0}
-            </Text>
-            <Text className="mt-1 text-xs text-text-secondary">
-              Días/semana
-            </Text>
-          </View>
-          <View className="flex-1 items-center rounded-2xl border border-border bg-background p-4">
-            <Ionicons
-              name="trending-up"
-              size={22}
-              color={palette.accentStrong}
+        {rutinaActiva && (
+          <View className="mb-7">
+            <RachaSemanal
+              dias={resumenEntrenos.dias}
+              rachaActual={resumenEntrenos.rachaActual}
+              completadosSemana={resumenEntrenos.completadosSemana}
+              diasPorSemana={rutinaActiva.diasPorSemana}
             />
-            <Text className="mt-2 text-xl font-bold text-foreground">
-              {totalRegistrosProgreso}
-            </Text>
-            <Text className="mt-1 text-xs text-text-secondary">
-              Registros de peso
-            </Text>
           </View>
-        </View>
+        )}
 
-        {/* Explore Section */}
-        <Text className="mb-4 text-xl font-bold text-foreground">Explorar</Text>
-
+        {/* Acción rápida: escanear una máquina */}
         <Pressable
           accessibilityRole="button"
-          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-primary bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
-          onPress={() => router.push("/(app)/routines/generate")}
-        >
-          <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-primary">
-            <Ionicons name="sparkles" size={24} color={palette.background} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-base font-bold text-foreground">
-              Rutina con IA
-            </Text>
-            <Text className="mt-0.5 text-[13px] text-text-secondary">
-              Genera una rutina personalizada
-            </Text>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={palette.textMuted}
-          />
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
-          onPress={() => router.push("/(app)/machines")}
-        >
-          <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-accent">
-            <Ionicons name="grid" size={24} color={palette.background} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-base font-bold text-foreground">
-              Catálogo de Máquinas
-            </Text>
-            <Text className="mt-0.5 text-[13px] text-text-secondary">
-              Explora todas las máquinas
-            </Text>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={palette.textMuted}
-          />
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          className="mb-3 flex-row items-center rounded-2xl border border-border border-l-[3px] border-l-accent-strong bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
+          className="flex-row items-center rounded-2xl border border-border bg-background p-[18px] active:scale-[0.98] active:bg-primary-light/10"
           onPress={handleEscanear}
         >
           <View className="mr-4 h-12 w-12 items-center justify-center rounded-2xl bg-accent-strong">
@@ -223,10 +177,10 @@ export default function HomeScreen() {
           </View>
           <View className="flex-1">
             <Text className="text-base font-bold text-foreground">
-              Escanear Máquina
+              Escanear máquina
             </Text>
-            <Text className="mt-0.5 text-[13px] text-text-secondary">
-              Usa AR para identificar (próximamente)
+            <Text className="mt-0.5 text-sm text-text-secondary">
+              Identifícala con la cámara y mira cómo usarla
             </Text>
           </View>
           <Ionicons

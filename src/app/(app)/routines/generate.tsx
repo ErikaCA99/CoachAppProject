@@ -4,18 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
+import { SelectorNivel } from "@/components/user/LevelSelector";
+import { SelectorObjetivo } from "@/components/user/GoalSelector";
 import { RoutineGeneratingLoader } from "@/components/routines/RoutineGeneratingLoader";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
 import { RutinasController } from "@/controllers/RoutinesController";
 import {
-  NIVELES_EXPERIENCIA,
-  OBJETIVOS_USUARIO,
   type NivelExperiencia,
   type ObjetivoUsuario,
 } from "@/models/entities/User";
@@ -23,7 +23,6 @@ import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 type Fase = "cargando_perfil" | "formulario" | "generando" | "error";
 
 /**
@@ -92,6 +91,19 @@ export default function GenerarRutinaScreen() {
     };
   }, [fase, terminado, user, objetivo, nivel]);
 
+  /**
+   * Guarda lo elegido en el perfil (única fuente de objetivo y nivel) y genera.
+   * Si el guardado falla igual se genera: la rutina no depende de él.
+   */
+  const confirmarYGenerar = () => {
+    if (user && objetivo && nivel) {
+      AuthController.actualizarPerfil(user.uid, { objetivo, nivel }).catch(
+        (error) => console.warn("No se pudo guardar objetivo y nivel:", error),
+      );
+    }
+    setFase("generando");
+  };
+
   const irARutinas = useCallback(() => {
     router.replace("/(app)/routines");
   }, [router]);
@@ -152,75 +164,13 @@ export default function GenerarRutinaScreen() {
       </Text>
 
       <Text className="mb-3 text-base font-bold text-foreground">Objetivo</Text>
-      <View className="mb-6 flex-row flex-wrap gap-2">
-        {(
-          Object.entries(OBJETIVOS_USUARIO) as [
-            ObjetivoUsuario,
-            (typeof OBJETIVOS_USUARIO)[ObjetivoUsuario],
-          ][]
-        ).map(([valor, info]) => {
-          const activo = objetivo === valor;
-          return (
-            <TouchableOpacity
-              key={valor}
-              className={`flex-row items-center min-h-11 rounded-full border px-4 ${
-                activo
-                  ? "border-primary bg-primary"
-                  : "border-border bg-background"
-              }`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: activo }}
-              onPress={() => setObjetivo(valor)}
-            >
-              <Ionicons
-                name={info.icono as IoniconName}
-                size={16}
-                color={activo ? palette.background : palette.primary}
-              />
-              <Text
-                className={`ml-2 text-xs font-semibold ${
-                  activo ? "text-background" : "text-foreground"
-                }`}
-              >
-                {info.etiqueta}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <SelectorObjetivo valor={objetivo} onCambiar={setObjetivo} />
 
-      <Text className="mb-3 text-base font-bold text-foreground">
+      <Text className="mb-3 mt-4 text-base font-bold text-foreground">
         Nivel de experiencia
       </Text>
-      <View className="mb-8 gap-2">
-        {(
-          Object.entries(NIVELES_EXPERIENCIA) as [
-            NivelExperiencia,
-            (typeof NIVELES_EXPERIENCIA)[NivelExperiencia],
-          ][]
-        ).map(([valor, info]) => {
-          const activo = nivel === valor;
-          return (
-            <TouchableOpacity
-              key={valor}
-              className={`rounded-2xl border p-4 ${
-                activo
-                  ? "border-primary bg-primary-light/30"
-                  : "border-border bg-background"
-              }`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: activo }}
-              onPress={() => setNivel(valor)}
-            >
-              <Text className="text-sm font-bold text-foreground">
-                {info.etiqueta}
-              </Text>
-              <Text className="mt-1 text-xs text-text-muted">
-                {info.descripcion}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+      <View className="mb-5">
+        <SelectorNivel valor={nivel} onCambiar={setNivel} />
       </View>
 
       <TouchableOpacity
@@ -229,7 +179,7 @@ export default function GenerarRutinaScreen() {
           objetivo && nivel ? "bg-primary" : "bg-text-muted"
         }`}
         disabled={!objetivo || !nivel}
-        onPress={() => setFase("generando")}
+        onPress={confirmarYGenerar}
       >
         <Text className="text-base font-bold text-background">
           Generar mi rutina

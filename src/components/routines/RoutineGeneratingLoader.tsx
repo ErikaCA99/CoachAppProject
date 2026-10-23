@@ -1,14 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, Easing, StatusBar, StyleSheet, View } from "react-native";
 import Svg, {
   Circle,
   Defs,
@@ -19,6 +11,8 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
+import { Text } from "@/components/ui/Typography";
+import { useReducirMovimiento } from "@/hooks/useReducedMotion";
 import { avanzarHaciaCien, porcentajeSimulado } from "@/utils/loadingProgress";
 
 /**
@@ -99,7 +93,7 @@ export function RoutineGeneratingLoader({
   titulo = "Generando rutina",
 }: Props) {
   const [porcentaje, setPorcentaje] = useState(0);
-  const [reducirMovimiento, setReducirMovimiento] = useState(false);
+  const reducirMovimiento = useReducirMovimiento();
   const [anim] = useState(() => ({
     levantar: new Animated.Value(0),
     pulso: new Animated.Value(0),
@@ -132,21 +126,12 @@ export function RoutineGeneratingLoader({
     return () => clearTimeout(id);
   }, [porcentaje, onTerminar]);
 
-  useEffect(() => {
-    let activo = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((valor) => {
-        if (activo) setReducirMovimiento(valor);
-      })
-      .catch(() => {});
-    return () => {
-      activo = false;
-    };
-  }, []);
-
   // Bucles de animación (todos con driver nativo).
   useEffect(() => {
-    if (reducirMovimiento) return;
+    if (reducirMovimiento) {
+      Object.values(anim).forEach((valor) => valor.setValue(0));
+      return;
+    }
     const bucles = [
       crearBucle(anim.levantar, 1100, { vaiven: true }),
       crearBucle(anim.pulso, 1200, { vaiven: true }),
@@ -390,7 +375,7 @@ const styles = StyleSheet.create({
   porcentaje: {
     marginTop: 20,
     color: LIMA,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "700",
     letterSpacing: 2,
     fontVariant: ["tabular-nums"],

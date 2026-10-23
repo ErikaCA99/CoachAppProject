@@ -2,14 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Keyboard,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { ErrorEnLinea } from "@/components/ui/InlineError";
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { calcularPorcion } from "@/controllers/NutritionController";
 import { useBuscarAlimentos } from "@/hooks/useFoodSearch";
@@ -35,6 +34,7 @@ export function BuscadorAlimentos({
   const [seleccionado, setSeleccionado] = useState<AlimentoUSDA | null>(null);
   const [nombre, setNombre] = useState("");
   const [gramos, setGramos] = useState("100");
+  const [errorAgregar, setErrorAgregar] = useState<string | null>(null);
 
   const { resultados, cargando, error, esValida } = useBuscarAlimentos(texto);
 
@@ -47,6 +47,7 @@ export function BuscadorAlimentos({
   const seleccionar = (alimento: AlimentoUSDA) => {
     Keyboard.dismiss();
     setSeleccionado(alimento);
+    setErrorAgregar(null);
     setNombre(alimento.descripcionEs || capitalizar(texto));
     setGramos("100");
   };
@@ -54,6 +55,7 @@ export function BuscadorAlimentos({
   const limpiar = () => {
     setTexto("");
     setSeleccionado(null);
+    setErrorAgregar(null);
     setNombre("");
     setGramos("100");
   };
@@ -61,15 +63,15 @@ export function BuscadorAlimentos({
   const handleAgregar = async () => {
     if (!seleccionado) return;
     if (!(gramosNum > 0)) {
-      Alert.alert("Cantidad inválida", "Ingresa los gramos consumidos.");
+      setErrorAgregar("Ingresa los gramos consumidos.");
       return;
     }
+    setErrorAgregar(null);
     try {
       await onAgregar(seleccionado, gramosNum, nombre);
       limpiar();
     } catch (e) {
-      Alert.alert(
-        "Error al agregar",
+      setErrorAgregar(
         e instanceof Error ? e.message : "No se pudo registrar el alimento.",
       );
     }
@@ -86,7 +88,7 @@ export function BuscadorAlimentos({
           <Text className="text-base font-bold text-foreground">
             Buscar alimento
           </Text>
-          <Text className="text-xs text-text-muted">
+          <Text className="text-sm text-text-muted">
             Datos: USDA FoodData Central · valores por 100 g
           </Text>
         </View>
@@ -123,11 +125,11 @@ export function BuscadorAlimentos({
       {/* Detalle del alimento seleccionado */}
       {seleccionado ? (
         <View className="mt-3 rounded-2xl border border-primary/30 bg-primary/5 p-3.5">
-          <Text className="text-xs text-text-muted" numberOfLines={2}>
+          <Text className="text-sm text-text-muted" numberOfLines={2}>
             {seleccionado.descripcionEs || seleccionado.descripcion}
           </Text>
 
-          <Text className="mb-1 mt-3 text-xs font-bold tracking-wider text-text-muted">
+          <Text className="mb-1 mt-3 text-sm font-bold tracking-wider text-text-muted">
             NOMBRE EN TU REGISTRO
           </Text>
           <TextInput
@@ -138,13 +140,16 @@ export function BuscadorAlimentos({
             className="h-10 rounded-xl border border-border/60 bg-white px-3 text-sm text-foreground"
           />
 
-          <Text className="mb-1 mt-3 text-xs font-bold tracking-wider text-text-muted">
+          <Text className="mb-1 mt-3 text-sm font-bold tracking-wider text-text-muted">
             CANTIDAD (G)
           </Text>
           <View className="flex-row items-center gap-2">
             <TextInput
               value={gramos}
-              onChangeText={setGramos}
+              onChangeText={(t) => {
+                setGramos(t);
+                setErrorAgregar(null);
+              }}
               keyboardType="numeric"
               className="h-10 w-20 rounded-xl border border-border/60 bg-white text-center text-sm font-semibold text-foreground"
               accessibilityLabel="Gramos consumidos"
@@ -159,7 +164,7 @@ export function BuscadorAlimentos({
                 } border border-border/60`}
               >
                 <Text
-                  className={`text-xs font-semibold ${
+                  className={`text-sm font-semibold ${
                     gramosNum === g ? "text-background" : "text-foreground"
                   }`}
                 >
@@ -175,12 +180,12 @@ export function BuscadorAlimentos({
               <View>
                 <Text className="text-2xl font-extrabold text-foreground">
                   {porcion.calorias}
-                  <Text className="text-xs font-semibold text-text-muted">
+                  <Text className="text-sm font-semibold text-text-muted">
                     {" "}
                     kcal
                   </Text>
                 </Text>
-                <Text className="mt-0.5 text-xs text-text-muted">
+                <Text className="mt-0.5 text-sm text-text-muted">
                   P: {porcion.proteinas}g · C: {porcion.carbohidratos}g · G:{" "}
                   {porcion.grasas}g
                 </Text>
@@ -188,7 +193,10 @@ export function BuscadorAlimentos({
             </View>
           ) : null}
 
-          <View className="mt-3 flex-row gap-2.5">
+          <View className="mt-3">
+            <ErrorEnLinea mensaje={errorAgregar} />
+          </View>
+          <View className="flex-row gap-2.5">
             <TouchableOpacity
               onPress={() => setSeleccionado(null)}
               activeOpacity={0.7}
@@ -224,7 +232,7 @@ export function BuscadorAlimentos({
           {cargando ? (
             <View className="flex-row items-center justify-center gap-2 py-4">
               <ActivityIndicator size="small" color={palette.primary} />
-              <Text className="text-xs text-text-muted">Buscando…</Text>
+              <Text className="text-sm text-text-muted">Buscando…</Text>
             </View>
           ) : error ? (
             <View className="flex-row items-center gap-2 rounded-xl bg-accent/10 p-3">
@@ -233,10 +241,10 @@ export function BuscadorAlimentos({
                 size={16}
                 color={palette.error}
               />
-              <Text className="flex-1 text-xs text-error">{error}</Text>
+              <Text className="flex-1 text-sm text-error">{error}</Text>
             </View>
           ) : resultados.length === 0 ? (
-            <Text className="py-3 text-center text-xs text-text-muted">
+            <Text className="py-3 text-center text-sm text-text-muted">
               Sin resultados para “{texto.trim()}”. Prueba con otro nombre o
               regístralo manualmente abajo.
             </Text>
@@ -258,7 +266,7 @@ export function BuscadorAlimentos({
                     >
                       {alimento.descripcionEs || alimento.descripcion}
                     </Text>
-                    <Text className="mt-0.5 text-xs text-text-muted">
+                    <Text className="mt-0.5 text-sm text-text-muted">
                       P: {alimento.proteinasPor100g}g · C:{" "}
                       {alimento.carbohidratosPor100g}g · G:{" "}
                       {alimento.grasasPor100g}g
@@ -268,7 +276,7 @@ export function BuscadorAlimentos({
                     <Text className="text-sm font-bold text-primary">
                       {alimento.caloriasPor100g}
                     </Text>
-                    <Text className="text-xs text-text-muted">kcal/100g</Text>
+                    <Text className="text-sm text-text-muted">kcal/100g</Text>
                   </View>
                 </TouchableOpacity>
               ))}

@@ -1,21 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, ScrollView, TouchableOpacity, View } from "react-native";
 
 import { SelectorEjercicios } from "@/components/routines/ExercisePicker";
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { useEditorRutinaPersonalizada } from "@/hooks/useCustomRoutineEditor";
 import type { EjercicioWger } from "@/models/entities/WgerExercise";
 import { useOnboardingStore } from "@/store/onboarding.store";
+import { toast } from "@/utils/toast";
 
 export default function RutinaPersonalizadaScreen() {
   const router = useRouter();
@@ -54,7 +48,7 @@ export default function RutinaPersonalizadaScreen() {
   const handleGuardar = async () => {
     const resultado = await guardar();
     if (resultado.ok) router.replace("/(app)/routines");
-    else Alert.alert(resultado.titulo, resultado.mensaje);
+    else toast.desdeResultado(resultado);
   };
 
   return (
@@ -67,7 +61,7 @@ export default function RutinaPersonalizadaScreen() {
         Crear rutina personalizada
       </Text>
 
-      <Text className="mb-1.5 text-xs font-semibold text-text-muted">
+      <Text className="mb-1.5 text-sm font-semibold text-text-muted">
         NOMBRE DE LA RUTINA
       </Text>
       <TextInput
@@ -78,7 +72,7 @@ export default function RutinaPersonalizadaScreen() {
       />
 
       <View className="mb-4 flex-row items-center justify-between">
-        <Text className="text-xs font-semibold text-text-muted">
+        <Text className="text-sm font-semibold text-text-muted">
           DÍAS DE ENTRENAMIENTO
         </Text>
         {puedeAgregarDia && (
@@ -88,7 +82,7 @@ export default function RutinaPersonalizadaScreen() {
             onPress={agregarDia}
           >
             <Ionicons name="add" size={16} color={palette.primary} />
-            <Text className="ml-1 text-xs font-bold text-primary">
+            <Text className="ml-1 text-sm font-bold text-primary">
               Agregar día
             </Text>
           </TouchableOpacity>
@@ -113,7 +107,7 @@ export default function RutinaPersonalizadaScreen() {
             onPress={() => setDiaActivo(indice)}
           >
             <Text
-              className={`text-xs font-semibold ${
+              className={`text-sm font-semibold ${
                 diaActivo === indice ? "text-background" : "text-foreground"
               }`}
             >
@@ -142,7 +136,7 @@ export default function RutinaPersonalizadaScreen() {
         ))}
       </ScrollView>
 
-      <Text className="mb-1.5 text-xs font-semibold text-text-muted">
+      <Text className="mb-1.5 text-sm font-semibold text-text-muted">
         ENFOQUE DEL DÍA {diaSeleccionado.dia}
       </Text>
       <TextInput
@@ -178,7 +172,7 @@ export default function RutinaPersonalizadaScreen() {
             >
               {ejercicio.nombre}
             </Text>
-            <Text className="text-xs text-text-muted">
+            <Text className="text-sm text-text-muted">
               {ejercicio.series} series × {ejercicio.repeticiones} reps
             </Text>
           </View>

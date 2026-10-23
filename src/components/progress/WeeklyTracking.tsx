@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { DiaSemanaSeguimiento } from "@/utils/workoutStats";
 
@@ -32,7 +33,7 @@ export function SeguimientoSemanal({
       <View className="flex-row justify-between">
         {dias.map((dia) => (
           <View key={dia.fecha} className="items-center gap-1.5">
-            <Text className="text-xs font-semibold text-text-secondary">
+            <Text className="text-sm font-semibold text-text-secondary">
               {dia.etiqueta}
             </Text>
             <View
@@ -52,7 +53,7 @@ export function SeguimientoSemanal({
                 />
               ) : (
                 <Text
-                  className={`text-xs font-bold ${
+                  className={`text-sm font-bold ${
                     dia.esFuturo ? "text-text-muted" : "text-foreground"
                   }`}
                 >
@@ -70,7 +71,7 @@ export function SeguimientoSemanal({
           style={{ width: `${Math.round(progreso * 100)}%` }}
         />
       </View>
-      <Text className="mt-2 text-right text-xs text-text-secondary">
+      <Text className="mt-2 text-right text-sm text-text-secondary">
         {completadosSemana} de {totalSemana} días completados
       </Text>
     </View>

@@ -34,10 +34,9 @@ describe("calcularTMB (Mifflin-St Jeor)", () => {
     ).toBe(1320.25);
   });
 
-  it("género otro o sin dato: constante promedio −78", () => {
+  it("sin dato de género: constante promedio −78", () => {
     const base = { pesoKg: 70, alturaCm: 170, edad: 30 };
     expect(calcularTMB(base)).toBe(1534.5);
-    expect(calcularTMB({ ...base, genero: "otro" })).toBe(1534.5);
   });
 });
 
@@ -120,7 +119,7 @@ describe("calcularMetasNutricionales", () => {
     ] as const;
     for (const objetivo of objetivos) {
       const { metas } = calcularMetasNutricionales({
-        genero: "otro",
+        genero: "femenino",
         edad: 35,
         pesoActual: 80,
         altura: 175,

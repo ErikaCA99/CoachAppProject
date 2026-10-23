@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { DiaRutina, EjercicioRutina } from "@/models/entities/Routine";
 
@@ -11,6 +12,8 @@ interface ListaDiasRutinaProps {
   diaCompletadoHoy: number | null;
   onToggleDia: (numeroDia: number) => void;
   onIrAMaquina: (ejercicio: EjercicioRutina) => void;
+  /** Abre el entrenamiento guiado de ese día. */
+  onEmpezarDia: (numeroDia: number) => void;
   /** Deshabilita los checkboxes mientras se guarda el cambio en Firestore. */
   guardando?: boolean;
 }
@@ -24,6 +27,7 @@ export function ListaDiasRutina({
   diaCompletadoHoy,
   onToggleDia,
   onIrAMaquina,
+  onEmpezarDia,
   guardando = false,
 }: ListaDiasRutinaProps) {
   const [diaExpandido, setDiaExpandido] = useState<number | null>(null);
@@ -75,13 +79,13 @@ export function ListaDiasRutina({
                     Día {dia.dia}
                   </Text>
                   <Text
-                    className="mt-0.5 text-xs text-text-secondary"
+                    className="mt-0.5 text-sm text-text-secondary"
                     numberOfLines={1}
                   >
                     {dia.enfoque}
                   </Text>
                 </View>
-                <Text className="mr-2 text-xs text-text-secondary">
+                <Text className="mr-2 text-sm text-text-secondary">
                   {dia.ejercicios.length} ejerc.
                 </Text>
                 <Ionicons
@@ -117,22 +121,41 @@ export function ListaDiasRutina({
                     )}
                     <View className="ml-2.5 flex-1">
                       <Text
-                        className="text-xs font-semibold text-foreground"
+                        className="text-sm font-semibold text-foreground"
                         numberOfLines={1}
                       >
                         {ejercicio.nombre}
                       </Text>
-                      <Text className="text-xs text-text-secondary">
+                      <Text className="mt-0.5 text-base font-bold text-foreground">
                         {ejercicio.series} series × {ejercicio.repeticiones}{" "}
-                        reps · {ejercicio.descansoSegundos}s descanso
+                        reps
+                      </Text>
+                      <Text className="text-sm text-text-secondary">
+                        Descanso {ejercicio.descansoSegundos} s
                       </Text>
                     </View>
                   </TouchableOpacity>
                 ))}
-                {dia.ejercicios.length === 0 && (
-                  <Text className="text-xs text-text-muted">
+                {dia.ejercicios.length === 0 ? (
+                  <Text className="text-sm text-text-muted">
                     Sin ejercicios en este día.
                   </Text>
+                ) : (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    activeOpacity={0.85}
+                    onPress={() => onEmpezarDia(dia.dia)}
+                    className="mt-1 min-h-11 flex-row items-center justify-center gap-2 rounded-xl bg-primary"
+                  >
+                    <Ionicons
+                      name="play"
+                      size={16}
+                      color={palette.background}
+                    />
+                    <Text className="text-sm font-bold text-background">
+                      Entrenar este día
+                    </Text>
+                  </TouchableOpacity>
                 )}
               </View>
             )}

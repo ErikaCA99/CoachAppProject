@@ -1,14 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
+import { ErrorEnLinea } from "@/components/ui/InlineError";
+import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 export interface DatosNuevoAlimento {
@@ -34,26 +29,24 @@ export function FormularioAlimento({
   const [proteinas, setProteinas] = useState("");
   const [carbohidratos, setCarbohidratos] = useState("");
   const [grasas, setGrasas] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const limpiarError = () => setError(null);
 
   const handleGuardar = async () => {
     const nombreLimpio = nombre.trim();
     if (!nombreLimpio) {
-      Alert.alert(
-        "Nombre requerido",
-        "Por favor escribe el nombre del alimento.",
-      );
+      setError("Escribe el nombre del alimento.");
       return;
     }
 
     const calNum = parseFloat(calorias);
     if (isNaN(calNum) || calNum < 0) {
-      Alert.alert(
-        "Calorías inválidas",
-        "Ingresa un valor válido de calorías (>= 0).",
-      );
+      setError("Ingresa las calorías del alimento (0 o más).");
       return;
     }
 
+    setError(null);
     const protNum = parseFloat(proteinas) || 0;
     const carbNum = parseFloat(carbohidratos) || 0;
     const grasNum = parseFloat(grasas) || 0;
@@ -74,12 +67,9 @@ export function FormularioAlimento({
       setCarbohidratos("");
       setGrasas("");
       setExpandido(false);
-    } catch (error) {
-      Alert.alert(
-        "Error al guardar",
-        error instanceof Error
-          ? error.message
-          : "No se pudo registrar el alimento.",
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "No se pudo registrar el alimento.",
       );
     }
   };
@@ -115,12 +105,15 @@ export function FormularioAlimento({
         <View className="border-t border-border/30 p-4 pt-3">
           {/* Nombre del alimento */}
           <View className="mb-3.5">
-            <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+            <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
               NOMBRE DEL ALIMENTO
             </Text>
             <TextInput
               value={nombre}
-              onChangeText={setNombre}
+              onChangeText={(t) => {
+                setNombre(t);
+                limpiarError();
+              }}
               placeholder="Ej. Pechuga de pollo, Manzana..."
               placeholderTextColor="#9ca3af"
               className="h-11 rounded-xl border border-border/60 bg-slate-50/50 px-3.5 text-sm text-foreground"
@@ -130,12 +123,15 @@ export function FormularioAlimento({
           {/* Fila 1: Calorías y Proteínas */}
           <View className="mb-3.5 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
                 CALORÍAS (KCAL)
               </Text>
               <TextInput
                 value={calorias}
-                onChangeText={setCalorias}
+                onChangeText={(t) => {
+                  setCalorias(t);
+                  limpiarError();
+                }}
                 placeholder="0"
                 keyboardType="numeric"
                 placeholderTextColor="#9ca3af"
@@ -144,12 +140,15 @@ export function FormularioAlimento({
             </View>
 
             <View className="flex-1">
-              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
                 PROTEÍNAS (G)
               </Text>
               <TextInput
                 value={proteinas}
-                onChangeText={setProteinas}
+                onChangeText={(t) => {
+                  setProteinas(t);
+                  limpiarError();
+                }}
                 placeholder="0"
                 keyboardType="numeric"
                 placeholderTextColor="#9ca3af"
@@ -161,12 +160,15 @@ export function FormularioAlimento({
           {/* Fila 2: Carbohidratos y Grasas */}
           <View className="mb-4 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
                 CARBOHIDRATOS (G)
               </Text>
               <TextInput
                 value={carbohidratos}
-                onChangeText={setCarbohidratos}
+                onChangeText={(t) => {
+                  setCarbohidratos(t);
+                  limpiarError();
+                }}
                 placeholder="0"
                 keyboardType="numeric"
                 placeholderTextColor="#9ca3af"
@@ -175,12 +177,15 @@ export function FormularioAlimento({
             </View>
 
             <View className="flex-1">
-              <Text className="mb-1.5 text-xs font-bold tracking-wider text-text-muted">
+              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
                 GRASAS (G)
               </Text>
               <TextInput
                 value={grasas}
-                onChangeText={setGrasas}
+                onChangeText={(t) => {
+                  setGrasas(t);
+                  limpiarError();
+                }}
                 placeholder="0"
                 keyboardType="numeric"
                 placeholderTextColor="#9ca3af"
@@ -188,6 +193,8 @@ export function FormularioAlimento({
               />
             </View>
           </View>
+
+          <ErrorEnLinea mensaje={error} />
 
           {/* Botón de acción */}
           <TouchableOpacity

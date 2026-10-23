@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
 import type { ConId } from "@/models/types";
@@ -48,7 +49,7 @@ export function ListaAlimentosHoy({
 
   return (
     <View className="mb-6">
-      <Text className="mb-2.5 text-xs font-bold tracking-wider text-text-muted">
+      <Text className="mb-2.5 text-sm font-bold tracking-wider text-text-muted">
         ALIMENTOS REGISTRADOS HOY ({alimentos.length})
       </Text>
       <View className="gap-2.5">
@@ -65,7 +66,7 @@ export function ListaAlimentosHoy({
               >
                 {item.alimento}
               </Text>
-              <Text className="mt-0.5 text-xs text-text-muted">
+              <Text className="mt-0.5 text-sm text-text-muted">
                 {item.cantidad ? `${item.cantidad} · ` : ""}P:{" "}
                 {item.proteinas ?? 0}g · C: {item.carbohidratos ?? 0}g · G:{" "}
                 {item.grasas ?? 0}g
@@ -75,7 +76,7 @@ export function ListaAlimentosHoy({
             {/* Calorías y botón eliminar */}
             <View className="flex-row items-center gap-3">
               <View className="rounded-full bg-primary/10 px-2.5 py-1">
-                <Text className="text-xs font-bold text-primary">
+                <Text className="text-sm font-bold text-primary">
                   +{item.calorias} kcal
                 </Text>
               </View>

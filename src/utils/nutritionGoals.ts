@@ -11,7 +11,7 @@ import type {
  * 1. Tasa metabólica basal (TMB) — ecuación de Mifflin-St Jeor (1990):
  *      hombres: 10·peso + 6,25·altura − 5·edad + 5
  *      mujeres: 10·peso + 6,25·altura − 5·edad − 161
- *    Para género "otro" o no informado se usa el promedio de ambas (−78).
+ *    Si el género no está informado se usa el promedio de ambas (−78).
  * 2. Gasto energético total = TMB × factor de actividad (según los días que
  *    el usuario entrena por semana).
  * 3. Ajuste por objetivo: déficit para perder peso, superávit para ganar masa.
@@ -41,7 +41,6 @@ const KCAL_POR_GRAMO = { proteinas: 4, carbohidratos: 4, grasas: 9 } as const;
 const CONSTANTE_GENERO: Record<GeneroUsuario | "desconocido", number> = {
   masculino: 5,
   femenino: -161,
-  otro: -78,
   desconocido: -78,
 };
 
@@ -49,7 +48,6 @@ const CONSTANTE_GENERO: Record<GeneroUsuario | "desconocido", number> = {
 const MINIMO_KCAL: Record<GeneroUsuario | "desconocido", number> = {
   masculino: 1500,
   femenino: 1200,
-  otro: 1350,
   desconocido: 1350,
 };
 

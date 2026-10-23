@@ -7,12 +7,12 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from "react-native";
 
 import { AppHeader } from "@/components/ui/AppHeader";
 import { ErrorCarga } from "@/components/ui/LoadError";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
 import { RutinasController } from "@/controllers/RoutinesController";
@@ -26,9 +26,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 function RutinaActivaCard({
   rutina,
   onIrAMaquina,
+  onEmpezarDia,
 }: {
   rutina: ConId<Rutina>;
   onIrAMaquina: (ejercicio: EjercicioRutina) => void;
+  onEmpezarDia: (numeroDia: number) => void;
 }) {
   const [diaExpandido, setDiaExpandido] = useState<number | null>(
     rutina.planSemanal[0]?.dia ?? null,
@@ -41,12 +43,12 @@ function RutinaActivaCard({
           <Text className="text-lg font-bold text-foreground">
             {rutina.nombre}
           </Text>
-          <Text className="text-xs text-text-muted">
+          <Text className="text-sm text-text-muted">
             {rutina.diasPorSemana} días/semana
           </Text>
         </View>
         <View className="rounded-full bg-primary px-3 py-1">
-          <Text className="text-xs font-bold text-background">ACTIVA</Text>
+          <Text className="text-sm font-bold text-background">ACTIVA</Text>
         </View>
       </View>
 
@@ -96,22 +98,40 @@ function RutinaActivaCard({
                     )}
                     <View className="ml-2.5 flex-1">
                       <Text
-                        className="text-xs font-semibold text-foreground"
+                        className="text-sm font-semibold text-foreground"
                         numberOfLines={1}
                       >
                         {ejercicio.nombre}
                       </Text>
-                      <Text className="text-xs text-text-secondary">
+                      <Text className="mt-0.5 text-base font-bold text-foreground">
                         {ejercicio.series} series × {ejercicio.repeticiones}{" "}
-                        reps · {ejercicio.descansoSegundos}s descanso
+                        reps
+                      </Text>
+                      <Text className="text-sm text-text-secondary">
+                        Descanso {ejercicio.descansoSegundos} s
                       </Text>
                     </View>
                   </Pressable>
                 ))}
-                {dia.ejercicios.length === 0 && (
-                  <Text className="text-xs text-text-muted">
+                {dia.ejercicios.length === 0 ? (
+                  <Text className="text-sm text-text-muted">
                     Sin ejercicios en este día.
                   </Text>
+                ) : (
+                  <Pressable
+                    accessibilityRole="button"
+                    className="mt-1 min-h-11 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+                    onPress={() => onEmpezarDia(dia.dia)}
+                  >
+                    <Ionicons
+                      name="play"
+                      size={16}
+                      color={palette.background}
+                    />
+                    <Text className="text-sm font-bold text-background">
+                      Entrenar este día
+                    </Text>
+                  </Pressable>
                 )}
               </View>
             )}
@@ -231,6 +251,12 @@ export default function RoutinesScreen() {
           key={rutinaActiva.id}
           rutina={rutinaActiva}
           onIrAMaquina={irAMaquina}
+          onEmpezarDia={(numeroDia) =>
+            router.push({
+              pathname: "/(app)/train",
+              params: { dia: String(numeroDia) },
+            })
+          }
         />
       ) : (
         <View className="mb-4 flex-row gap-3">
@@ -264,7 +290,7 @@ export default function RoutinesScreen() {
             className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
             onPress={() => router.push("/(app)/routines/generate")}
           >
-            <Text className="text-xs font-bold text-foreground">
+            <Text className="text-sm font-bold text-foreground">
               Generar otra con IA
             </Text>
           </Pressable>
@@ -273,7 +299,7 @@ export default function RoutinesScreen() {
             className="flex-1 items-center rounded-2xl border border-border p-3.5 active:scale-[0.98] active:bg-primary-light/10"
             onPress={() => router.push("/(app)/routines/custom")}
           >
-            <Text className="text-xs font-bold text-foreground">
+            <Text className="text-sm font-bold text-foreground">
               Crear personalizada
             </Text>
           </Pressable>
@@ -294,7 +320,7 @@ export default function RoutinesScreen() {
                 <Text className="text-sm font-semibold text-foreground">
                   {rutina.nombre}
                 </Text>
-                <Text className="mt-0.5 text-xs text-text-secondary">
+                <Text className="mt-0.5 text-sm text-text-secondary">
                   {rutina.diasPorSemana} días/semana ·{" "}
                   {rutina.tipo !== "ia"
                     ? "Personalizada"
@@ -307,10 +333,10 @@ export default function RoutinesScreen() {
               </View>
               <Pressable
                 accessibilityRole="button"
-                className="mr-2 min-h-11 justify-center rounded-lg bg-primary px-4 active:scale-95 active:opacity-85"
+                className="mr-4 min-h-11 justify-center rounded-lg bg-primary px-4 active:scale-95 active:opacity-85"
                 onPress={() => handleActivar(rutina.id)}
               >
-                <Text className="text-xs font-bold text-background">
+                <Text className="text-sm font-bold text-background">
                   Activar
                 </Text>
               </Pressable>

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type {
   ResultadoMetas,
@@ -78,7 +79,7 @@ export function CaloriasGauge({
             <Text className="text-2xl font-extrabold text-foreground">
               {resumen.caloriasConsumidas}
             </Text>
-            <Text className="text-xs font-semibold text-text-muted">kcal</Text>
+            <Text className="text-sm font-semibold text-text-muted">kcal</Text>
           </View>
         </View>
 
@@ -87,12 +88,12 @@ export function CaloriasGauge({
           <Text className="text-xl font-bold text-foreground">
             {resumen.caloriasRestantes} kcal restantes
           </Text>
-          <Text className="mt-1 text-xs text-text-secondary">
+          <Text className="mt-1 text-sm text-text-secondary">
             Meta: {resumen.metaCalorias} kcal/día
           </Text>
           {origenMeta?.personalizada ? (
             <View className="mt-2 self-start rounded-full bg-primary/10 px-2.5 py-1">
-              <Text className="text-xs font-bold text-primary">
+              <Text className="text-sm font-bold text-primary">
                 PERSONALIZADA
               </Text>
             </View>
@@ -105,7 +106,7 @@ export function CaloriasGauge({
               accessibilityLabel="Completar perfil para personalizar la meta"
               className="mt-2 self-start rounded-full bg-secondary/30 px-2.5 py-1"
             >
-              <Text className="text-xs font-bold text-accent-strong">
+              <Text className="text-sm font-bold text-accent-strong">
                 META GENÉRICA · COMPLETA TU{" "}
                 {(origenMeta?.faltantes ?? ["peso", "altura", "edad"])
                   .map((d) => NOMBRE_DATO[d].toUpperCase())
@@ -117,7 +118,7 @@ export function CaloriasGauge({
       </View>
 
       {origenMeta?.personalizada && origenMeta.detalle ? (
-        <Text className="-mt-1 mb-3 text-xs leading-4 text-text-muted">
+        <Text className="-mt-1 mb-3 text-sm leading-5 text-text-muted">
           TMB {origenMeta.detalle.tmb} kcal × actividad{" "}
           {origenMeta.detalle.factorActividad}
           {origenMeta.detalle.ajusteObjetivo !== 0
@@ -132,11 +133,11 @@ export function CaloriasGauge({
       <View className="gap-3 border-t border-border/30 pt-4">
         {/* Proteínas */}
         <View>
-          <View className="mb-1 flex-row items-center justify-between text-xs">
-            <Text className="text-xs font-bold tracking-wider text-text-secondary">
+          <View className="mb-1 flex-row items-center justify-between text-sm">
+            <Text className="text-sm font-bold tracking-wider text-text-secondary">
               PROTEÍNAS
             </Text>
-            <Text className="text-xs font-semibold text-text-muted">
+            <Text className="text-sm font-semibold text-text-muted">
               <Text className="font-bold text-foreground">
                 {resumen.proteinasConsumidas}g
               </Text>{" "}
@@ -156,11 +157,11 @@ export function CaloriasGauge({
 
         {/* Carbohidratos */}
         <View>
-          <View className="mb-1 flex-row items-center justify-between text-xs">
-            <Text className="text-xs font-bold tracking-wider text-text-secondary">
+          <View className="mb-1 flex-row items-center justify-between text-sm">
+            <Text className="text-sm font-bold tracking-wider text-text-secondary">
               CARBOHIDRATOS
             </Text>
-            <Text className="text-xs font-semibold text-text-muted">
+            <Text className="text-sm font-semibold text-text-muted">
               <Text className="font-bold text-foreground">
                 {resumen.carbohidratosConsumidos}g
               </Text>{" "}
@@ -180,11 +181,11 @@ export function CaloriasGauge({
 
         {/* Grasas */}
         <View>
-          <View className="mb-1 flex-row items-center justify-between text-xs">
-            <Text className="text-xs font-bold tracking-wider text-text-secondary">
+          <View className="mb-1 flex-row items-center justify-between text-sm">
+            <Text className="text-sm font-bold tracking-wider text-text-secondary">
               GRASAS
             </Text>
-            <Text className="text-xs font-semibold text-text-muted">
+            <Text className="text-sm font-semibold text-text-muted">
               <Text className="font-bold text-foreground">
                 {resumen.grasasConsumidas}g
               </Text>{" "}

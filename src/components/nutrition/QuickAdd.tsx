@@ -1,5 +1,6 @@
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
+import { Text } from "@/components/ui/Typography";
 import {
   ALIMENTOS_RAPIDOS,
   type AlimentoRapido,
@@ -16,7 +17,7 @@ export function AgregarRapido({
 }: AgregarRapidoProps) {
   return (
     <View className="mb-5">
-      <Text className="mb-2.5 text-xs font-bold tracking-wider text-text-muted">
+      <Text className="mb-2.5 text-sm font-bold tracking-wider text-text-muted">
         AGREGAR RÁPIDO
       </Text>
       <ScrollView
@@ -40,7 +41,7 @@ export function AgregarRapido({
             >
               {alimento.nombre}
             </Text>
-            <Text className="mt-1 text-center text-xs font-bold text-primary">
+            <Text className="mt-1 text-center text-sm font-bold text-primary">
               +{alimento.calorias} kcal
             </Text>
           </TouchableOpacity>
