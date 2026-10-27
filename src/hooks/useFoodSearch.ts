@@ -37,7 +37,10 @@ export function useBuscarAlimentos(texto: string, retrasoMs = 450) {
     const controlador = new AbortController();
     const temporizador = setTimeout(() => {
       NutritionController.buscarAlimentos(consulta, controlador.signal)
-        .then((resultados) => setEstado({ consulta, resultados, error: null }))
+        .then((resultados) => {
+          if (!controlador.signal.aborted)
+            setEstado({ consulta, resultados, error: null });
+        })
         .catch((error: unknown) => {
           if (controlador.signal.aborted) return;
           setEstado({
