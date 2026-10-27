@@ -43,17 +43,17 @@ describe("completarSerie", () => {
   it("al acabar las series pasa al siguiente ejercicio con el descanso del anterior", () => {
     let s = crearSesion(DOS_EJERCICIOS);
     s = completarSerie(s, AHORA);
-    s = completarSerie(s, AHORA);
+    s = completarSerie(s, AHORA + 60_000);
     expect(s.indice).toBe(1);
     expect(s.serie).toBe(1);
-    expect(s.descansoTerminaEn).toBe(AHORA + 60_000);
+    expect(s.descansoTerminaEn).toBe(AHORA + 120_000);
   });
 
   it("la última serie del día termina la sesión sin descanso", () => {
     let s = crearSesion(DOS_EJERCICIOS);
     s = completarSerie(s, AHORA);
-    s = completarSerie(s, AHORA);
-    s = completarSerie(s, AHORA);
+    s = completarSerie(s, AHORA + 60_000);
+    s = completarSerie(s, AHORA + 120_000);
     expect(s.terminado).toBe(true);
     expect(s.descansoTerminaEn).toBeNull();
   });
@@ -80,6 +80,13 @@ describe("completarSerie", () => {
   it("no cambia una sesión ya terminada", () => {
     const fin = crearSesion([]);
     expect(completarSerie(fin, AHORA)).toBe(fin);
+  });
+
+  it("ignora dobles pulsaciones durante el descanso", () => {
+    const s = completarSerie(crearSesion(DOS_EJERCICIOS), AHORA);
+    expect(completarSerie(s, AHORA)).toBe(s);
+    expect(completarSerie(s, AHORA + 59_999)).toBe(s);
+    expect(completarSerie(s, AHORA + 60_000).indice).toBe(1);
   });
 });
 
@@ -124,7 +131,7 @@ describe("progresoEjercicio", () => {
     s = completarSerie(s, AHORA);
     expect(progresoEjercicio(s, 0)).toBe(0.5);
     expect(progresoEjercicio(s, 1)).toBe(0);
-    s = completarSerie(s, AHORA);
+    s = completarSerie(s, AHORA + 60_000);
     expect(progresoEjercicio(s, 0)).toBe(1);
   });
 

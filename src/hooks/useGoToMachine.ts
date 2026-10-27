@@ -6,9 +6,10 @@ import type { EjercicioRutina } from "@/models/entities/Routine";
 import { toast } from "@/utils/toast";
 
 /**
- * Abre la ficha de la máquina de un ejercicio de rutina. Si el ejercicio no
- * usa ninguna máquina del catálogo (p. ej. peso libre) avisa al usuario.
- * Lo comparten las pantallas de Rutinas y Progreso.
+ * Abre la ficha de un ejercicio de rutina: la de su máquina del catálogo y,
+ * si no usa ninguna (p. ej. peso libre o peso corporal), la ficha del propio
+ * ejercicio con su imagen y descripción.
+ * Lo comparten las pantallas de Rutinas, Progreso y Entrenar.
  */
 export function useIrAMaquina() {
   const router = useRouter();
@@ -21,13 +22,17 @@ export function useIrAMaquina() {
         if (id) {
           router.push({ pathname: "/(app)/machines/[id]", params: { id } });
         } else {
-          toast.info(
-            `${ejercicio.nombre} no usa ninguna máquina del catálogo (por ejemplo, es con peso libre).`,
-          );
+          router.push({
+            pathname: "/(app)/routines/exercise",
+            params: {
+              id: String(ejercicio.maquinaId),
+              nombre: ejercicio.nombre,
+            },
+          });
         }
       } catch (error) {
         console.error("Error al buscar la máquina del ejercicio:", error);
-        toast.error("No se pudo abrir la ficha de la máquina.");
+        toast.error("No se pudo abrir la ficha del ejercicio.");
       }
     },
     [router],

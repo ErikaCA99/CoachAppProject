@@ -19,7 +19,7 @@ import { AppHeader } from "@/components/ui/AppHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorCarga } from "@/components/ui/LoadError";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { Text, TextInput, type TextInputRef } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { ProgresoController } from "@/controllers/ProgressController";
 import { useIrAMaquina } from "@/hooks/useGoToMachine";
@@ -44,7 +44,7 @@ function colorCategoriaIMC(categoria: BmiCategory): string {
 export default function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const pesoInputRef = useRef<TextInput>(null);
+  const pesoInputRef = useRef<TextInputRef>(null);
   const irAMaquina = useIrAMaquina();
   const [vista, setVista] = useState<VistaProgreso>("peso");
   const uid = useAuthStore((s) => s.user?.uid);
@@ -364,7 +364,7 @@ export default function ProgressScreen() {
             </View>
 
             <Text className="mb-3 text-base font-bold text-foreground">
-              Historial
+              Historial (últimos 500 registros)
             </Text>
             {registros.length === 0 ? (
               <EmptyState
@@ -452,7 +452,7 @@ export default function ProgressScreen() {
                   {resumenEntrenos.totalEntrenos}
                 </Text>
                 <Text className="mt-1 text-sm text-text-secondary">
-                  Total entrenos
+                  Entrenos recientes (máx. 500)
                 </Text>
               </View>
             </View>

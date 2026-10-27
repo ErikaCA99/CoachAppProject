@@ -4,6 +4,7 @@ import {
   eliminarProgreso,
   listarProgreso,
   observarProgreso,
+  obtenerProgreso,
   registrarProgreso,
 } from "@/models/repositories/progressRepository";
 import { actualizarPerfilUsuario } from "@/models/repositories/userRepository";
@@ -133,17 +134,12 @@ export const ProgresoController = {
       validacion.data.peso !== undefined ||
       validacion.data.altura !== undefined
     ) {
-      // Para recalcular el IMC necesitamos ambos valores; si solo se actualiza uno,
-      // el otro ya debe estar en el registro existente (responsabilidad de la Vista).
-      if (
-        validacion.data.peso !== undefined &&
-        validacion.data.altura !== undefined
-      ) {
-        datosActualizados.imc = calcularIMC(
-          validacion.data.peso,
-          validacion.data.altura,
-        );
-      }
+      const existente = await obtenerProgreso(usuarioId, registroId);
+      if (!existente) throw new Error("El registro de progreso ya no existe.");
+      const peso = validacion.data.peso ?? existente.peso;
+      const altura = validacion.data.altura ?? existente.altura;
+      if (altura !== undefined)
+        datosActualizados.imc = calcularIMC(peso, altura);
     }
 
     await actualizarProgreso(usuarioId, registroId, datosActualizados);
