@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View } from "react-native";
 
 import { TarjetaPosesEjercicio } from "@/components/machines/ExercisePoseCard";
+import { DemostracionesLocales } from "@/components/machines/LocalDemonstrations";
 import { ClavesSeguridad } from "@/components/machines/SafetyKeys";
 import { ListaPuntos } from "@/components/machines/SheetSection";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
@@ -47,6 +48,7 @@ export function GuiaMaquinaTabs({
       <View className="mt-4">
         {vista === "uso" && (
           <View>
+            <DemostracionesLocales key={maquina.id} maquinaId={maquina.id} />
             {maquina.ejerciciosGif.length > 0 && (
               <View className="mb-2">
                 <Text className="mb-1 text-base font-bold text-foreground">

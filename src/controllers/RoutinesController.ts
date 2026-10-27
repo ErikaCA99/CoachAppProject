@@ -1,4 +1,5 @@
 import { EjerciciosWgerController } from "@/controllers/WgerExercisesController";
+import type { EjercicioWger } from "@/models/entities/WgerExercise";
 import type {
   DiaRutina,
   EjercicioRutina,
@@ -43,6 +44,31 @@ function elegirAleatorios<T>(items: T[], cantidad: number): T[] {
   return copia.slice(0, cantidad);
 }
 
+/**
+ * Elige `cantidad` ejercicios prefiriendo los que tienen imagen (la de wger o
+ * la de respaldo en `ejerciciosWger`), para que la rutina se vea completa.
+ * Si no alcanzan, completa con los que no la tienen (nunca deja el día corto).
+ */
+async function elegirConImagen(
+  items: EjercicioWger[],
+  cantidad: number,
+): Promise<EjercicioWger[]> {
+  const tieneImagen = await Promise.all(
+    items.map(async (item) =>
+      item.imagenUrl
+        ? true
+        : (await EjerciciosWgerController.obtenerImagenRespaldo(item.id)) !==
+          null,
+    ),
+  );
+  const conImagen = items.filter((_, i) => tieneImagen[i]);
+  const sinImagen = items.filter((_, i) => !tieneImagen[i]);
+  const elegidos = elegirAleatorios(conImagen, cantidad);
+  return elegidos.length < cantidad
+    ? [...elegidos, ...elegirAleatorios(sinImagen, cantidad - elegidos.length)]
+    : elegidos;
+}
+
 async function armarDia(
   numeroDia: number,
   bloque: BloqueDia,
@@ -59,9 +85,14 @@ async function armarDia(
     ),
   );
 
+  const seleccionadosPorCategoria = await Promise.all(
+    resultadosPorCategoria.map((resultado, indice) =>
+      elegirConImagen(resultado.items, cantidades[indice]),
+    ),
+  );
+
   const ejercicios: EjercicioRutina[] = [];
-  resultadosPorCategoria.forEach((resultado, indice) => {
-    const seleccionados = elegirAleatorios(resultado.items, cantidades[indice]);
+  seleccionadosPorCategoria.forEach((seleccionados) => {
     seleccionados.forEach((maquina) => {
       ejercicios.push({
         maquinaId: maquina.id,

@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView,
   View,
 } from "react-native";
 
 import { AppHeader } from "@/components/ui/AppHeader";
+import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
 import { ErrorCarga } from "@/components/ui/LoadError";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
@@ -82,20 +82,12 @@ function RutinaActivaCard({
                     className="mb-2 flex-row items-center rounded-lg border border-border p-2.5 active:scale-[0.98] active:bg-primary-light/10"
                     onPress={() => onIrAMaquina(ejercicio)}
                   >
-                    {ejercicio.imagenUrl ? (
-                      <Image
-                        source={{ uri: ejercicio.imagenUrl }}
-                        className="h-10 w-10 rounded-md"
-                      />
-                    ) : (
-                      <View className="h-10 w-10 items-center justify-center rounded-md bg-primary-light/40">
-                        <Ionicons
-                          name="barbell-outline"
-                          size={16}
-                          color={palette.primary}
-                        />
-                      </View>
-                    )}
+                    <MiniaturaEjercicio
+                      ejercicioId={ejercicio.maquinaId}
+                      imagenUrl={ejercicio.imagenUrl}
+                      nombre={ejercicio.nombre}
+                      tamano={40}
+                    />
                     <View className="ml-2.5 flex-1">
                       <Text
                         className="text-sm font-semibold text-foreground"
@@ -309,7 +301,7 @@ export default function RoutinesScreen() {
       {otrasRutinas.length > 0 && (
         <View className="mt-8">
           <Text className="mb-3 text-base font-bold text-foreground">
-            Historial de rutinas
+            Historial de rutinas (últimas 500)
           </Text>
           {otrasRutinas.map((rutina) => (
             <View
