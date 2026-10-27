@@ -1,0 +1,83 @@
+# Mantener sincronizado con .gitignore: al existir este archivo, EAS deja de
+# combinar las reglas de los .gitignore anidados.
+node_modules/
+__pycache__/
+*.py[cod]
+
+# Expo
+.expo/
+dist/
+dist-ux-android/
+dist-ux-review/
+web-build/
+expo-env.d.ts
+
+# Carpetas nativas generadas por Prebuild
+/.kotlin/
+/android/
+/ios/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro y logs
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+logs/
+
+# Sistema operativo y entornos locales
+.DS_Store
+*.pem
+Thumbs.db
+desktop.ini
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+
+# Credenciales y archivos de firma: configurar como variables de archivo en EAS
+google-services.json
+GoogleService-Info.plist
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+credentials.json
+*.keystore
+*.apk
+*.aab
+/.gradle/
+
+# IDE, documentación y archivos auxiliares
+.git/
+.idea/
+.vscode/.react/
+*.swp
+_tmp/
+Claude outputs/
+skills-lock.json
+.agents/
+.kiro/
+.claude/settings.local.json
+install.cmd
+example
+
+# Entrenamiento ML: los modelos móviles permanecen en assets/models/
+/ml/
+
+# Backend Firebase se despliega por separado de la app móvil
+/functions/
+/docs/
+/.github/
+/tests/
+
+# Mantener los tests fuera del archivo de compilación
+src/**/__tests__/
