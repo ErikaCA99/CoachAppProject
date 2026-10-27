@@ -1,87 +1,42 @@
-import { create, isAxiosError } from "axios";
+import { z } from "zod";
+import { invocarFuncion } from "@/services/firebase/functionsService";
 
-import { env } from "@/config/env";
+const nutrienteSchema = z.object({
+  nutrientId: z.number().int(),
+  nutrientName: z.string().max(200),
+  nutrientNumber: z.string().max(20).optional(),
+  unitName: z.string().max(30),
+  value: z.number().finite(),
+});
+const alimentoSchema = z.object({
+  fdcId: z.number().int().positive(),
+  description: z.string().max(1000),
+  dataType: z.string().max(100),
+  foodCategory: z.string().max(300).optional(),
+  foodNutrients: z.array(nutrienteSchema).max(200),
+});
+const respuestaSchema = z.object({ foods: z.array(alimentoSchema).max(25) });
+export type UsdaNutriente = z.infer<typeof nutrienteSchema>;
+export type UsdaAlimento = z.infer<typeof alimentoSchema>;
 
-/**
- * Cliente crudo de USDA FoodData Central (https://fdc.nal.usda.gov/api-guide).
- * Sin conocimiento de dominio: solo tipos y llamadas HTTP tal como los
- * devuelve la API. El mapeo a la entidad `AlimentoUSDA` vive en
- * `src/models/repositories/foodRepository.ts`.
- *
- * Límite: 1.000 solicitudes/hora por key. Datos en dominio público (CC0).
- */
-
-const USDA_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
-const API_KEY = env.foodDataApiKey;
-
-/**
- * Solo alimentos genéricos (no marcas comerciales de EE. UU.).
- * En ambos tipos los nutrientes vienen expresados por 100 g.
- */
-const TIPOS_DATOS = ["Foundation", "SR Legacy"] as const;
-
-export interface UsdaNutriente {
-  nutrientId: number;
-  nutrientName: string;
-  nutrientNumber?: string;
-  unitName: string; // "KCAL", "G", "MG"...
-  value: number;
-}
-
-export interface UsdaAlimento {
-  fdcId: number;
-  description: string;
-  dataType: string;
-  foodCategory?: string;
-  foodNutrients: UsdaNutriente[];
-}
-
-export interface UsdaRespuestaBusqueda {
-  totalHits: number;
-  currentPage: number;
-  totalPages: number;
-  foods: UsdaAlimento[];
-}
-
-const usda = create({ baseURL: USDA_BASE_URL, timeout: 10_000 });
-
-/** `POST /foods/search` — búsqueda por texto (en inglés). */
+/** Authenticated proxy: USDA credentials exist only in Secret Manager. */
 export async function buscarAlimentosUsda(
   consulta: string,
   opciones: { tamanoPagina?: number; signal?: AbortSignal } = {},
 ): Promise<UsdaAlimento[]> {
-  if (!API_KEY) {
-    throw new Error(
-      "Falta EXPO_PUBLIC_FOOD_DATA_API_KEY en el archivo .env (reinicia Expo con `npx expo start -c`).",
-    );
-  }
-
-  try {
-    const { data } = await usda.post<UsdaRespuestaBusqueda>(
-      "/foods/search",
-      {
-        query: consulta,
-        dataType: TIPOS_DATOS,
-        pageSize: opciones.tamanoPagina ?? 15,
-      },
-      { params: { api_key: API_KEY }, signal: opciones.signal },
-    );
-    return data.foods ?? [];
-  } catch (error) {
-    if (isAxiosError(error)) {
-      const status = error.response?.status;
-      if (status === 429) {
-        throw new Error(
-          "Se alcanzó el límite de consultas de USDA. Intenta en unos minutos.",
-        );
-      }
-      if (status === 401 || status === 403) {
-        throw new Error("La API key de USDA FoodData Central no es válida.");
-      }
-      if (!error.response && error.code !== "ERR_CANCELED") {
-        throw new Error("Sin conexión con USDA. Revisa tu internet.");
-      }
-    }
-    throw error;
-  }
+  opciones.signal?.throwIfAborted();
+  const datos = z
+    .object({
+      consulta: z.string().trim().min(2).max(100),
+      tamanoPagina: z.number().int().min(1).max(25),
+    })
+    .parse({ consulta, tamanoPagina: opciones.tamanoPagina ?? 15 });
+  const respuesta = await invocarFuncion(
+    "buscarAlimentos",
+    datos,
+    respuestaSchema,
+  );
+  // Callable SDK has no AbortSignal; discard stale responses, never retry mutations.
+  opciones.signal?.throwIfAborted();
+  return respuesta.foods;
 }

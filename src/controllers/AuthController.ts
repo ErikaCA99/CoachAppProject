@@ -7,7 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   type User as UsuarioFirebase,
-} from "firebase/auth";
+} from "@firebase/auth";
 
 import type { GeneroUsuario, Usuario } from "@/models/entities/User";
 import {

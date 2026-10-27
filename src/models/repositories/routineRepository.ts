@@ -1,13 +1,19 @@
+import {
+  rutinaPersistidaSchema,
+  validarDocumento,
+} from "@/schemas/persisted.schema";
+import { z } from "zod";
+import { invocarFuncion } from "@/services/firebase/functionsService";
 import type { Rutina } from "@/models/entities/Routine";
 import type { ConId } from "@/models/types";
 import {
-  actualizar,
-  crear,
   eliminar,
   listar,
   obtenerPorId,
   observarPorUsuario,
 } from "@/services/firebase/firestoreService";
+
+const validar = validarDocumento(rutinaPersistidaSchema);
 
 /** Única función que conoce la ruta real de la subcolección de rutinas. */
 function coleccion(usuarioId: string): string {
@@ -18,13 +24,22 @@ export async function guardarRutina(
   usuarioId: string,
   rutina: Omit<Rutina, "creadoEn">,
 ): Promise<string> {
-  return crear(coleccion(usuarioId), rutina);
+  if (rutina.usuarioId !== usuarioId)
+    throw new Error("Usuario de rutina inválido.");
+  const { usuarioId: _uid, ...datos } = rutina;
+  const resultado = await invocarFuncion(
+    "guardarRutina",
+    { operacion: "crear", datos: JSON.parse(JSON.stringify(datos)) },
+    z.object({ id: z.string().min(1) }),
+  );
+  return resultado.id;
 }
 
 export async function listarRutinas(
   usuarioId: string,
 ): Promise<ConId<Rutina>[]> {
   return listar<Rutina>(coleccion(usuarioId), {
+    validar,
     ordenarPor: "creadoEn",
     direccion: "desc",
   });
@@ -34,7 +49,7 @@ export async function obtenerRutina(
   usuarioId: string,
   rutinaId: string,
 ): Promise<ConId<Rutina> | null> {
-  return obtenerPorId<Rutina>(coleccion(usuarioId), rutinaId);
+  return obtenerPorId<Rutina>(coleccion(usuarioId), rutinaId, validar);
 }
 
 export async function actualizarRutina(
@@ -42,7 +57,20 @@ export async function actualizarRutina(
   rutinaId: string,
   datos: Partial<Omit<Rutina, "creadoEn" | "usuarioId">>,
 ): Promise<void> {
-  await actualizar<Rutina>(coleccion(usuarioId), rutinaId, datos);
+  await invocarFuncion(
+    "guardarRutina",
+    {
+      operacion: "actualizar",
+      id: rutinaId,
+      datos: JSON.parse(
+        JSON.stringify({
+          nombre: datos.nombre,
+          planSemanal: datos.planSemanal,
+        }),
+      ),
+    },
+    z.object({ id: z.string().min(1) }),
+  );
 }
 
 export async function eliminarRutina(
@@ -59,6 +87,7 @@ export function observarRutinas(
   onError?: (error: Error) => void,
 ) {
   return observarPorUsuario<Rutina>(usuarioId, "rutinas", callback, {
+    validar,
     ordenarPor: "creadoEn",
     direccion: "desc",
     onError,

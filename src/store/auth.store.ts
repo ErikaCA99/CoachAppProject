@@ -1,8 +1,14 @@
+import { z } from "zod";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { type User, userSchema } from "../schemas/auth.schema";
+import { type User, userSchema } from "@/schemas/auth.schema";
+
+const sesionPersistidaSchema = z.object({
+  user: userSchema.nullable(),
+  perfilCompleto: z.boolean().nullable(),
+});
 
 interface AuthState {
   /** Usuario autenticado (null si no hay sesión) */
@@ -83,6 +89,16 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         perfilCompleto: state.perfilCompleto,
       }),
+      merge: (persistido, actual) => {
+        const resultado = sesionPersistidaSchema.safeParse(persistido);
+        return {
+          ...actual,
+          ...(resultado.success
+            ? resultado.data
+            : { user: null, perfilCompleto: null }),
+          authInicializado: false,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

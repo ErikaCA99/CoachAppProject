@@ -1,138 +1,101 @@
 rules_version = '2';
-
-// Reglas de seguridad de Firestore para coach-app.
-// Alineadas con el modelo REAL del código (src/models/entities y repositorios):
-//
-//   maquinas/{id}, ejercicios/{id}            → catálogo, solo lectura
-//   usuarios/{uid}                            → perfil (id = uid de Auth)
-//     ├── rutinas/{id}                        → planSemanal (no "ejercicios")
-//     ├── registrosNutricionales/{id}         → IMC o ingesta
-//     ├── progresoFisico/{id}                 → peso (+ altura/imc opcionales)
-//     └── entrenamientos/{fecha}              → día de rutina completado (id = YYYY-MM-DD)
-//
-// Publicar: Firebase Console → Firestore Database → Reglas → pegar → Publicar.
-// (o `firebase deploy --only firestore:rules` si usas Firebase CLI)
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function estaAutenticado() {
-      return request.auth != null;
+    function autenticado() { return request.auth != null; }
+    function dueno(uid) { return autenticado() && request.auth.uid == uid; }
+    function texto(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function numero(v, min, max) { return v is number && v >= min && v <= max; }
+    function opcNumero(d, k, min, max) { return !(k in d) || numero(d[k], min, max); }
+    function opcTexto(d, k, max) { return !(k in d) || texto(d[k], 0, max); }
+    function creado() {
+      return request.resource.data.creadoEn == request.time
+        && !('actualizadoEn' in request.resource.data);
     }
-
-    function esDueno(usuarioId) {
-      return estaAutenticado() && request.auth.uid == usuarioId;
+    function actualizado() {
+      return request.resource.data.creadoEn == resource.data.creadoEn
+        && request.resource.data.actualizadoEn == request.time;
     }
-
-    // Campo opcional: si viene, debe ser número > 0.
-    function numeroPositivoOpcional(datos, campo) {
-      return !(campo in datos) || (datos[campo] is number && datos[campo] > 0);
+    function listadoAcotado() { return request.query.limit != null && request.query.limit <= 500; }
+    match /{catalogo}/{id} {
+      allow get: if autenticado() && catalogo in ['maquinas', 'ejercicios', 'ejerciciosWger'];
+      allow list: if autenticado() && catalogo in ['maquinas', 'ejercicios', 'ejerciciosWger'] && listadoAcotado();
     }
-
-    // Campo opcional: si viene, debe ser entero dentro de [minimo, maximo].
-    function enteroEnRangoOpcional(datos, campo, minimo, maximo) {
-      return !(campo in datos)
-        || (datos[campo] is int && datos[campo] >= minimo && datos[campo] <= maximo);
-    }
-
-    // ---------- Catálogo público (solo lectura) ----------
-    // Se escribe únicamente con el SDK Admin (scripts de seed), que no pasa por estas reglas.
-    match /maquinas/{maquinaId} {
-      allow read: if estaAutenticado();
-      allow write: if false;
-    }
-
-    match /ejercicios/{ejercicioId} {
-      allow read: if estaAutenticado();
-      allow write: if false;
-    }
-
-    // ---------- Datos por usuario ----------
-    match /usuarios/{usuarioId} {
-
-      function perfilValido() {
-        let datos = request.resource.data;
-        return datos.nombre is string && datos.nombre.size() > 0
-          && datos.email is string
-          && numeroPositivoOpcional(datos, 'altura')
-          && numeroPositivoOpcional(datos, 'pesoActual')
-          // Entradas del modelo de rutinas con IA (mismos rangos que usuario.schema.ts)
-          && enteroEnRangoOpcional(datos, 'edad', 14, 90)
-          && enteroEnRangoOpcional(datos, 'diasDisponibles', 2, 6);
+    match /usuarios/{uid} {
+      function perfil(d) {
+        return d.keys().hasOnly(['nombre', 'apellidos', 'email', 'genero', 'altura', 'pesoActual', 'edad', 'diasDisponibles', 'nivel', 'objetivo', 'rutinaActivaId', 'creadoEn', 'actualizadoEn'])
+          && texto(d.nombre, 1, 100) && texto(d.email, 3, 254)
+          && opcTexto(d, 'apellidos', 100)
+          && opcNumero(d, 'altura', 50, 300) && opcNumero(d, 'pesoActual', 10, 500)
+          && (!('edad' in d) || (d.edad is int && numero(d.edad, 14, 90)))
+          && (!('diasDisponibles' in d) || (d.diasDisponibles is int && numero(d.diasDisponibles, 2, 6)))
+          && (!('genero' in d) || d.genero in ['masculino', 'femenino'])
+          && (!('nivel' in d) || d.nivel in ['principiante', 'intermedio', 'avanzado'])
+          && (!('objetivo' in d) || d.objetivo in ['perder_peso', 'ganar_masa', 'mantenimiento', 'resistencia'])
+          && (!('rutinaActivaId' in d) || d.rutinaActivaId == null ||
+            (texto(d.rutinaActivaId, 1, 128) && d.rutinaActivaId.matches('^[^/]+$') &&
+              exists(/databases/$(database)/documents/usuarios/$(uid)/rutinas/$(d.rutinaActivaId))));
       }
-
-      allow read, delete: if esDueno(usuarioId);
-      // crearConId() agrega creadoEn = serverTimestamp()
-      allow create: if esDueno(usuarioId) && perfilValido()
-        && request.resource.data.creadoEn == request.time;
-      // actualizar() hace setDoc(merge): request.resource.data es el doc completo resultante.
-      allow update: if esDueno(usuarioId) && perfilValido()
+      allow get, delete: if dueno(uid);
+      allow create: if dueno(uid) && perfil(request.resource.data) && creado()
+        && request.resource.data.email == request.auth.token.email;
+      allow update: if dueno(uid) && perfil(request.resource.data) && actualizado()
         && request.resource.data.email == resource.data.email;
 
-      match /rutinas/{rutinaId} {
-        function rutinaValida() {
-          let datos = request.resource.data;
-          return datos.usuarioId == usuarioId
-            && datos.nombre is string && datos.nombre.size() > 0
-            && datos.tipo in ['ia', 'personalizada']
-            && datos.diasPorSemana is number
-            && datos.diasPorSemana >= 1 && datos.diasPorSemana <= 7
-            && datos.planSemanal is list;
-        }
-
-        allow read, delete: if esDueno(usuarioId);
-        allow create: if esDueno(usuarioId) && rutinaValida();
-        allow update: if esDueno(usuarioId) && rutinaValida()
-          && request.resource.data.usuarioId == resource.data.usuarioId;
+      // Nested plans are validated in the authenticated guardarRutina function.
+      // Admin SDK bypasses rules; the function derives UID exclusively from Auth.
+      match /rutinas/{id} {
+        allow get, delete: if dueno(uid);
+        allow list: if dueno(uid) && listadoAcotado();
+        allow create, update: if false;
       }
-
-      match /registrosNutricionales/{registroId} {
-        function registroValido() {
-          let datos = request.resource.data;
-          let esIMC = datos.weight is number && datos.weight > 0
-            && datos.height is number && datos.height > 0;
-          let esIngesta = datos.alimento is string && datos.alimento.size() > 0
-            && datos.calorias is number && datos.calorias >= 0;
-          return datos.usuarioId == usuarioId && (esIMC || esIngesta);
+      match /registrosNutricionales/{id} {
+        function imc(d) {
+          return d.keys().hasOnly(['usuarioId', 'weight', 'height', 'bmi', 'category', 'creadoEn', 'actualizadoEn'])
+            && numero(d.weight, 10, 500) && numero(d.height, 50, 300)
+            && numero(d.bmi, 1, 100) && d.category in ['BAJO', 'NORMALIDAD', 'SOBREPESO', 'OBESIDAD'];
         }
-
-        allow read, delete: if esDueno(usuarioId);
-        allow create: if esDueno(usuarioId) && registroValido();
-        allow update: if esDueno(usuarioId) && registroValido()
-          && request.resource.data.usuarioId == resource.data.usuarioId;
+        function ingesta(d) {
+          return d.keys().hasOnly(['usuarioId', 'alimento', 'calorias', 'cantidad', 'proteinas', 'carbohidratos', 'grasas', 'fdcId', 'creadoEn', 'actualizadoEn'])
+            && texto(d.alimento, 1, 200) && numero(d.calorias, 0, 10000)
+            && opcTexto(d, 'cantidad', 100) && opcNumero(d, 'proteinas', 0, 1000)
+            && opcNumero(d, 'carbohidratos', 0, 1000) && opcNumero(d, 'grasas', 0, 1000)
+            && (!('fdcId' in d) || (d.fdcId is int && numero(d.fdcId, 1, 2147483647)));
+        }
+        function valido(d) {
+          return d.usuarioId == uid && (('weight' in d && imc(d)) || ('alimento' in d && ingesta(d)));
+        }
+        allow get, delete: if dueno(uid);
+        allow list: if dueno(uid) && listadoAcotado();
+        allow create: if dueno(uid) && valido(request.resource.data) && creado();
+        allow update: if dueno(uid) && valido(request.resource.data) && actualizado();
       }
-
-      match /progresoFisico/{registroId} {
-        function progresoValido() {
-          let datos = request.resource.data;
-          return datos.usuarioId == usuarioId
-            && datos.peso is number && datos.peso > 0
-            && numeroPositivoOpcional(datos, 'altura')
-            && numeroPositivoOpcional(datos, 'imc');
+      match /progresoFisico/{id} {
+        function valido(d) {
+          return d.keys().hasOnly(['usuarioId', 'peso', 'altura', 'imc', 'notas', 'creadoEn', 'actualizadoEn'])
+            && d.usuarioId == uid && numero(d.peso, 10, 500)
+            && opcNumero(d, 'altura', 50, 300) && opcNumero(d, 'imc', 0.01, 2000)
+            && opcTexto(d, 'notas', 500);
         }
-
-        allow read, delete: if esDueno(usuarioId);
-        allow create: if esDueno(usuarioId) && progresoValido();
-        allow update: if esDueno(usuarioId) && progresoValido()
-          && request.resource.data.usuarioId == resource.data.usuarioId;
+        allow get, delete: if dueno(uid);
+        allow list: if dueno(uid) && listadoAcotado();
+        allow create: if dueno(uid) && valido(request.resource.data) && creado();
+        allow update: if dueno(uid) && valido(request.resource.data) && actualizado();
       }
-
-      // El ID del documento es la fecha (YYYY-MM-DD): marcar un día
-      // completado es un setDoc sin merge (crearConId), por eso create Y
-      // update comparten la misma validación.
-      match /entrenamientos/{entrenamientoId} {
-        function entrenamientoValido() {
-          let datos = request.resource.data;
-          return datos.usuarioId == usuarioId
-            && datos.rutinaId is string && datos.rutinaId.size() > 0
-            && datos.dia is int && datos.dia >= 1 && datos.dia <= 7
-            && datos.fecha is string
-            && datos.fecha == entrenamientoId;
+      match /entrenamientos/{id} {
+        function valido(d) {
+          return d.keys().hasOnly(['usuarioId', 'rutinaId', 'dia', 'fecha', 'creadoEn', 'actualizadoEn'])
+            && d.usuarioId == uid && texto(d.rutinaId, 1, 128) && d.rutinaId.matches('^[^/]+$')
+            && d.dia is int && numero(d.dia, 1, 7)
+            && d.fecha == id && d.fecha.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
+            && exists(/databases/$(database)/documents/usuarios/$(uid)/rutinas/$(d.rutinaId));
         }
-
-        allow read, delete: if esDueno(usuarioId);
-        allow create, update: if esDueno(usuarioId) && entrenamientoValido();
+        allow get, delete: if dueno(uid);
+        allow list: if dueno(uid) && listadoAcotado();
+        allow create: if dueno(uid) && valido(request.resource.data) && creado();
+        allow update: if dueno(uid) && valido(request.resource.data) && actualizado();
       }
     }
+    // Default deny also protects server quota documents and unknown collections.
+    match /{document=**} { allow read, write: if false; }
   }
 }

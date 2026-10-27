@@ -1,11 +1,18 @@
+import {
+  entrenamientoPersistidoSchema,
+  validarDocumento,
+} from "@/schemas/persisted.schema";
+import type { OpcionesConsulta } from "@/services/firebase/firestoreService";
 import type { Entrenamiento } from "@/models/entities/Workout";
 import type { ConId } from "@/models/types";
 import {
-  crearConId,
+  guardarConFecha,
   eliminar,
   listar,
   observarPorUsuario,
 } from "@/services/firebase/firestoreService";
+
+const validar = validarDocumento(entrenamientoPersistidoSchema);
 
 /** Única función que conoce la ruta real de la subcolección de entrenamientos. */
 function coleccion(usuarioId: string): string {
@@ -21,7 +28,11 @@ export async function marcarEntrenamiento(
   usuarioId: string,
   entrenamiento: Omit<Entrenamiento, "creadoEn">,
 ): Promise<void> {
-  await crearConId(coleccion(usuarioId), entrenamiento.fecha, entrenamiento);
+  await guardarConFecha(
+    coleccion(usuarioId),
+    entrenamiento.fecha,
+    entrenamiento,
+  );
 }
 
 /** Quita el entrenamiento registrado para una fecha (desmarcar el día). */
@@ -42,15 +53,18 @@ export function observarEntrenamientos(
     usuarioId,
     "entrenamientos",
     callback,
-    { ordenarPor: "fecha", direccion: "desc", onError },
+    { validar, ordenarPor: "fecha", direccion: "desc", onError },
   );
 }
 
 /** Lectura única de todos los entrenamientos (para reportes). */
 export async function listarEntrenamientos(
   usuarioId: string,
+  intervalo: Pick<OpcionesConsulta, "desde" | "hasta"> = {},
 ): Promise<ConId<Entrenamiento>[]> {
   return listar<Entrenamiento>(coleccion(usuarioId), {
+    ...intervalo,
+    validar,
     ordenarPor: "fecha",
     direccion: "asc",
   });

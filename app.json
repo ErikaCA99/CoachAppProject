@@ -41,12 +41,14 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "CoachApp usa la cámara para identificar las máquinas del gimnasio.",
+          "cameraPermission": "CoachApp usa la cÃ¡mara para identificar las mÃ¡quinas del gimnasio.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
       ],
-      "react-native-fast-tflite"
+      "react-native-fast-tflite",
+      "@react-native-firebase/app",
+      "@react-native-firebase/app-check"
     ],
     "experiments": {
       "typedRoutes": true,

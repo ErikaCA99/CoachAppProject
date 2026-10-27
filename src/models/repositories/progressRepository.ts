@@ -1,3 +1,8 @@
+import {
+  progresoPersistidoSchema,
+  validarDocumento,
+} from "@/schemas/persisted.schema";
+import type { OpcionesConsulta } from "@/services/firebase/firestoreService";
 import type { ProgresoFisico } from "@/models/entities/PhysicalProgress";
 import type { ConId } from "@/models/types";
 import {
@@ -5,12 +10,26 @@ import {
   crear,
   eliminar,
   listar,
+  obtenerPorId,
   observarPorUsuario,
 } from "@/services/firebase/firestoreService";
+
+const validar = validarDocumento(progresoPersistidoSchema);
 
 /** Única función que conoce la ruta real de la subcolección de progreso físico. */
 function coleccion(usuarioId: string): string {
   return `usuarios/${usuarioId}/progresoFisico`;
+}
+
+export function obtenerProgreso(
+  usuarioId: string,
+  registroId: string,
+): Promise<ConId<ProgresoFisico> | null> {
+  return obtenerPorId<ProgresoFisico>(
+    coleccion(usuarioId),
+    registroId,
+    validar,
+  );
 }
 
 export async function registrarProgreso(
@@ -22,8 +41,11 @@ export async function registrarProgreso(
 
 export async function listarProgreso(
   usuarioId: string,
+  intervalo: Pick<OpcionesConsulta, "desde" | "hasta"> = {},
 ): Promise<ConId<ProgresoFisico>[]> {
   return listar<ProgresoFisico>(coleccion(usuarioId), {
+    ...intervalo,
+    validar,
     ordenarPor: "creadoEn",
     direccion: "asc",
   });
@@ -54,10 +76,11 @@ export function observarProgreso(
   return observarPorUsuario<ProgresoFisico>(
     usuarioId,
     "progresoFisico",
-    callback,
+    (items) => callback([...items].reverse()),
     {
+      validar,
       ordenarPor: "creadoEn",
-      direccion: "asc",
+      direccion: "desc",
       onError,
     },
   );
