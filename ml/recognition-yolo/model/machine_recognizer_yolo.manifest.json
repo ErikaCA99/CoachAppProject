@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "creado": "2026-10-27T13:51:54+00:00",
+  "modelo": {
+    "archivo": "machine_recognizer_yolo.tflite",
+    "bytes": 6399116,
+    "sha256": "f3e1c2d54faef7ff868cbacdd7f59f8ba3ed4b2f026b83a125138c250cebca1d",
+    "familia": "yolo11n-cls",
+    "version": "2.0.0-yolo11n-cls"
+  },
+  "tarea": "classify",
+  "entrada": {
+    "forma": [
+      1,
+      224,
+      224,
+      3
+    ],
+    "tipo": "float32",
+    "rango": "0..255",
+    "color": "RGB"
+  },
+  "salida": {
+    "forma": [
+      1,
+      35
+    ],
+    "tipo": "float32",
+    "significado": "probabilidades softmax (suman 1) en el orden de etiquetas.orden"
+  },
+  "etiquetas": {
+    "orden": [
+      "banco-pecho",
+      "pec-deck",
+      "press-pecho",
+      "extension-espalda",
+      "jalon-pecho",
+      "dominadas-fondos-asistidos",
+      "palanca-peso-muerto",
+      "remo-t",
+      "remo-sentado",
+      "elevaciones-laterales",
+      "press-hombro",
+      "banco-predicador",
+      "curl-biceps",
+      "triceps",
+      "biceps-triceps",
+      "abductores-aductores",
+      "curl-femoral",
+      "extension-piernas",
+      "pantorrillas",
+      "extension-curl-piernas",
+      "prensa-piernas",
+      "sentadilla-guiada",
+      "hip-thrust",
+      "patada-gluteo",
+      "multicadera",
+      "abdominal",
+      "torso-rotatorio",
+      "estacion-poleas",
+      "multiestacion",
+      "smith",
+      "rack-sentadilla",
+      "eliptica",
+      "bicicleta-estatica",
+      "caminadora",
+      "escaladora"
+    ],
+    "cantidad": 35,
+    "sha256": "d72af7e06b193e403db1d1f7a6a1865949ac22c8f284765efefdbad96c04e49e"
+  },
+  "preprocesamiento": {
+    "recorte": "cuadrado central",
+    "redimensionado": "224x224",
+    "normalizacion": "dentro del modelo (/255)",
+    "referencia_app": "src/services/ai/machineRecognition.ts → prepararEntrada",
+    "nota": "OpenCV solo se usa offline (ml/cv_tools.py); la app no lo ejecuta."
+  },
+  "umbrales": {
+    "confianza_minima_app": 0.8,
+    "calibrada_para": "v1.0.0 (MobileNetV2)",
+    "recalibrar": true,
+    "uso_recomendado": "sugerencia top-3 con confirmación"
+  },
+  "entrenamiento": {
+    "corrida": "final-n224",
+    "semilla": 42,
+    "pesos_iniciales": "yolo11n-cls.pt",
+    "imgsz": 224,
+    "epocas_configuradas": 40,
+    "batch": 32,
+    "paciencia": 15,
+    "aumentos": {
+      "degrees": 10,
+      "scale": 0.5,
+      "translate": 0.1,
+      "fliplr": 0.5,
+      "hsv_h": 0.02,
+      "hsv_s": 0.5,
+      "hsv_v": 0.4,
+      "erasing": 0.4
+    },
+    "epocas_ejecutadas": 40,
+    "val_final": {
+      "top1": 0.59091,
+      "top5": 0.87879
+    },
+    "val_nota": "Validación sobre fotos de catálogo apartadas; no representa gimnasios reales.",
+    "etapa_del_archivo": "final",
+    "pesos": {
+      "archivo": "yolo11n-cls_machines_v2.pt",
+      "sha256": "1a8836830f34611fdd93ce2873dcf3f4494ca7c4d5b618c07630e08083b0aa58"
+    }
+  },
+  "evaluacion": {
+    "conjunto": "fotos reales de gimnasio (data/real_photos) nunca vistas",
+    "fotos": 32,
+    "top1": {
+      "aciertos": 4,
+      "fotos": 32
+    },
+    "top3": null,
+    "top3_nota": "No se guardó por foto; ver README (10/32 en esa corrida).",
+    "por_umbral": {
+      "0.5": {
+        "cobertura": 9,
+        "aciertos": 2
+      },
+      "0.7": {
+        "cobertura": 4,
+        "aciertos": 1
+      },
+      "0.8": {
+        "cobertura": 1,
+        "aciertos": 1
+      }
+    },
+    "ruido_entre_corridas": "±6 puntos porcentuales (dos semillas)",
+    "fuente": "test_real_photos_yolo.json"
+  },
+  "datos": {
+    "fuentes": [
+      "fotos de catálogo de proveedores (35 clases)",
+      "Kaggle rifqilukmansyah381/gym-equipment-image (solo eliptica y banco-pecho)",
+      "fotos de gimnasios compartidas por la autora (material promocional)"
+    ],
+    "licencias": "POR VERIFICAR (catálogo, Kaggle y fotos promocionales)",
+    "fotos_train": 542,
+    "fotos_val": 61,
+    "clases_sin_val": [
+      "elevaciones-laterales",
+      "escaladora",
+      "palanca-peso-muerto",
+      "rack-sentadilla",
+      "remo-t"
+    ],
+    "fotos_reales": {
+      "total": 32,
+      "etiquetas_confirmadas": 0
+    }
+  },
+  "verificacion": {
+    "ejecutada": false,
+    "motivo": "manifiesto generado sin re-exportar el modelo"
+  },
+  "herramientas": {
+    "ultralytics": null,
+    "torch": null,
+    "torchvision": null,
+    "opencv-python": "5.0.0.93",
+    "numpy": "2.2.6",
+    "litert-torch": null,
+    "ai-edge-litert": null
+  },
+  "advertencias": [
+    "Reconocimiento ASISTIDO: usar como sugerencia top-3 con confirmación del usuario, no como detección automática.",
+    "Las métricas de 'evaluacion' vienen del modelo en etapa 'eval' (sin ver las fotos reales); este archivo es la etapa 'final', que SÍ las vio: no tiene prueba limpia.",
+    "Pocas fotos de prueba (decenas) y de pocos gimnasios: la cifra es orientativa, no una métrica de tesis.",
+    "El umbral de la app se calibró para el modelo anterior (MobileNetV2); hay que recalibrarlo con este modelo.",
+    "Etiquetas de las fotos reales asignadas visualmente y pendientes de confirmar; licencias de datos por verificar."
+  ]
+}

@@ -1,10 +1,7 @@
 import { Buffer } from "buffer";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { decode as decodificarJpeg } from "jpeg-js";
-import {
-  loadTensorflowModel,
-  type TfliteModel,
-} from "react-native-fast-tflite";
+import type { TfliteModel } from "react-native-fast-tflite";
 
 import { ETIQUETAS_MAQUINAS } from "@/services/ai/machineLabels";
 
@@ -47,10 +44,14 @@ let modeloPromesa: Promise<TfliteModel> | null = null;
 
 function obtenerModelo(): Promise<TfliteModel> {
   if (!modeloPromesa) {
-    modeloPromesa = loadTensorflowModel(ARCHIVO_MODELO, []).catch((error) => {
-      modeloPromesa = null;
-      throw error;
-    });
+    modeloPromesa = import("react-native-fast-tflite")
+      .then(({ loadTensorflowModel }) =>
+        loadTensorflowModel(ARCHIVO_MODELO, []),
+      )
+      .catch((error) => {
+        modeloPromesa = null;
+        throw error;
+      });
   }
   return modeloPromesa;
 }
@@ -98,6 +99,13 @@ export async function reconocerMaquina(
     ]);
     const [salida] = await modelo.run([entrada.buffer as ArrayBuffer]);
     const probabilidades = Array.from(new Float32Array(salida));
+    if (
+      probabilidades.some(
+        (valor) => !Number.isFinite(valor) || valor < 0 || valor > 1,
+      )
+    ) {
+      throw new Error("El modelo devolvió probabilidades inválidas.");
+    }
     if (probabilidades.length !== ETIQUETAS_MAQUINAS.length) {
       throw new Error(
         `El modelo devolvió ${probabilidades.length} clases y hay ${ETIQUETAS_MAQUINAS.length} etiquetas`,
