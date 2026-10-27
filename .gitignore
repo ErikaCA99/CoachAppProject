@@ -93,3 +93,10 @@ skills-lock.json
 
 # Instalador local de Antigravity CLI (no pertenece al proyecto)
 install.cmd
+
+# ml: restos de pruebas y cachés generados
+.test-tmp/
+ml/tests/tmp*/
+ml/detection/dataset/.*-features.json
+ml/detection/dataset/yolo-v8/
+ml/detection/dataset/yolo-v8.zip
