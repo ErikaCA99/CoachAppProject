@@ -23,6 +23,7 @@ import {
 } from "@/utils/machineExercise";
 import { normalizarTexto } from "@/utils/text";
 import { obtenerAnimacionExacta } from "@/models/repositories/exerciseDbRepository";
+import { obtenerDemostracionesLocales } from "@/models/repositories/localDemonstrationRepository";
 
 export interface FiltrosMaquinas {
   busqueda?: string;
@@ -58,6 +59,7 @@ export type DetalleEjercicioResuelto =
  * importan Firestore, Storage ni el repositorio.
  */
 export const MaquinasController = {
+  demostracionesLocales: obtenerDemostracionesLocales,
   /** Alternativa opcional a WorkoutX; no sustituye los datos del catálogo. */
   async obtenerAnimacionAlternativa(
     ejercicio: EjercicioGif,

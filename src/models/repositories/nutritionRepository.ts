@@ -1,3 +1,8 @@
+import {
+  nutricionPersistidaSchema,
+  validarDocumento,
+} from "@/schemas/persisted.schema";
+import type { OpcionesConsulta } from "@/services/firebase/firestoreService";
 import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
 import type { ConId } from "@/models/types";
 import {
@@ -6,6 +11,8 @@ import {
   listar,
   observarPorUsuario,
 } from "@/services/firebase/firestoreService";
+
+const validar = validarDocumento(nutricionPersistidaSchema);
 
 /** Única función que conoce la ruta real de la subcolección de nutrición. */
 function coleccion(usuarioId: string): string {
@@ -35,8 +42,11 @@ export async function guardarRegistroIngesta(
 /** Lista el historial nutricional del usuario, más reciente primero. */
 export async function listarRegistrosNutricion(
   usuarioId: string,
+  intervalo: Pick<OpcionesConsulta, "desde" | "hasta"> = {},
 ): Promise<ConId<RegistroNutricional>[]> {
   return listar<RegistroNutricional>(coleccion(usuarioId), {
+    ...intervalo,
+    validar,
     ordenarPor: "creadoEn",
     direccion: "desc",
   });
@@ -61,6 +71,7 @@ export function observarRegistrosNutricion(
     "registrosNutricionales",
     callback,
     {
+      validar,
       ordenarPor: "creadoEn",
       direccion: "desc",
       onError,

@@ -1,0 +1,27 @@
+{
+  "seed": 42,
+  "base_weights": "yolo11n-cls.pt",
+  "imgsz": 224,
+  "epochs": 40,
+  "batch": 32,
+  "patience": 15,
+  "workers": 2,
+  "device": "cpu",
+  "cap_per_class": 60,
+  "val_fraction": 0.15,
+  "min_images_for_val": 4,
+  "near_duplicate_bits": 6,
+  "small_class_policy": "augmented_val_copy",
+  "real_photo_repeats": 3,
+  "external_classes": ["eliptica", "banco-pecho"],
+  "augment": {
+    "degrees": 10,
+    "scale": 0.5,
+    "translate": 0.1,
+    "fliplr": 0.5,
+    "hsv_h": 0.02,
+    "hsv_s": 0.5,
+    "hsv_v": 0.4,
+    "erasing": 0.4
+  }
+}

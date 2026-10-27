@@ -1,7 +1,4 @@
-import {
-  loadTensorflowModel,
-  type TfliteModel,
-} from "react-native-fast-tflite";
+import type { TfliteModel } from "react-native-fast-tflite";
 
 import { NUM_FEATURES } from "@/services/ai/features";
 
@@ -28,10 +25,20 @@ let modeloPromesa: Promise<TfliteModel> | null = null;
 /** Carga perezosa y única del modelo (reintenta si una carga anterior falló). */
 function obtenerModelo(): Promise<TfliteModel> {
   if (!modeloPromesa) {
-    modeloPromesa = loadTensorflowModel(ARCHIVO_MODELO, []).catch((error) => {
-      modeloPromesa = null;
-      throw error;
-    });
+    // `require` dentro de la promesa: carga diferida del módulo nativo sin
+    // depender de `import()` dinámico (no soportado por Jest sin flags).
+    modeloPromesa = Promise.resolve()
+      .then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { loadTensorflowModel } = require("react-native-fast-tflite") as {
+          loadTensorflowModel: typeof import("react-native-fast-tflite").loadTensorflowModel;
+        };
+        return loadTensorflowModel(ARCHIVO_MODELO, []);
+      })
+      .catch((error) => {
+        modeloPromesa = null;
+        throw error;
+      });
   }
   return modeloPromesa;
 }
@@ -53,6 +60,11 @@ export async function inferirRutina(
   const valores = Array.from(new Float32Array(salida));
   if (valores.length !== NUM_PLANTILLAS + NUM_ESQUEMAS) {
     throw new Error(`Salida inesperada del modelo: ${valores.length} valores`);
+  }
+  if (
+    valores.some((valor) => !Number.isFinite(valor) || valor < 0 || valor > 1)
+  ) {
+    throw new Error("El modelo devolvió probabilidades inválidas.");
   }
   return {
     probabilidadesPlantilla: valores.slice(0, NUM_PLANTILLAS),

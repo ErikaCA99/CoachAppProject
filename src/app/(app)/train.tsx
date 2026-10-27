@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   Alert,
   BackHandler,
-  Image,
   ScrollView,
   TouchableOpacity,
   View,
@@ -13,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/EmptyState";
+import { DemostracionRutina } from "@/components/routines/ExerciseThumbnail";
 import { ErrorCarga } from "@/components/ui/LoadError";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { Text } from "@/components/ui/Typography";
@@ -191,8 +191,14 @@ export default function TrainScreen() {
           style={{ paddingBottom: insets.bottom + 16 }}
         >
           <BotonPrimario
-            titulo="Guardar y salir"
-            onPress={handleFinalizar}
+            titulo={
+              ejerciciosRealizados(sesion) === 0
+                ? "Salir sin registrar"
+                : "Guardar y salir"
+            }
+            onPress={
+              ejerciciosRealizados(sesion) === 0 ? salir : handleFinalizar
+            }
             cargando={guardando}
           />
         </View>
@@ -237,20 +243,11 @@ export default function TrainScreen() {
         </View>
 
         <View className="mt-4 h-40 items-center justify-center overflow-hidden rounded-[20px] bg-primary-light/35">
-          {ejercicioActual.imagenUrl ? (
-            <Image
-              source={{ uri: ejercicioActual.imagenUrl }}
-              className="h-full w-full"
-              resizeMode="contain"
-              accessibilityLabel={`Demostración de ${ejercicioActual.nombre}`}
-            />
-          ) : (
-            <Ionicons
-              name="barbell-outline"
-              size={48}
-              color={palette.primary}
-            />
-          )}
+          <DemostracionRutina
+            ejercicioId={ejercicioActual.maquinaId}
+            imagenUrl={ejercicioActual.imagenUrl}
+            nombre={ejercicioActual.nombre}
+          />
         </View>
 
         {esNuevoEjercicio ? (

@@ -2,6 +2,18 @@
 
 Fecha: 23 de octubre de 2026 · UMSS · Revisión del árbol de trabajo local.
 
+## Actualización de correcciones — 24 de octubre de 2026
+
+La revisión posterior corrigió el registro de sesiones sin ejercicios completados (A02), el recálculo del IMC en actualizaciones parciales (A03) y los errores de tipos, lint y formato observados en el árbol actual (A14). Los resúmenes distinguen sesiones parciales y vacías, y la lógica de series rechaza avances durante el descanso, incluso ante pulsaciones rápidas. El ID real de Firestore prevalece ahora sobre cualquier campo `id` almacenado; esto no sustituye la validación completa pendiente en A09. También se rechazan probabilidades no finitas o fuera de rango en la inferencia.
+
+Se integraron 12 GIFs autorizados en ocho fichas mediante un mapeo local explícito, con imágenes estáticas y controles de reproducción. Su carpeta es `src/media/exercises`: el alias especial `@/assets` de la configuración vigente apunta a la carpeta raíz `assets`, por lo que no se utiliza para esos recursos.
+
+La carga nativa de TensorFlow Lite se difiere hasta solicitar inferencia, para que su ausencia se pueda manejar mediante el respaldo existente. Las implementaciones `.web.ts` evitan cargar Nitro en el navegador/servidor: se conserva la heurística de rutinas y la selección manual de máquinas.
+
+Comprobaciones posteriores: TypeScript aprobado; ESLint aprobado con `--max-warnings 0`; Prettier aprobado; **13 suites y 123 pruebas aprobadas** usando caché local, exclusiones CLI para carpetas de skills y `NODE_OPTIONS=--experimental-vm-modules` para la prueba de importación dinámica. La **exportación web completa aprobó** con `npx expo export -p web --max-workers 0 --output-dir .expo/verified-web`. La escritura final requirió ejecutar el comando fuera del aislamiento: dentro de él, Windows devolvía `EPERM` al crear directorios de salida, incluso tras compilar y generar las páginas. No se publicó la aplicación ni se modificaron `package.json`, `app.json` o `tsconfig.json`.
+
+Los hallazgos que no se mencionan como corregidos en esta actualización conservan su estado pendiente; el cuerpo siguiente es el registro histórico de la auditoría inicial. La compilación web no sustituye pruebas con cámara, inferencia y navegación en un dispositivo Android real.
+
 ## Dictamen
 
 La aplicación tiene una estructura por capas reconocible, rutas protegidas centralmente, integración real con TensorFlow Lite y una suite de pruebas que ya existe. No corresponde describirla como un prototipo sin IA ni tests. Todavía hay problemas de integridad, recuperación ante fallos y calidad que impiden considerarla completamente verificada para una entrega Android.

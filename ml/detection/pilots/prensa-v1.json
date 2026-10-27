@@ -1,0 +1,330 @@
+{
+  "version": "prensa-pilot-v1",
+  "clase": "prensa-piernas",
+  "anotacion": "Cajas aproximadas definidas y revisadas visualmente por el asistente; imágenes de catálogo, no gimnasio real.",
+  "limitacion": "Piloto técnico de una clase con pocos ejemplares. No es evaluación de generalización a gimnasios. Las clases ambiguas e ilustraciones fueron excluidas.",
+  "imagenes": [
+    {
+      "imagen": "prensa-piernas--6a963723479018f66ebc.jpg",
+      "sha256_origen": "6a963723479018f66ebc2fc0dd27d952d256f43aaa42631da4325cad86031bb0",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.06,
+          0.15,
+          0.95,
+          0.89
+        ]
+      ],
+      "grupo": "prensa-selectorizada-a",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--5f9b0e1577979c6c041f.jpg",
+      "sha256_origen": "5f9b0e1577979c6c041f5486d442ab65721e220cc4293d4e1aacf68101a10481",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.12,
+          0.06,
+          0.89,
+          0.95
+        ]
+      ],
+      "grupo": "prensa-catalogo-01",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--bb832c2b5ad27c23bf98.jpg",
+      "sha256_origen": "bb832c2b5ad27c23bf9848aca449f9363bbba7fce3569cb4989a8be622e5e720",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.05,
+          0.15,
+          0.96,
+          0.83
+        ]
+      ],
+      "grupo": "prensa-selectorizada-a",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--e4027d8e6f709392e136.jpg",
+      "sha256_origen": "e4027d8e6f709392e136850dbd81b9d9f77db859be0baa5d0214ba5e3b2894e3",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.025,
+          0.05,
+          0.98,
+          0.85
+        ]
+      ],
+      "grupo": "prensa-catalogo-03",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--e4b9f6f924d2dfae55ad.jpg",
+      "sha256_origen": "e4b9f6f924d2dfae55ad7c1d09bf9b8faa00ec26f583c49c6b4f4d6d562535d0",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.05,
+          0.21,
+          0.9,
+          0.88
+        ]
+      ],
+      "grupo": "prensa-catalogo-04",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--7ca53ea3ed0a17553dc8.jpg",
+      "sha256_origen": "7ca53ea3ed0a17553dc8810c911a90e6381140c635f880b74b43c8ba8364adba",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.06,
+          0.08,
+          0.96,
+          0.97
+        ]
+      ],
+      "grupo": "prensa-catalogo-05",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--019fc2b57da9a3aaf692.jpg",
+      "sha256_origen": "019fc2b57da9a3aaf692f2b4d67910000e66a0abe04945918f696585895727a8",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.03,
+          0.15,
+          0.95,
+          0.89
+        ]
+      ],
+      "grupo": "prensa-catalogo-07",
+      "split": "val"
+    },
+    {
+      "imagen": "prensa-piernas--e1c75aa16696c707b3c8.jpg",
+      "sha256_origen": "e1c75aa16696c707b3c8670b81ade9c9fad8b96c2292e1f6086ce2f18b7df309",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.07,
+          0.17,
+          0.94,
+          0.9
+        ]
+      ],
+      "grupo": "prensa-catalogo-08",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--4830fb8ca271086351e6.jpg",
+      "sha256_origen": "4830fb8ca271086351e6c03f1c3957f3863c6859f8debf55b08747ab505d1c7b",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.01,
+          0.12,
+          0.99,
+          0.9
+        ]
+      ],
+      "grupo": "prensa-catalogo-09",
+      "split": "val"
+    },
+    {
+      "imagen": "prensa-piernas--c114ac721eada6a014f8.jpg",
+      "sha256_origen": "c114ac721eada6a014f876f0728238b98055cd48c0c1acb5c36c3f6f2f7945a1",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.09,
+          0.17,
+          0.88,
+          0.88
+        ]
+      ],
+      "grupo": "prensa-catalogo-10",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--9fdbd25cdb029e7b0ba7.jpg",
+      "sha256_origen": "9fdbd25cdb029e7b0ba745ad620a22c286f4bc7deeee8e081642d322285bb27d",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.08,
+          0.18,
+          0.94,
+          0.83
+        ]
+      ],
+      "grupo": "prensa-catalogo-11",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--de0b78e4579f17bdedf4.jpg",
+      "sha256_origen": "de0b78e4579f17bdedf49f34c9c74adc20a7c06dfb129264a870b290db38b001",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.04,
+          0.18,
+          0.96,
+          0.82
+        ]
+      ],
+      "grupo": "prensa-amarilla-b",
+      "split": "test"
+    },
+    {
+      "imagen": "prensa-piernas--0f5cffc60746d35a71da.jpg",
+      "sha256_origen": "0f5cffc60746d35a71daa0c2ba2246fb4bdada3de70870db9eb6ce9b3f177549",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.05,
+          0.18,
+          0.97,
+          0.88
+        ]
+      ],
+      "grupo": "prensa-amarilla-b",
+      "split": "test"
+    },
+    {
+      "imagen": "prensa-piernas--d4e3caf0f07516e8995c.jpg",
+      "sha256_origen": "d4e3caf0f07516e8995c93e2dda8f9202f8dd918c89dac19bff9491b433f1330",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.04,
+          0.13,
+          0.96,
+          0.98
+        ]
+      ],
+      "grupo": "prensa-amarilla-b",
+      "split": "test"
+    },
+    {
+      "imagen": "prensa-piernas--fac8b4ec192bffc00b53.jpg",
+      "sha256_origen": "fac8b4ec192bffc00b53a9a9e0f8ed61cd54b1b82463f2a667b325dc32b55d93",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.02,
+          0.18,
+          0.97,
+          0.9
+        ]
+      ],
+      "grupo": "prensa-catalogo-18",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--419af63faa41de0a5f64.jpg",
+      "sha256_origen": "419af63faa41de0a5f64ceefa8fcf14430bd2937c517ff0e7b8ce61e1787271c",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.025,
+          0.06,
+          0.98,
+          0.95
+        ]
+      ],
+      "grupo": "prensa-catalogo-19",
+      "split": "train"
+    },
+    {
+      "imagen": "prensa-piernas--625fa53bf9b0d4415400.jpg",
+      "sha256_origen": "625fa53bf9b0d44154001f896e1ae364ffea031407388a64ffd7d2c2de7c958e",
+      "cajas_xyxy_normalizadas": [
+        [
+          0.005,
+          0.025,
+          0.995,
+          0.99
+        ]
+      ],
+      "grupo": "prensa-catalogo-22",
+      "split": "test"
+    },
+    {
+      "imagen": "eliptica--919217095e1034dfed77.jpg",
+      "sha256_origen": "919217095e1034dfed770a6f1a8097e4aa851cd6f699a341db43d028f133895f",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "eliptica-a",
+      "split": "train"
+    },
+    {
+      "imagen": "eliptica--fb093c9160906dacee9a.jpg",
+      "sha256_origen": "fb093c9160906dacee9a4dcff51371bb4b0b45ec009ed37ea50e3230becba3fc",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "eliptica-a",
+      "split": "train"
+    },
+    {
+      "imagen": "eliptica--3d55f87f0bf32c9b7a09.jpg",
+      "sha256_origen": "3d55f87f0bf32c9b7a096bd16a51f3fc43ff1121af323a66cfa9be2592645a2b",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "negativo-catalogo-02",
+      "split": "test"
+    },
+    {
+      "imagen": "caminadora--43888d12432707a8f5d1.jpg",
+      "sha256_origen": "43888d12432707a8f5d1a7fe158785db5eebf54d2fc3fb9f8bcd3b075609034a",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "caminadora-a",
+      "split": "train"
+    },
+    {
+      "imagen": "caminadora--5ff1e4cbea7b8f87cd03.jpg",
+      "sha256_origen": "5ff1e4cbea7b8f87cd03357e840b17d704bc7c4f06f02db48641b1a13513625d",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "caminadora-a",
+      "split": "train"
+    },
+    {
+      "imagen": "caminadora--4c7e841037abc86dee27.jpg",
+      "sha256_origen": "4c7e841037abc86dee2717e8fe9beb144f88518c2d9f8972ebcebee8acff7f71",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "negativo-catalogo-05",
+      "split": "val"
+    },
+    {
+      "imagen": "bicicleta-estatica--06fa96359a81ea6b2cf8.jpg",
+      "sha256_origen": "06fa96359a81ea6b2cf8ea603418b785350b5fd97141c85a28fd3fb7f80a480d",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "negativo-catalogo-06",
+      "split": "train"
+    },
+    {
+      "imagen": "bicicleta-estatica--c6c0f77da178a7bf16cd.jpg",
+      "sha256_origen": "c6c0f77da178a7bf16cdf0edd0aa1a27681eb81ff1b51a2852ca4c60330cfa00",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "bicicleta-a",
+      "split": "train"
+    },
+    {
+      "imagen": "bicicleta-estatica--c3e8106d28e9224361e1.jpg",
+      "sha256_origen": "c3e8106d28e9224361e172cbeaa7297ff6cdf3448f10a7de09f91aed8e035ad2",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "bicicleta-a",
+      "split": "train"
+    },
+    {
+      "imagen": "banco-predicador--0aae575afbf5489f8d43.jpg",
+      "sha256_origen": "0aae575afbf5489f8d432d7ef0b66919a92462c49009d97cb8e5f5a4e02de876",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "negativo-catalogo-09",
+      "split": "train"
+    },
+    {
+      "imagen": "banco-predicador--0780196589fe1afa7ffd.jpg",
+      "sha256_origen": "0780196589fe1afa7ffd5b80850bbc94120f65746a5255237efb25f53bc21758",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "negativo-catalogo-10",
+      "split": "val"
+    },
+    {
+      "imagen": "banco-predicador--871139928417ad5a9d90.jpg",
+      "sha256_origen": "871139928417ad5a9d906f656b1713eb1a1119e1aaa1d21456a1b1e586fd7a70",
+      "cajas_xyxy_normalizadas": [],
+      "grupo": "negativo-catalogo-11",
+      "split": "test"
+    }
+  ]
+}

@@ -1,20 +1,15 @@
+import { configurarAppCheck } from "@/services/firebase/appCheck";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getApp, getApps, initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "@firebase/app";
 import {
   getFirestore,
   initializeFirestore,
   type Firestore,
-} from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-// NOTA: Auth se importa de "@firebase/auth" (el paquete con scope), NO de
-// "firebase/auth". El paquete "firebase" (el envoltorio) no declara la
-// condición "react-native" en su exports map para "./auth" — ni en la
-// versión instalada ni en la última publicada — así que siempre resuelve
-// al build de navegador, que no incluye `getReactNativePersistence` y hace
-// que Auth caiga a persistencia en memoria (la sesión no sobrevive un
-// reinicio de la app) aunque `@react-native-async-storage/async-storage`
-// esté instalado. "@firebase/auth" sí declara esa condición y ya es una
-// dependencia real (transitiva de "firebase") presente en node_modules.
+} from "@firebase/firestore";
+import { getStorage } from "@firebase/storage";
+// Todos los servicios usan módulos @firebase/* directamente. Evita cargar
+// una copia anidada de @firebase/app desde el wrapper "firebase", distinta
+// de la que registra Auth y que causa "Component auth has not been registered yet".
 import {
   getAuth,
   getReactNativePersistence,
@@ -29,7 +24,9 @@ import { env } from "@/config/env";
 const firebaseConfig = env.firebase;
 
 // Inicializar Firebase (evita doble inicialización en HMR)
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const existente = getApps().length > 0;
+const app = existente ? getApp() : initializeApp(firebaseConfig);
+if (!existente) configurarAppCheck(app);
 
 let auth: Auth;
 try {

@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, TouchableOpacity, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
 import { SelectorEjercicios } from "@/components/routines/ExercisePicker";
+import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
 import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { useEditorRutinaPersonalizada } from "@/hooks/useCustomRoutineEditor";
@@ -151,20 +152,13 @@ export default function RutinaPersonalizadaScreen() {
           key={`${ejercicio.maquinaId}-${indice}`}
           className="mb-2.5 flex-row items-center rounded-xl border border-border p-2.5"
         >
-          {ejercicio.imagenUrl ? (
-            <Image
-              source={{ uri: ejercicio.imagenUrl }}
-              className="h-11 w-11 rounded-lg"
-            />
-          ) : (
-            <View className="h-11 w-11 items-center justify-center rounded-lg bg-primary-light/40">
-              <Ionicons
-                name="barbell-outline"
-                size={16}
-                color={palette.primary}
-              />
-            </View>
-          )}
+          <MiniaturaEjercicio
+            ejercicioId={ejercicio.maquinaId}
+            imagenUrl={ejercicio.imagenUrl}
+            nombre={ejercicio.nombre}
+            tamano={44}
+            radio={10}
+          />
           <View className="ml-3 flex-1">
             <Text
               className="text-sm font-semibold text-foreground"

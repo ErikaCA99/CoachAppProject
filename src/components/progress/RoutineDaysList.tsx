@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 import { Text } from "@/components/ui/Typography";
+import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
 import { palette } from "@/constants/palette";
 import type { DiaRutina, EjercicioRutina } from "@/models/entities/Routine";
 
@@ -105,20 +106,12 @@ export function ListaDiasRutina({
                     className="mb-2 flex-row items-center rounded-lg border border-border p-2.5"
                     onPress={() => onIrAMaquina(ejercicio)}
                   >
-                    {ejercicio.imagenUrl ? (
-                      <Image
-                        source={{ uri: ejercicio.imagenUrl }}
-                        className="h-10 w-10 rounded-md"
-                      />
-                    ) : (
-                      <View className="h-10 w-10 items-center justify-center rounded-md bg-primary-light/40">
-                        <Ionicons
-                          name="barbell-outline"
-                          size={16}
-                          color={palette.primary}
-                        />
-                      </View>
-                    )}
+                    <MiniaturaEjercicio
+                      ejercicioId={ejercicio.maquinaId}
+                      imagenUrl={ejercicio.imagenUrl}
+                      nombre={ejercicio.nombre}
+                      tamano={40}
+                    />
                     <View className="ml-2.5 flex-1">
                       <Text
                         className="text-sm font-semibold text-foreground"

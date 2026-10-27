@@ -9,9 +9,19 @@ import {
 
 export const ejercicioRutinaSchema = z.object({
   maquinaId: z.number().int().positive("ID de máquina inválido"),
-  maquinaCatalogoId: z.string().min(1).optional(),
-  nombre: z.string().min(1, "El nombre del ejercicio es obligatorio"),
-  imagenUrl: z.string().url().nullable(),
+  maquinaCatalogoId: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[^/]+$/)
+    .optional(),
+  nombre: z.string().min(1, "El nombre del ejercicio es obligatorio").max(200),
+  imagenUrl: z
+    .string()
+    .url()
+    .max(2048)
+    .refine((v) => v.startsWith("https://"))
+    .nullable(),
   series: z.number().int().min(1, "Mínimo 1 serie").max(20, "Máximo 20 series"),
   repeticiones: z
     .number()
@@ -31,10 +41,11 @@ export type EjercicioRutinaInput = z.infer<typeof ejercicioRutinaSchema>;
 
 export const diaRutinaSchema = z.object({
   dia: z.number().int().min(1).max(7),
-  enfoque: z.string().min(1, "El enfoque del día es obligatorio"),
+  enfoque: z.string().min(1, "El enfoque del día es obligatorio").max(200),
   ejercicios: z
     .array(ejercicioRutinaSchema)
-    .min(1, "Cada día debe tener al menos 1 ejercicio"),
+    .min(1, "Cada día debe tener al menos 1 ejercicio")
+    .max(20),
 });
 
 export type DiaRutinaInput = z.infer<typeof diaRutinaSchema>;

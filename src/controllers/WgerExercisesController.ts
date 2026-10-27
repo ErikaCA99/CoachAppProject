@@ -3,6 +3,8 @@ import type {
   EjercicioWger,
   EquipoEjercicio,
 } from "@/models/entities/WgerExercise";
+import type { ImagenEjercicioWger } from "@/models/entities/WgerExerciseImage";
+import { obtenerImagenRespaldoWger } from "@/models/repositories/wgerImageRepository";
 import {
   listarCategoriasEjercicios,
   listarEjercicios,
@@ -30,6 +32,13 @@ export const EjerciciosWgerController = {
 
   async obtenerPorId(id: number): Promise<EjercicioWger | null> {
     return obtenerEjercicio(id);
+  },
+
+  /** Foto/GIF del catálogo propio para ejercicios que wger no ilustra. */
+  async obtenerImagenRespaldo(
+    wgerId: number,
+  ): Promise<ImagenEjercicioWger | null> {
+    return obtenerImagenRespaldoWger(wgerId);
   },
 
   listarCategorias(): CategoriaEjercicio[] {

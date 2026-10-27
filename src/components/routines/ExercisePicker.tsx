@@ -2,12 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Modal,
   TouchableOpacity,
   View,
 } from "react-native";
 
+import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
 import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { useBuscarEjercicios } from "@/hooks/useExerciseSearch";
@@ -70,20 +70,13 @@ export function SelectorEjercicios({
                 className="mb-2.5 flex-row items-center rounded-xl border border-border p-2.5"
                 onPress={() => onSeleccionar(item)}
               >
-                {item.imagenUrl ? (
-                  <Image
-                    source={{ uri: item.imagenUrl }}
-                    className="h-12 w-12 rounded-lg"
-                  />
-                ) : (
-                  <View className="h-12 w-12 items-center justify-center rounded-lg bg-primary-light/40">
-                    <Ionicons
-                      name="barbell-outline"
-                      size={18}
-                      color={palette.primary}
-                    />
-                  </View>
-                )}
+                <MiniaturaEjercicio
+                  ejercicioId={item.id}
+                  imagenUrl={item.imagenUrl}
+                  nombre={item.nombre}
+                  tamano={48}
+                  radio={10}
+                />
                 <View className="ml-3 flex-1">
                   <Text
                     className="text-sm font-semibold text-foreground"

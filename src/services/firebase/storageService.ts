@@ -1,4 +1,4 @@
-import { getDownloadURL, ref } from "firebase/storage";
+import { getDownloadURL, ref } from "@firebase/storage";
 
 import { storage } from "@/services/firebase/firebase";
 

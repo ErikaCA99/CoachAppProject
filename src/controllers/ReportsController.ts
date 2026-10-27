@@ -1,3 +1,4 @@
+import { formatearFechaISO } from "@/utils/workoutStats";
 import { listarEntrenamientos } from "@/models/repositories/workoutRepository";
 import { listarRegistrosNutricion } from "@/models/repositories/nutritionRepository";
 import { listarProgreso } from "@/models/repositories/progressRepository";
@@ -28,11 +29,22 @@ export const ReportesController = {
     usuarioId: string,
     periodo: PeriodoReporte,
   ): Promise<ResumenReporte> {
+    const ahora = new Date();
+    const hasta = new Date(ahora);
+    hasta.setHours(23, 59, 59, 999);
+    const desde = periodo === null ? undefined : new Date(ahora);
+    if (desde) {
+      desde.setDate(desde.getDate() - (periodo! - 1));
+      desde.setHours(0, 0, 0, 0);
+    }
     const [perfil, progreso, nutricion, entrenamientos] = await Promise.all([
       obtenerPerfilUsuario(usuarioId),
-      listarProgreso(usuarioId),
-      listarRegistrosNutricion(usuarioId),
-      listarEntrenamientos(usuarioId),
+      listarProgreso(usuarioId, { desde, hasta }),
+      listarRegistrosNutricion(usuarioId, { desde, hasta }),
+      listarEntrenamientos(usuarioId, {
+        desde: desde && formatearFechaISO(desde),
+        hasta: formatearFechaISO(hasta),
+      }),
     ]);
 
     return calcularResumenReporte({
@@ -42,6 +54,7 @@ export const ReportesController = {
       entrenamientos,
       metas: calcularMetasNutricionales(perfil),
       periodo,
+      ahora,
     });
   },
 

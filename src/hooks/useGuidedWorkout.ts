@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/auth.store";
 import type { ResultadoAccion } from "@/types/actionResult";
 import {
   completarSerie,
+  ejerciciosRealizados,
   crearSesion,
   segundosDescanso,
   saltarEjercicio,
@@ -152,7 +153,21 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
 
   /** Registra el día como completado hoy. */
   const finalizar = useCallback(async (): Promise<ResultadoAccion> => {
-    if (!uid || !rutina || numeroDia === null) return OK;
+    if (!uid || !rutina || numeroDia === null || !sesion?.terminado) {
+      return {
+        ok: false,
+        titulo: "No se pudo guardar",
+        mensaje: "La sesión no está lista para guardarse.",
+      };
+    }
+    if (ejerciciosRealizados(sesion) === 0) {
+      return {
+        ok: false,
+        titulo: "Sin ejercicios completados",
+        mensaje:
+          "Esta sesión no puede contar como un entrenamiento completado.",
+      };
+    }
     setGuardando(true);
     try {
       await EntrenamientosController.marcarCompletadoHoy(
@@ -171,7 +186,7 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
     } finally {
       setGuardando(false);
     }
-  }, [uid, rutina, numeroDia]);
+  }, [uid, rutina, numeroDia, sesion]);
 
   return {
     // estado de carga

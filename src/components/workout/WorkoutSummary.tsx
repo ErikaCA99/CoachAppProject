@@ -42,7 +42,11 @@ export function ResumenEntrenamiento({
           <Ionicons name="checkmark" size={44} color={palette.background} />
         </View>
         <Text className="mt-5 text-center text-2xl font-bold text-foreground">
-          ¡Día {numeroDia} completado!
+          {ejerciciosRealizados === 0
+            ? "Sesión sin ejercicios completados"
+            : ejerciciosRealizados < ejerciciosTotales
+              ? `Día ${numeroDia}: sesión parcial`
+              : `¡Día ${numeroDia} completado!`}
         </Text>
         <Text className="mt-1 text-center text-sm text-text-secondary">
           {enfoque}

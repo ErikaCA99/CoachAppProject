@@ -28,7 +28,6 @@ const fuente = {
     process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  EXPO_PUBLIC_FOOD_DATA_API_KEY: process.env.EXPO_PUBLIC_FOOD_DATA_API_KEY,
 };
 
 /** Sin estas, la app no puede iniciar (Firebase falla al importarse). */
@@ -58,6 +57,4 @@ export const env = {
   },
   /** Opcional: sin él solo falla el inicio de sesión con Google. */
   googleWebClientId: fuente.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  /** Opcional: sin ella solo falla la búsqueda de alimentos (USDA). */
-  foodDataApiKey: fuente.EXPO_PUBLIC_FOOD_DATA_API_KEY,
 } as const;

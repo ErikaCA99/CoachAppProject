@@ -1,5 +1,12 @@
 import {
   addDoc,
+  limit,
+  startAfter,
+  where,
+  updateDoc,
+  runTransaction,
+  type QueryConstraint,
+  type QueryDocumentSnapshot,
   collection,
   deleteDoc,
   doc,
@@ -14,7 +21,7 @@ import {
   type DocumentData,
   type FirestoreError,
   type Unsubscribe,
-} from "firebase/firestore";
+} from "@firebase/firestore";
 
 import type { ConId } from "@/models/types";
 import { auth, db } from "@/services/firebase/firebase";
@@ -34,12 +41,17 @@ import { auth, db } from "@/services/firebase/firebase";
  * modelos, controladores y vistas no dependan del SDK de Firestore.
  * (Un `serverTimestamp()` aún sin resolver llega como `null` y se respeta.)
  */
-function aModelo<T>(id: string, datos: DocumentData): ConId<T> {
+function aModelo<T>(
+  id: string,
+  datos: DocumentData,
+  validar?: (datos: unknown) => unknown,
+): ConId<T> {
   const convertidos: Record<string, unknown> = {};
   for (const [clave, valor] of Object.entries(datos)) {
     convertidos[clave] = valor instanceof Timestamp ? valor.toDate() : valor;
   }
-  return { id, ...convertidos } as ConId<T>;
+  const modelo = { ...convertidos, id };
+  return (validar ? validar(modelo) : modelo) as ConId<T>;
 }
 
 /**
@@ -84,7 +96,7 @@ function manejarErrorListener(
   ruta: string,
   error: FirestoreError,
   entregarVacio: () => void,
-  onError?: (error: FirestoreError) => void,
+  onError?: (error: Error) => void,
 ): void {
   const esCierreDeSesion =
     error.code === "permission-denied" && !auth.currentUser;
@@ -141,27 +153,78 @@ export async function crearConId<T extends DocumentData>(
 export async function obtenerPorId<T>(
   coleccionPath: string,
   id: string,
+  validar?: (datos: unknown) => unknown,
 ): Promise<ConId<T> | null> {
   const snapshot = await getDoc(doc(db, coleccionPath, id));
   if (!snapshot.exists()) return null;
-  return aModelo<T>(snapshot.id, snapshot.data());
+  return aModelo<T>(snapshot.id, snapshot.data(), validar);
 }
 
-/** Lista todos los documentos de una colección, opcionalmente ordenados. */
+export interface OpcionesConsulta {
+  ordenarPor?: string;
+  direccion?: "asc" | "desc";
+  desde?: Date | string;
+  hasta?: Date | string;
+  validar?: (datos: unknown) => unknown;
+}
+
+function restricciones(opciones: OpcionesConsulta): QueryConstraint[] {
+  const campo = opciones.ordenarPor ?? "creadoEn";
+  const filtros: QueryConstraint[] = [];
+  if (opciones.desde !== undefined)
+    filtros.push(where(campo, ">=", opciones.desde));
+  if (opciones.hasta !== undefined)
+    filtros.push(where(campo, "<=", opciones.hasta));
+  if (opciones.ordenarPor)
+    filtros.push(orderBy(campo, opciones.direccion ?? "asc"));
+  return filtros;
+}
+
+/** Paginación por cursor; nunca devuelve un informe silenciosamente truncado. */
 export async function listar<T>(
   coleccionPath: string,
-  opciones: { ordenarPor?: string; direccion?: "asc" | "desc" } = {},
+  opciones: OpcionesConsulta = {},
 ): Promise<ConId<T>[]> {
-  const coleccionRef = collection(db, coleccionPath);
-  const consulta = opciones.ordenarPor
-    ? query(
-        coleccionRef,
-        orderBy(opciones.ordenarPor, opciones.direccion ?? "asc"),
-      )
-    : coleccionRef;
+  const resultados: ConId<T>[] = [];
+  let cursor: QueryDocumentSnapshot | undefined;
+  for (;;) {
+    const filtros = restricciones(opciones);
+    if (cursor) filtros.push(startAfter(cursor));
+    const pagina = await getDocs(
+      query(collection(db, coleccionPath), ...filtros, limit(500)),
+    );
+    resultados.push(
+      ...pagina.docs.map((d) => aModelo<T>(d.id, d.data(), opciones.validar)),
+    );
+    if (resultados.length > 10000)
+      throw new Error(
+        "Demasiados registros. Selecciona un período más corto para el reporte.",
+      );
+    if (pagina.size < 500) return resultados;
+    cursor = pagina.docs[pagina.docs.length - 1];
+  }
+}
 
-  const snapshot = await getDocs(consulta);
-  return snapshot.docs.map((d) => aModelo<T>(d.id, d.data()));
+/** Upsert transaccional: preserva creadoEn al volver a marcar un entrenamiento. */
+export async function guardarConFecha<T extends DocumentData>(
+  ruta: string,
+  id: string,
+  datos: T,
+): Promise<void> {
+  const referencia = doc(db, ruta, id);
+  await runTransaction(db, async (transaccion) => {
+    const anterior = await transaccion.get(referencia);
+    transaccion.set(
+      referencia,
+      anterior.exists()
+        ? {
+            ...limpiarUndefined(datos),
+            creadoEn: anterior.data().creadoEn,
+            actualizadoEn: serverTimestamp(),
+          }
+        : { ...limpiarUndefined(datos), creadoEn: serverTimestamp() },
+    );
+  });
 }
 
 /** Actualiza parcialmente un documento. Agrega `actualizadoEn` (server timestamp). */
@@ -170,14 +233,10 @@ export async function actualizar<T extends DocumentData>(
   id: string,
   datos: Partial<T>,
 ): Promise<void> {
-  await setDoc(
-    doc(db, coleccionPath, id),
-    {
-      ...limpiarUndefined(datos),
-      actualizadoEn: serverTimestamp(),
-    },
-    { merge: true },
-  );
+  await updateDoc(doc(db, coleccionPath, id), {
+    ...limpiarUndefined(datos),
+    actualizadoEn: serverTimestamp(),
+  });
 }
 
 /** Elimina un documento por ID. */
@@ -198,21 +257,32 @@ export function observar<T>(
   opciones: {
     ordenarPor?: string;
     direccion?: "asc" | "desc";
-    onError?: (error: FirestoreError) => void;
+    desde?: Date | string;
+    hasta?: Date | string;
+    validar?: (datos: unknown) => unknown;
+    onError?: (error: Error) => void;
   } = {},
 ): Unsubscribe {
-  const coleccionRef = collection(db, coleccionPath);
-  const consulta = opciones.ordenarPor
-    ? query(
-        coleccionRef,
-        orderBy(opciones.ordenarPor, opciones.direccion ?? "asc"),
-      )
-    : coleccionRef;
+  const consulta = query(
+    collection(db, coleccionPath),
+    ...restricciones(opciones),
+    limit(500),
+  );
 
   return onSnapshot(
     consulta,
     (snapshot) => {
-      callback(snapshot.docs.map((d) => aModelo<T>(d.id, d.data())));
+      try {
+        callback(
+          snapshot.docs.map((d) =>
+            aModelo<T>(d.id, d.data(), opciones.validar),
+          ),
+        );
+      } catch (error) {
+        opciones.onError?.(
+          error instanceof Error ? error : new Error("Datos inválidos"),
+        );
+      }
     },
     (error) =>
       manejarErrorListener(
@@ -229,14 +299,23 @@ export function observarDocumento<T>(
   coleccionPath: string,
   id: string,
   callback: (item: ConId<T> | null) => void,
-  onError?: (error: FirestoreError) => void,
+  onError?: (error: Error) => void,
+  validar?: (datos: unknown) => unknown,
 ): Unsubscribe {
   return onSnapshot(
     doc(db, coleccionPath, id),
     (snapshot) => {
-      callback(
-        snapshot.exists() ? aModelo<T>(snapshot.id, snapshot.data()) : null,
-      );
+      try {
+        callback(
+          snapshot.exists()
+            ? aModelo<T>(snapshot.id, snapshot.data(), validar)
+            : null,
+        );
+      } catch (error) {
+        onError?.(
+          error instanceof Error ? error : new Error("Datos inválidos"),
+        );
+      }
     },
     (error) =>
       manejarErrorListener(
@@ -256,7 +335,10 @@ export function observarPorUsuario<T>(
   opciones: {
     ordenarPor?: string;
     direccion?: "asc" | "desc";
-    onError?: (error: FirestoreError) => void;
+    desde?: Date | string;
+    hasta?: Date | string;
+    validar?: (datos: unknown) => unknown;
+    onError?: (error: Error) => void;
   } = {},
 ): Unsubscribe {
   return observar<T>(

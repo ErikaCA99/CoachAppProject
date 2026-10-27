@@ -1,3 +1,7 @@
+import {
+  perfilPersistidoSchema,
+  validarDocumento,
+} from "@/schemas/persisted.schema";
 import type { Usuario } from "@/models/entities/User";
 import {
   actualizar,
@@ -6,6 +10,8 @@ import {
   obtenerPorId,
   observarDocumento,
 } from "@/services/firebase/firestoreService";
+
+const validar = validarDocumento(perfilPersistidoSchema);
 
 const COLECCION = "usuarios";
 
@@ -20,7 +26,7 @@ export async function crearPerfilUsuario(
 export async function obtenerPerfilUsuario(
   uid: string,
 ): Promise<Usuario | null> {
-  return obtenerPorId<Usuario>(COLECCION, uid);
+  return obtenerPorId<Usuario>(COLECCION, uid, validar);
 }
 
 export async function actualizarPerfilUsuario(
@@ -36,7 +42,7 @@ export function observarPerfilUsuario(
   callback: (usuario: Usuario | null) => void,
   onError?: (error: Error) => void,
 ) {
-  return observarDocumento<Usuario>(COLECCION, uid, callback, onError);
+  return observarDocumento<Usuario>(COLECCION, uid, callback, onError, validar);
 }
 
 /** Elimina el documento de perfil del usuario. */

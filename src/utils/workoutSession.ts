@@ -62,7 +62,7 @@ export function completarSerie(
   sesion: SesionEntrenamiento,
   ahora: number,
 ): SesionEntrenamiento {
-  if (sesion.terminado) return sesion;
+  if (sesion.terminado || segundosDescanso(sesion, ahora) > 0) return sesion;
 
   const actual = sesion.ejercicios[sesion.indice];
   const avanzada =
