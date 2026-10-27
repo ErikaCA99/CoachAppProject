@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "creado": "2026-10-27T13:51:54+00:00",
+  "creado": "2026-10-27T14:31:14+00:00",
   "modelo": {
     "archivo": "machine_recognizer_yolo.tflite",
     "bytes": 6399116,
@@ -164,13 +164,8 @@
     "motivo": "manifiesto generado sin re-exportar el modelo"
   },
   "herramientas": {
-    "ultralytics": null,
-    "torch": null,
-    "torchvision": null,
-    "opencv-python": "5.0.0.93",
-    "numpy": "2.2.6",
-    "litert-torch": null,
-    "ai-edge-litert": null
+    "registradas": false,
+    "motivo": "manifiesto creado a partir de archivos existentes; las versiones usadas al entrenar/exportar no se guardaron (los siguientes entrenamientos las registran en training_context.json)"
   },
   "advertencias": [
     "Reconocimiento ASISTIDO: usar como sugerencia top-3 con confirmación del usuario, no como detección automática.",

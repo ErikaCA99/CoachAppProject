@@ -130,7 +130,11 @@ def create_manifest(tflite: Path, stage: str, weights: Path | None = None, run: 
                     "recalibrar": True, "uso_recomendado": "sugerencia top-3 con confirmación"},
         training=training, evaluation=_evaluation_summary(results, eval_summary), data=_data_summary(results),
         verification=verification or {"ejecutada": False, "motivo": "manifiesto generado sin re-exportar el modelo"},
-        warnings=warnings, tools=tool_versions())
+        warnings=warnings,
+        tools=tool_versions() if verification else {
+            "registradas": False,
+            "motivo": "manifiesto creado a partir de archivos existentes; las versiones usadas al entrenar/exportar "
+                      "no se guardaron (los siguientes entrenamientos las registran en training_context.json)"})
     destination = tflite.with_suffix(".manifest.json")
     write_manifest(manifest, destination)
     return destination
