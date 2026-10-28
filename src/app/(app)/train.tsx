@@ -1,8 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import {
+  useFocusEffect,
+  useIsFocused,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { useCallback } from "react";
 import {
-  ActivityIndicator,
   Alert,
   BackHandler,
   ScrollView,
@@ -11,6 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DemostracionRutina } from "@/components/routines/ExerciseThumbnail";
 import { ErrorCarga } from "@/components/ui/LoadError";
@@ -32,7 +38,22 @@ function leerNumeroDia(param: string | string[] | undefined): number | null {
   return Number.isInteger(valor) && valor >= 1 && valor <= 7 ? valor : null;
 }
 
+/**
+ * Las pestañas no desmontan una pantalla al salir de ella: sin esto, la sesión
+ * de la vez anterior (incluso ya terminada) seguiría en memoria al volver con
+ * otro día. Fuera de foco se quita la sesión del árbol; al volver se retoma lo
+ * guardado o se empieza de cero.
+ */
 export default function TrainScreen() {
+  const enfocada = useIsFocused();
+  const { dia } = useLocalSearchParams<{ dia?: string }>();
+  if (!enfocada) return <View className="flex-1 bg-background" />;
+  return <PantallaEntrenamiento key={String(dia)} />;
+}
+
+const ETIQUETA_KEEP_AWAKE = "entrenamiento-guiado";
+
+function PantallaEntrenamiento() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const irAMaquina = useIrAMaquina();
@@ -57,30 +78,67 @@ export default function TrainScreen() {
     saltarDescanso,
     saltarEjercicioActual,
     finalizar,
+    descartar,
   } = useEntrenamientoGuiado(numeroDia);
+
+  // La pantalla no se apaga durante la sesión (los descansos son largos).
+  useFocusEffect(
+    useCallback(() => {
+      void activateKeepAwakeAsync(ETIQUETA_KEEP_AWAKE).catch(() => {});
+      return () => {
+        void deactivateKeepAwake(ETIQUETA_KEEP_AWAKE).catch(() => {});
+      };
+    }, []),
+  );
 
   const salir = useCallback(() => {
     if (router.canGoBack()) router.back();
     else router.replace("/(app)");
   }, [router]);
 
-  /** Pide confirmación solo si hay algo que perder. */
+  const descartarYSalir = useCallback(() => {
+    void descartar();
+    salir();
+  }, [descartar, salir]);
+
+  /**
+   * Pide confirmación solo si hay algo que perder. Con la sesión a medias se
+   * puede pausar (queda guardada para retomarla hoy) o descartar.
+   */
   const solicitarSalida = useCallback(() => {
     if (!hayAvance && !terminado) {
       salir();
       return;
     }
+    if (terminado) {
+      Alert.alert(
+        "¿Salir del entrenamiento?",
+        "Si sales ahora, este entrenamiento no se registrará.",
+        [
+          { text: "Seguir aquí", style: "cancel" },
+          {
+            text: "Salir sin registrar",
+            style: "destructive",
+            onPress: descartarYSalir,
+          },
+        ],
+      );
+      return;
+    }
     Alert.alert(
       "¿Salir del entrenamiento?",
-      terminado
-        ? "Si sales ahora, este entrenamiento no se registrará."
-        : "Perderás el avance de esta sesión.",
+      "Puedes pausarlo y retomarlo hoy desde el Inicio, o descartar el avance.",
       [
         { text: "Seguir aquí", style: "cancel" },
-        { text: "Salir", style: "destructive", onPress: salir },
+        { text: "Pausar y salir", onPress: salir },
+        {
+          text: "Descartar avance",
+          style: "destructive",
+          onPress: descartarYSalir,
+        },
       ],
     );
-  }, [hayAvance, terminado, salir]);
+  }, [hayAvance, terminado, salir, descartarYSalir]);
 
   // El botón "atrás" de Android también pasa por la confirmación.
   useFocusEffect(
@@ -126,7 +184,7 @@ export default function TrainScreen() {
   if (cargando) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color={palette.primary} />
+        <IndicadorCarga size="large" color={palette.primary} />
       </View>
     );
   }
@@ -197,7 +255,9 @@ export default function TrainScreen() {
                 : "Guardar y salir"
             }
             onPress={
-              ejerciciosRealizados(sesion) === 0 ? salir : handleFinalizar
+              ejerciciosRealizados(sesion) === 0
+                ? descartarYSalir
+                : handleFinalizar
             }
             cargando={guardando}
           />
@@ -226,6 +286,7 @@ export default function TrainScreen() {
           {botonAtras}
           <View className="flex-1">
             <Text
+              accessibilityRole="header"
               className="text-xl font-bold text-foreground"
               numberOfLines={1}
             >
@@ -256,12 +317,28 @@ export default function TrainScreen() {
           </Text>
         ) : null}
         <Text
+          accessibilityRole="header"
           className={`${esNuevoEjercicio ? "mt-1" : "mt-4"} text-2xl font-bold text-foreground`}
         >
           {ejercicioActual.nombre}
         </Text>
 
-        <Text className="mt-4 text-xl font-bold text-foreground">
+        <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={0.7}
+          onPress={() => irAMaquina(ejercicioActual)}
+          className="min-h-11 flex-row items-center gap-1 self-start"
+        >
+          <Text className="text-sm font-bold text-primary">
+            Ver guía de la máquina
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={palette.primary} />
+        </TouchableOpacity>
+
+        <Text
+          accessibilityRole="header"
+          className="mt-1 text-xl font-bold text-foreground"
+        >
           {ejercicioActual.series} series × {ejercicioActual.repeticiones}{" "}
           repeticiones
         </Text>
@@ -272,27 +349,13 @@ export default function TrainScreen() {
           />
         </View>
 
-        {enDescanso ? (
-          <View className="mt-4">
-            <TarjetaDescanso
-              segundosRestantes={segundosRestantes}
-              segundosTotales={descansoTotal}
-              onSaltar={saltarDescanso}
-            />
-          </View>
-        ) : null}
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={0.7}
-          onPress={() => irAMaquina(ejercicioActual)}
-          className="mt-2 min-h-11 flex-row items-center gap-1 self-start"
-        >
-          <Text className="text-sm font-bold text-primary">
-            Ver guía de la máquina
-          </Text>
-          <Ionicons name="chevron-forward" size={18} color={palette.primary} />
-        </TouchableOpacity>
+        <View className="mt-4">
+          <TarjetaDescanso
+            segundosRestantes={segundosRestantes}
+            segundosTotales={descansoTotal}
+            descansoConfigurado={ejercicioActual.descansoSegundos}
+          />
+        </View>
       </ScrollView>
 
       <View
@@ -301,10 +364,9 @@ export default function TrainScreen() {
       >
         <BotonPrimario
           titulo={
-            enDescanso ? "Descansando…" : `Serie ${sesion.serie} completada`
+            enDescanso ? "Saltar descanso" : `Serie ${sesion.serie} completada`
           }
-          onPress={completarSerieActual}
-          deshabilitado={enDescanso}
+          onPress={enDescanso ? saltarDescanso : completarSerieActual}
         />
         <TouchableOpacity
           accessibilityRole="button"

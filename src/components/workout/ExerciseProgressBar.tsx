@@ -20,7 +20,14 @@ export function BarraProgresoEjercicios({
     <View
       className="flex-row gap-1.5"
       accessibilityRole="progressbar"
-      accessibilityLabel={`Ejercicio ${actual} de ${total}`}
+      accessibilityLabel="Progreso del entrenamiento"
+      accessibilityValue={{
+        min: 1,
+        max: total,
+        now: actual,
+        text: `Ejercicio ${actual} de ${total}`,
+      }}
+      accessible
     >
       {sesion.ejercicios.map((_, indice) => (
         <View

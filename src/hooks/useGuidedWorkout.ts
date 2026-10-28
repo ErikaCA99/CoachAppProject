@@ -9,6 +9,14 @@ import type { Rutina } from "@/models/entities/Routine";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import type { ResultadoAccion } from "@/types/actionResult";
+import { toast } from "@/utils/toast";
+import { formatearFechaISO } from "@/utils/workoutStats";
+import {
+  borrarSesionEnCurso,
+  guardarSesionEnCurso,
+  leerSesionEnCurso,
+  sesionCompatible,
+} from "@/utils/workoutSessionStorage";
 import {
   completarSerie,
   ejerciciosRealizados,
@@ -40,6 +48,7 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
 
   const [sesion, setSesion] = useState<SesionEntrenamiento | null>(null);
   const [diaInicializado, setDiaInicializado] = useState(false);
+  const iniciando = useRef(false);
   const [ahora, setAhora] = useState(() => Date.now());
   const [duracionSegundos, setDuracionSegundos] = useState(0);
   const [guardando, setGuardando] = useState(false);
@@ -70,24 +79,58 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
     };
   }, [uid, intento, reportar]);
 
-  const cargando = rutinaActivaId === undefined || rutinas === null;
   const rutina = rutinas?.find((r) => r.id === rutinaActivaId) ?? null;
   const dia = rutina?.planSemanal.find((d) => d.dia === numeroDia) ?? null;
+  const cargando =
+    rutinaActivaId === undefined ||
+    rutinas === null ||
+    // Con el día listo, falta decidir si se retoma una sesión guardada.
+    (dia !== null && !diaInicializado);
 
-  // La sesión se crea una sola vez por pantalla: si la rutina se edita
-  // mientras entrena, no se reinicia el avance.
-  if (dia && !diaInicializado) {
-    setDiaInicializado(true);
-    if (!sesion) {
-      setSesion(crearSesion(dia.ejercicios));
-    }
-  }
-
+  // La sesión se crea una sola vez por pantalla (si la rutina se edita
+  // mientras entrena no se reinicia el avance). Si quedó una sesión de hoy a
+  // medias —Android cerró la app, o el usuario salió y volvió— se retoma.
   useEffect(() => {
-    if (dia && inicioRef.current === null) {
-      inicioRef.current = Date.now();
-    }
-  }, [dia]);
+    if (!dia || !rutina || !uid || numeroDia === null) return;
+    if (iniciando.current) return;
+    iniciando.current = true;
+    leerSesionEnCurso(uid).then((guardada) => {
+      if (
+        guardada &&
+        !guardada.sesion.terminado &&
+        sesionCompatible(guardada, {
+          uid,
+          rutinaId: rutina.id,
+          numeroDia,
+          ejercicios: dia.ejercicios,
+        })
+      ) {
+        inicioRef.current = guardada.inicioMs;
+        setSesion(guardada.sesion);
+        toast.info("Retomamos tu entrenamiento donde lo dejaste.");
+      } else {
+        inicioRef.current = Date.now();
+        setSesion(crearSesion(dia.ejercicios));
+      }
+      setDiaInicializado(true);
+    });
+  }, [dia, rutina, uid, numeroDia]);
+
+  // Cada avance se guarda para poder retomarlo. Una sesión sin avance o ya
+  // terminada no se conserva.
+  useEffect(() => {
+    if (!uid || !rutina || numeroDia === null || !sesion) return;
+    if (!diaInicializado || sesion.terminado) return;
+    if (sesion.indice === 0 && sesion.serie === 1) return;
+    void guardarSesionEnCurso({
+      uid,
+      rutinaId: rutina.id,
+      numeroDia,
+      fecha: formatearFechaISO(new Date()),
+      inicioMs: inicioRef.current ?? Date.now(),
+      sesion,
+    });
+  }, [uid, rutina, numeroDia, sesion, diaInicializado]);
 
   // ── Temporizador de descanso ─────────────────────────────────────────
   const terminaEn = sesion?.descansoTerminaEn ?? null;
@@ -151,6 +194,9 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
     setSesion((s) => (s ? saltarEjercicio(s) : s));
   }, []);
 
+  /** Descarta la sesión guardada (el usuario decidió no retomarla). */
+  const descartar = useCallback(() => borrarSesionEnCurso(), []);
+
   /** Registra el día como completado hoy. */
   const finalizar = useCallback(async (): Promise<ResultadoAccion> => {
     if (!uid || !rutina || numeroDia === null || !sesion?.terminado) {
@@ -175,6 +221,7 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
         rutina.id,
         numeroDia,
       );
+      await borrarSesionEnCurso();
       return OK;
     } catch (causa) {
       console.error("Error al guardar el entrenamiento:", causa);
@@ -212,5 +259,6 @@ export function useEntrenamientoGuiado(numeroDia: number | null) {
     saltarDescanso,
     saltarEjercicioActual,
     finalizar,
+    descartar,
   };
 }

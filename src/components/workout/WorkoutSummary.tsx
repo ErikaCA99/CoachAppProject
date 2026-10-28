@@ -41,7 +41,10 @@ export function ResumenEntrenamiento({
         <View className="h-20 w-20 items-center justify-center rounded-full bg-primary">
           <Ionicons name="checkmark" size={44} color={palette.background} />
         </View>
-        <Text className="mt-5 text-center text-2xl font-bold text-foreground">
+        <Text
+          accessibilityRole="header"
+          className="mt-5 text-center text-2xl font-bold text-foreground"
+        >
           {ejerciciosRealizados === 0
             ? "Sesión sin ejercicios completados"
             : ejerciciosRealizados < ejerciciosTotales

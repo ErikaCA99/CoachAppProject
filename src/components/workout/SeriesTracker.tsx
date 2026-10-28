@@ -25,6 +25,7 @@ export function SeguimientoSeries({
         return (
           <View
             key={numero}
+            accessible
             accessibilityLabel={`Serie ${numero}, ${
               hecha ? "completada" : enCurso ? "en curso" : "pendiente"
             }`}

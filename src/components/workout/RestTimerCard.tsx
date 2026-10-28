@@ -1,30 +1,41 @@
-import { TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 
+import { BarraProgreso } from "@/components/ui/ProgressBar";
 import { Text } from "@/components/ui/Typography";
 import { formatearTemporizador } from "@/utils/workoutSession";
 
 interface TarjetaDescansoProps {
+  /** Segundos que faltan; 0 si no hay un descanso en curso. */
   segundosRestantes: number;
   segundosTotales: number;
-  onSaltar: () => void;
+  /** Descanso configurado del ejercicio, visible mientras no hay uno en curso. */
+  descansoConfigurado: number;
 }
 
-/** Cuenta regresiva del descanso entre series, con barra y botón para saltarlo. */
+/**
+ * Espacio fijo del descanso entre series. Siempre ocupa el mismo alto, con o
+ * sin cuenta regresiva, para que el resto de la pantalla no salte cuando el
+ * descanso empieza o termina. Saltarlo se hace desde el botón principal.
+ */
 export function TarjetaDescanso({
   segundosRestantes,
   segundosTotales,
-  onSaltar,
+  descansoConfigurado,
 }: TarjetaDescansoProps) {
-  const transcurrido =
-    segundosTotales > 0 ? 1 - segundosRestantes / segundosTotales : 1;
+  const enDescanso = segundosRestantes > 0;
+  const transcurrido = enDescanso
+    ? segundosTotales > 0
+      ? 1 - segundosRestantes / segundosTotales
+      : 1
+    : 0;
 
   return (
-    <View className="rounded-2xl border border-border p-4">
-      <View className="flex-row items-center justify-between">
-        <View>
-          <Text className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-            Descanso
-          </Text>
+    <View className="min-h-[112px] justify-between rounded-2xl border border-border p-4">
+      <View>
+        <Text className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+          Descanso
+        </Text>
+        {enDescanso ? (
           <Text
             className="text-[40px] font-bold leading-[48px] text-foreground"
             style={{ fontVariant: ["tabular-nums"] }}
@@ -32,22 +43,18 @@ export function TarjetaDescanso({
           >
             {formatearTemporizador(segundosRestantes)}
           </Text>
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={0.7}
-          onPress={onSaltar}
-          className="min-h-11 justify-center rounded-xl border border-border px-5"
-        >
-          <Text className="text-sm font-bold text-foreground">
-            Saltar descanso
+        ) : (
+          <Text className="text-xl font-bold leading-[48px] text-text-secondary">
+            {descansoConfigurado > 0
+              ? `Entre series: ${descansoConfigurado} s`
+              : "Sin descanso configurado"}
           </Text>
-        </TouchableOpacity>
+        )}
       </View>
-      <View className="mt-3 h-1.5 overflow-hidden rounded-full bg-primary-light">
-        <View
-          className="h-full bg-primary"
-          style={{ width: `${Math.round(transcurrido * 100)}%` }}
+      <View className="mt-3">
+        <BarraProgreso
+          valor={transcurrido}
+          etiqueta="Tiempo de descanso transcurrido"
         />
       </View>
     </View>
