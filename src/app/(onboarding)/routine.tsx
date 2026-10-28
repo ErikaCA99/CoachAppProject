@@ -2,10 +2,11 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ProgresoPasos } from "@/components/onboarding/StepProgress";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
@@ -67,7 +68,10 @@ export default function RoutineChoiceScreen() {
           paso={3}
           onBack={guardando ? undefined : () => router.back()}
         />
-        <Text className="text-2xl font-bold text-foreground">
+        <Text
+          accessibilityRole="header"
+          className="text-2xl font-bold text-foreground"
+        >
           ¿Cómo quieres tu rutina?
         </Text>
         <Text className="mt-1 text-sm text-text-muted">
@@ -79,6 +83,7 @@ export default function RoutineChoiceScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             disabled={guardando}
+            accessibilityState={{ disabled: guardando }}
             onPress={() => finalizar("/(app)/routines/generate")}
             accessibilityRole="button"
             className="mb-4 rounded-3xl shadow-md"
@@ -129,6 +134,7 @@ export default function RoutineChoiceScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             disabled={guardando}
+            accessibilityState={{ disabled: guardando }}
             onPress={() => finalizar("/(app)/routines/custom")}
             accessibilityRole="button"
             className="rounded-3xl border border-primary-light bg-background p-5 shadow-sm"
@@ -156,7 +162,10 @@ export default function RoutineChoiceScreen() {
                 color={palette.textMuted}
               />
             </View>
-            <Text className="mt-4 text-lg font-bold text-foreground">
+            <Text
+              accessibilityRole="header"
+              className="mt-4 text-lg font-bold text-foreground"
+            >
               Crear personalizada
             </Text>
             <Text className="mt-1 text-sm text-text-muted">
@@ -168,9 +177,10 @@ export default function RoutineChoiceScreen() {
 
         <View className="items-center pb-6">
           {guardando ? (
-            <ActivityIndicator color={palette.primary} />
+            <IndicadorCarga decorativo color={palette.primary} />
           ) : (
             <TouchableOpacity
+              accessibilityRole="button"
               className="min-h-11 justify-center px-4"
               onPress={() => finalizar(null)}
             >

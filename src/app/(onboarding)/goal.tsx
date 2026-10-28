@@ -23,7 +23,10 @@ export default function TargetSelectionScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 bg-primary-light/15 px-5 pt-6">
         <ProgresoPasos paso={1} />
-        <Text className="text-2xl font-bold text-foreground">
+        <Text
+          accessibilityRole="header"
+          className="text-2xl font-bold text-foreground"
+        >
           Antes de generar tu rutina
         </Text>
         <Text className="mt-1 text-sm text-text-muted">

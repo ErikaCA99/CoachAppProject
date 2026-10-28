@@ -1,16 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { AppHeader } from "@/components/ui/AppHeader";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { PantallaBase } from "@/components/ui/ScreenBase";
+import { CampoFormulario } from "@/components/ui/FormField";
+import { Text } from "@/components/ui/Typography";
 import { SelectorNivel } from "@/components/user/LevelSelector";
 import { SelectorObjetivo } from "@/components/user/GoalSelector";
 import { ErrorCarga } from "@/components/ui/LoadError";
@@ -150,23 +148,19 @@ export default function PerfilScreen() {
   if (cargando) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color={palette.primary} />
+        <IndicadorCarga size="large" color={palette.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{
-        padding: 20,
-        paddingTop: insets.top + 16,
-        paddingBottom: insets.bottom + 120,
-      }}
-      showsVerticalScrollIndicator={false}
+    <PantallaBase
+      encabezado={
+        <AppHeader title="Mi perfil" onBackPress={() => router.back()} />
+      }
+      espacioInferior={insets.bottom + 32}
+      scrollProps={{ keyboardShouldPersistTaps: "handled" }}
     >
-      <AppHeader title="Mi Perfil" onBackPress={() => router.back()} />
-
       <View className="mb-8 items-center">
         <View className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-primary">
           <Text className="text-3xl font-bold text-background">
@@ -175,13 +169,23 @@ export default function PerfilScreen() {
               .toUpperCase()}
           </Text>
         </View>
-        <Text className="text-xl font-bold text-foreground">
+        <Text
+          accessibilityRole="header"
+          className="text-xl font-bold text-foreground"
+        >
           {perfil?.nombre} {perfil?.apellidos}
         </Text>
         <Text className="text-sm text-text-muted">
           {perfil?.email || user?.email}
         </Text>
       </View>
+
+      <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-text-secondary">
+        Preferencias
+      </Text>
+      <Text className="mb-5 text-sm text-text-secondary">
+        Se guardan solas al tocar una opción.
+      </Text>
 
       <Text className="mb-3 text-base font-bold text-foreground">Objetivo</Text>
       <View className="mb-7">
@@ -267,29 +271,32 @@ export default function PerfilScreen() {
         })}
       </View>
 
-      <Text className="mb-3 text-base font-bold text-foreground">Medidas</Text>
+      <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-text-secondary">
+        Medidas
+      </Text>
+      <Text className="mb-4 text-sm text-text-secondary">
+        Estos datos solo se guardan al tocar «Guardar edad y altura».
+      </Text>
       <View className="mb-2 flex-row gap-3">
         <View className="flex-1">
-          <Text className="mb-1 text-sm text-text-muted">Edad</Text>
-          <TextInput
-            className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
+          <CampoFormulario
+            centrado
+            etiqueta="Edad"
             keyboardType="number-pad"
             value={edad}
             onChangeText={setEdad}
             placeholder="25"
-            placeholderTextColor="#6b7280"
             maxLength={2}
           />
         </View>
         <View className="flex-1">
-          <Text className="mb-1 text-sm text-text-muted">Altura (cm)</Text>
-          <TextInput
-            className="h-12 rounded-xl border border-border bg-primary-light/20 px-3 text-center text-base font-semibold text-foreground"
+          <CampoFormulario
+            centrado
+            etiqueta="Altura (cm)"
             keyboardType="numeric"
             value={altura}
             onChangeText={setAltura}
             placeholder="170"
-            placeholderTextColor="#6b7280"
           />
         </View>
       </View>
@@ -315,17 +322,13 @@ export default function PerfilScreen() {
           <Ionicons name="chevron-forward" size={16} color={palette.primary} />
         </Pressable>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        className="mb-8 mt-3 items-center rounded-2xl bg-primary p-3.5 active:scale-[0.98] active:opacity-85"
-        onPress={handleGuardarMedidas}
-        disabled={guardando}
-        style={guardando ? { opacity: 0.6 } : undefined}
-      >
-        <Text className="text-sm font-bold text-background">
-          {guardando ? "Guardando..." : "Guardar edad y altura"}
-        </Text>
-      </Pressable>
+      <View className="mb-8 mt-3">
+        <BotonPrimario
+          titulo={guardando ? "Guardando..." : "Guardar edad y altura"}
+          onPress={handleGuardarMedidas}
+          cargando={guardando}
+        />
+      </View>
 
       <Pressable
         accessibilityRole="button"
@@ -335,6 +338,6 @@ export default function PerfilScreen() {
         <Ionicons name="log-out-outline" size={20} color={palette.error} />
         <Text className="ml-2 text-sm font-bold text-error">Cerrar sesión</Text>
       </Pressable>
-    </ScrollView>
+    </PantallaBase>
   );
 }

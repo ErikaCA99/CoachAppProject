@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StatusBar, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Pressable, StatusBar, View } from "react-native";
 
 import { RachaSemanal } from "@/components/home/WeekStreak";
 import { AppHeader } from "@/components/ui/AppHeader";
+import { PantallaBase } from "@/components/ui/ScreenBase";
 import { EntradaAnimada } from "@/components/ui/AnimatedEntrance";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
@@ -17,10 +18,12 @@ import type { Entrenamiento } from "@/models/entities/Workout";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import { useOnboardingStore } from "@/store/onboarding.store";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  leerSesionEnCurso,
+  type SesionGuardada,
+} from "@/utils/workoutSessionStorage";
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const router = useRouter();
 
@@ -57,6 +60,21 @@ export default function HomeScreen() {
     };
   }, [user]);
 
+  // Entrenamiento a medias de hoy (se guarda al avanzar en "Entrenar hoy").
+  const [enPausa, setEnPausa] = useState<SesionGuardada | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      let activo = true;
+      leerSesionEnCurso(user.uid).then((guardada) => {
+        if (activo) setEnPausa(guardada);
+      });
+      return () => {
+        activo = false;
+      };
+    }, [user]),
+  );
+
   const rutinaActiva =
     rutinas.find((r) => r.id === perfil?.rutinaActivaId) ?? null;
   const resumenEntrenos = useMemo(
@@ -64,12 +82,21 @@ export default function HomeScreen() {
     [entrenamientos],
   );
 
-  const diaSugerido = rutinaActiva
-    ? EntrenamientosController.diaSugerido(rutinaActiva, entrenamientos)
-    : null;
+  const diaPendiente =
+    rutinaActiva && enPausa && enPausa.rutinaId === rutinaActiva.id
+      ? enPausa.numeroDia
+      : null;
+  // Si hay un entrenamiento en pausa, ese día manda sobre el sugerido.
+  const diaSugerido =
+    diaPendiente ??
+    (rutinaActiva
+      ? EntrenamientosController.diaSugerido(rutinaActiva, entrenamientos)
+      : null);
 
   // Si ya entrenó hoy, la tarjeta anuncia el día que sigue en vez de "Hoy".
-  const yaEntrenoHoy = EntrenamientosController.deHoy(entrenamientos) !== null;
+  const yaEntrenoHoy =
+    diaPendiente === null &&
+    EntrenamientosController.deHoy(entrenamientos) !== null;
   const diaDeHoy =
     rutinaActiva?.planSemanal.find((d) => d.dia === diaSugerido) ?? null;
 
@@ -91,32 +118,35 @@ export default function HomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <>
       <StatusBar barStyle="dark-content" backgroundColor={palette.background} />
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 24 }}
-        showsVerticalScrollIndicator={false}
+      <PantallaBase
+        encabezado={
+          <AppHeader
+            title={`Hola, ${
+              perfil?.nombre ||
+              user?.displayName ||
+              user?.email?.split("@")[0] ||
+              "Deportista"
+            }`}
+            subtitle="¿Listo para entrenar?"
+            onProfilePress={() => router.push("/(app)/profile")}
+          />
+        }
       >
-        <AppHeader
-          title={`Hola, ${
-            perfil?.nombre ||
-            user?.displayName ||
-            user?.email?.split("@")[0] ||
-            "Deportista"
-          }`}
-          subtitle="¿Listo para entrenar?"
-          onProfilePress={() => router.push("/(app)/profile")}
-        />
-
         {/* Active Routine Card */}
         <EntradaAnimada>
           <View className="mb-6 rounded-[20px] bg-primary p-6">
-            <Text className="mb-1.5 text-lg font-bold text-background">
+            <Text
+              accessibilityRole="header"
+              className="mb-1.5 text-lg font-bold text-background"
+            >
               {diaDeHoy
-                ? `${yaEntrenoHoy ? "Siguiente" : "Hoy"} · Día ${diaDeHoy.dia}`
+                ? diaPendiente !== null
+                  ? `En pausa · Día ${diaDeHoy.dia}`
+                  : `${yaEntrenoHoy ? "Siguiente" : "Hoy"} · Día ${diaDeHoy.dia}`
                 : rutinaActiva
-                  ? "Mi Rutina Activa"
+                  ? "Mi rutina activa"
                   : "Aún no tienes una rutina"}
             </Text>
             <Text className="mb-5 text-sm text-background">
@@ -136,7 +166,7 @@ export default function HomeScreen() {
                   {!rutinaActiva
                     ? "Generar rutina"
                     : diaSugerido !== null
-                      ? `Empezar Día ${diaSugerido}`
+                      ? `${diaPendiente !== null ? "Continuar" : "Empezar"} Día ${diaSugerido}`
                       : "Continuar"}
                 </Text>
               </Pressable>
@@ -147,7 +177,7 @@ export default function HomeScreen() {
                   onPress={() => router.push("/(app)/routines")}
                 >
                   <Text className="text-sm font-bold text-background">
-                    Ver Detalles
+                    Ver detalles
                   </Text>
                 </Pressable>
               )}
@@ -189,9 +219,7 @@ export default function HomeScreen() {
             color={palette.textMuted}
           />
         </Pressable>
-
-        <View className="h-[30px]" />
-      </ScrollView>
-    </View>
+      </PantallaBase>
+    </>
   );
 }

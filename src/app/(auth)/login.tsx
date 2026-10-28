@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthHeader } from "@/components/auth/AuthHeader";
 import { BotonGoogle } from "@/components/auth/GoogleButton";
+import { ErrorEnLinea } from "@/components/ui/InlineError";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { CampoTexto } from "@/components/ui/TextField";
 import { SeparadorTexto } from "@/components/ui/TextDivider";
@@ -95,7 +96,7 @@ export default function LoginScreen() {
 
           <CampoTexto
             etiqueta="Contraseña"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Tu contraseña"
             value={password}
             onChangeText={setPassword}
             esContrasena
@@ -104,23 +105,21 @@ export default function LoginScreen() {
           />
 
           <TouchableOpacity
-            className="-mt-2 mb-5 self-end"
+            className="-mt-2 mb-3 min-h-11 justify-center self-end"
             accessibilityRole="link"
-            hitSlop={{ top: 16, bottom: 16, left: 12, right: 12 }}
             onPress={handleRecuperar}
             disabled={ocupado}
+            accessibilityState={{ disabled: ocupado }}
           >
             <Text className="text-sm font-semibold text-primary">
               ¿Olvidaste tu contraseña?
             </Text>
           </TouchableOpacity>
 
-          {error ? (
-            <Text className="mb-3 text-center text-sm text-error">{error}</Text>
-          ) : null}
+          <ErrorEnLinea mensaje={error} />
 
           <BotonPrimario
-            titulo="Iniciar Sesión"
+            titulo="Iniciar sesión"
             onPress={handleLogin}
             cargando={ocupado}
           />

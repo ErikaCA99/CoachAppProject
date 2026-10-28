@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter, useSegments } from "expo-router";
 
 import { palette } from "@/constants/palette";
 
@@ -9,6 +9,10 @@ import { palette } from "@/constants/palette";
  * y perfil completo, así que aquí no se valida nada.
  */
 export default function AppLayout() {
+  const router = useRouter();
+  const segmentos = useSegments();
+  const generandoRutina = segmentos[segmentos.length - 1] === "generate";
+
   return (
     <Tabs
       screenOptions={{
@@ -41,6 +45,7 @@ export default function AppLayout() {
         name="routines"
         options={{
           title: "Rutinas",
+          tabBarStyle: generandoRutina ? { display: "none" } : undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="barbell" size={size} color={color} />
           ),
@@ -48,6 +53,12 @@ export default function AppLayout() {
       />
       <Tabs.Screen
         name="machines"
+        listeners={{
+          tabPress: (event) => {
+            event.preventDefault();
+            router.navigate("/(app)/machines");
+          },
+        }}
         options={{
           title: "Máquinas",
           tabBarIcon: ({ color, size }) => (

@@ -1,25 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Dimensions, Image, View } from "react-native";
+import { Image, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-
 /** Pantalla de bienvenida (solo sin sesión; ver `Stack.Protected` raíz). */
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { height: alto } = useWindowDimensions();
 
   return (
     <SafeAreaView className="flex-1 bg-primary-light/15">
-      <View className="p-2" style={{ height: SCREEN_HEIGHT * 0.58 }}>
+      <View className="p-2" style={{ height: alto * 0.58 }}>
         <Image
           className="h-full w-full rounded-3xl"
           resizeMode="cover"
           source={require("@/assets/cover.jpg")}
+          accessible={false}
+          importantForAccessibility="no"
         />
       </View>
 
@@ -28,6 +29,8 @@ export default function WelcomeScreen() {
           <Image
             source={require("@/assets/images/logo-coachapp.png")}
             className="h-9 w-9 rounded-xl"
+            accessible={false}
+            importantForAccessibility="no"
           />
           <Text className="ml-2.5 text-2xl font-bold text-foreground">
             CoachApp
