@@ -7,7 +7,7 @@ import { TABLA_REFERENCIA_IMC } from "@/utils/bmiCalculator";
 
 export function TablaReferenciaIMC() {
   return (
-    <View className="mb-6 rounded-3xl border border-border/50 bg-white p-5 shadow-sm">
+    <View className="mb-6 rounded-3xl border border-border/50 bg-background p-5 shadow-sm">
       {/* Encabezado */}
       <View className="mb-4 flex-row items-center gap-2.5">
         <View className="h-8 w-8 items-center justify-center rounded-full bg-surface/40">

@@ -3,6 +3,8 @@
  * Sin efectos secundarios ni dependencias externas — solo matemática.
  */
 
+import { palette } from "@/constants/palette";
+
 export type BmiCategory = "BAJO" | "NORMALIDAD" | "SOBREPESO" | "OBESIDAD";
 
 /**
@@ -39,11 +41,11 @@ export interface RangoReferenciaIMC {
 }
 
 export const TABLA_REFERENCIA_IMC: readonly RangoReferenciaIMC[] = [
-  { categoria: "Bajo peso", rango: "< 18.5", color: "#add9d1" },
-  { categoria: "Normal", rango: "18.5 – 24.9", color: "#1a8062" },
-  { categoria: "Sobrepeso", rango: "25 – 29.9", color: "#f2c0a2" },
-  { categoria: "Obesidad I", rango: "30 – 34.9", color: "#f29580" },
-  { categoria: "Obesidad II+", rango: "≥ 35", color: "#c0391b" },
+  { categoria: "Bajo peso", rango: "< 18.5", color: palette.primaryLight },
+  { categoria: "Normal", rango: "18.5 – 24.9", color: palette.primary },
+  { categoria: "Sobrepeso", rango: "25 – 29.9", color: palette.secondary },
+  { categoria: "Obesidad I", rango: "30 – 34.9", color: palette.accent },
+  { categoria: "Obesidad II+", rango: "≥ 35", color: palette.accentStrong },
 ] as const;
 
 /** Mensaje de contexto para el usuario según su categoría de IMC. */

@@ -1,19 +1,18 @@
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { View } from "react-native";
 
-import { AgregarRapido } from "@/components/nutrition/QuickAdd";
-import { BuscadorAlimentos } from "@/components/nutrition/FoodSearch";
+import { HojaAnadirAlimento } from "@/components/nutrition/AddFoodSheet";
 import { CalculadoraIMCCard } from "@/components/nutrition/BMICalculatorCard";
 import { CaloriasGauge } from "@/components/nutrition/CaloriesGauge";
-import {
-  FormularioAlimento,
-  type DatosNuevoAlimento,
-} from "@/components/nutrition/FoodForm";
+import { type DatosNuevoAlimento } from "@/components/nutrition/FoodForm";
 import { ListaAlimentosHoy } from "@/components/nutrition/TodayFoodList";
 import { TablaReferenciaIMC } from "@/components/nutrition/BMIReferenceTable";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { ErrorCarga } from "@/components/ui/LoadError";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { PantallaBase } from "@/components/ui/ScreenBase";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { palette } from "@/constants/palette";
 import { AuthController } from "@/controllers/AuthController";
@@ -31,7 +30,6 @@ import type { Usuario } from "@/models/entities/User";
 import type { ConId } from "@/models/types";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "@/utils/toast";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type VistaNutricion = "diario" | "imc";
 
@@ -46,10 +44,10 @@ function obtenerFechaHoyFormateada(): string {
 }
 
 export default function NutricionScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuthStore();
   const [vista, setVista] = useState<VistaNutricion>("diario");
+  const [hojaAbierta, setHojaAbierta] = useState(false);
 
   const [registros, setRegistros] = useState<ConId<RegistroNutricional>[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -104,11 +102,11 @@ export default function NutricionScreen() {
     [alimentosHoy, resultadoMetas],
   );
 
-  // Ingesta rápida mediante chips
+  // Ingesta rápida mediante chips (la hoja muestra el error si lanza)
   const handleAgregarRapido = async (item: AlimentoRapido) => {
     if (!user) return;
+    setGuardandoAlimento(true);
     try {
-      setGuardandoAlimento(true);
       await NutritionController.registrarIngesta(user.uid, {
         alimento: item.nombre,
         calorias: item.calorias,
@@ -116,12 +114,6 @@ export default function NutricionScreen() {
         carbohidratos: item.carbohidratos,
         grasas: item.grasas,
       });
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo registrar el alimento.",
-      );
     } finally {
       setGuardandoAlimento(false);
     }
@@ -133,6 +125,7 @@ export default function NutricionScreen() {
     setGuardandoAlimento(true);
     try {
       await NutritionController.registrarIngesta(user.uid, datos);
+      toast.exito("Alimento añadido");
     } finally {
       setGuardandoAlimento(false);
     }
@@ -153,6 +146,7 @@ export default function NutricionScreen() {
         gramos,
         nombre,
       );
+      toast.exito("Alimento añadido");
     } finally {
       setGuardandoAlimento(false);
     }
@@ -184,23 +178,26 @@ export default function NutricionScreen() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{
-        padding: 20,
-        paddingTop: insets.top + 24,
-        paddingBottom: 40,
-      }}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
+    <PantallaBase
+      encabezado={
+        <AppHeader
+          title="Nutrición"
+          subtitle={fechaFormateada}
+          onProfilePress={() => router.push("/(app)/profile")}
+        />
+      }
+      pie={
+        /* Acción principal siempre a la vista en el Diario */
+        vista === "diario" && !error && !cargando ? (
+          <View className="border-t border-primary-light/60 bg-background px-5 pb-3 pt-3">
+            <BotonPrimario
+              titulo="Añadir alimento"
+              onPress={() => setHojaAbierta(true)}
+            />
+          </View>
+        ) : null
+      }
     >
-      {/* Encabezado superior unificado */}
-      <AppHeader
-        title="Nutrición"
-        subtitle={fechaFormateada}
-        onProfilePress={() => router.push("/(app)/profile")}
-      />
-
       {/* Selector de pestañas: Diario vs Calc. IMC */}
       <View className="mb-5">
         <SegmentedControl
@@ -217,7 +214,7 @@ export default function NutricionScreen() {
         <ErrorCarga mensaje={error} onReintentar={reintentar} />
       ) : cargando ? (
         <View className="items-center justify-center py-20">
-          <ActivityIndicator size="large" color={palette.primary} />
+          <IndicadorCarga size="large" color={palette.primary} />
         </View>
       ) : vista === "diario" ? (
         <View>
@@ -226,24 +223,6 @@ export default function NutricionScreen() {
             resumen={resumenDiario}
             origenMeta={resultadoMetas}
             onCompletarPerfil={() => router.push("/(app)/profile")}
-          />
-
-          {/* Búsqueda de alimentos en USDA FoodData Central */}
-          <BuscadorAlimentos
-            onAgregar={handleAgregarDesdeAPI}
-            guardando={guardandoAlimento}
-          />
-
-          {/* Carrusel de adición rápida de alimentos */}
-          <AgregarRapido
-            onAgregar={handleAgregarRapido}
-            deshabilitado={guardandoAlimento}
-          />
-
-          {/* Formulario colapsable para agregar alimento personalizado */}
-          <FormularioAlimento
-            onGuardar={handleGuardarFormulario}
-            guardando={guardandoAlimento}
           />
 
           {/* Listado de alimentos registrados hoy o estado vacío */}
@@ -262,6 +241,15 @@ export default function NutricionScreen() {
           <TablaReferenciaIMC />
         </View>
       )}
-    </ScrollView>
+
+      <HojaAnadirAlimento
+        visible={hojaAbierta}
+        onCerrar={() => setHojaAbierta(false)}
+        guardando={guardandoAlimento}
+        onAgregarDesdeAPI={handleAgregarDesdeAPI}
+        onAgregarRapido={handleAgregarRapido}
+        onGuardarManual={handleGuardarFormulario}
+      />
+    </PantallaBase>
   );
 }

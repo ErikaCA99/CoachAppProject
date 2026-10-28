@@ -2,8 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { BarraProgreso } from "@/components/ui/ProgressBar";
 import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
+import { conOpacidad, palette } from "@/constants/palette";
 import type {
   ResultadoMetas,
   ResumenNutricionalDiario,
@@ -35,7 +36,7 @@ export function CaloriasGauge({
     circumference * (1 - Math.min(1, resumen.porcentajeCalorias));
 
   return (
-    <View className="mb-4 rounded-3xl border border-border/50 bg-white p-5 shadow-sm">
+    <View className="mb-4 rounded-3xl border border-border/50 bg-background p-5 shadow-sm">
       {/* Encabezado de la tarjeta */}
       <View className="mb-4 flex-row items-center gap-2">
         <View className="h-8 w-8 items-center justify-center rounded-full bg-accent/20">
@@ -56,7 +57,7 @@ export function CaloriasGauge({
               cx={size / 2}
               cy={size / 2}
               r={radius}
-              stroke="#e5e7eb"
+              stroke={conOpacidad(palette.primaryLight, 0.4)}
               strokeWidth={strokeWidth}
               fill="transparent"
             />
@@ -85,11 +86,16 @@ export function CaloriasGauge({
 
         {/* Información de calorías restantes */}
         <View className="flex-1 pl-6">
-          <Text className="text-xl font-bold text-foreground">
-            {resumen.caloriasRestantes} kcal restantes
+          <Text className="text-sm font-semibold text-text-secondary">
+            {resumen.caloriasRestantes > 0 ? "Te quedan" : "Meta del día"}
+          </Text>
+          <Text className="text-3xl font-extrabold text-foreground">
+            {resumen.caloriasRestantes > 0
+              ? `${resumen.caloriasRestantes} kcal`
+              : "cumplida"}
           </Text>
           <Text className="mt-1 text-sm text-text-secondary">
-            Meta: {resumen.metaCalorias} kcal/día
+            de tu meta de {resumen.metaCalorias} kcal
           </Text>
           {origenMeta?.personalizada ? (
             <View className="mt-2 self-start rounded-full bg-primary/10 px-2.5 py-1">
@@ -101,6 +107,7 @@ export function CaloriasGauge({
             <TouchableOpacity
               onPress={onCompletarPerfil}
               disabled={!onCompletarPerfil}
+              accessibilityState={{ disabled: !onCompletarPerfil }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Completar perfil para personalizar la meta"
@@ -144,15 +151,13 @@ export function CaloriasGauge({
               / Meta: {resumen.metaProteinas}g
             </Text>
           </View>
-          <View className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <View
-              className="h-full rounded-full"
-              style={{
-                width: `${Math.round(resumen.porcentajeProteinas * 100)}%`,
-                backgroundColor: palette.accent,
-              }}
-            />
-          </View>
+          <BarraProgreso
+            valor={resumen.porcentajeProteinas}
+            etiqueta="Consumo de proteínas"
+            textoValor={`${resumen.proteinasConsumidas} de ${resumen.metaProteinas} gramos`}
+            color={palette.accent}
+            claseCaja="h-2 bg-primary-light/25"
+          />
         </View>
 
         {/* Carbohidratos */}
@@ -168,15 +173,13 @@ export function CaloriasGauge({
               / Meta: {resumen.metaCarbohidratos}g
             </Text>
           </View>
-          <View className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <View
-              className="h-full rounded-full"
-              style={{
-                width: `${Math.round(resumen.porcentajeCarbohidratos * 100)}%`,
-                backgroundColor: palette.primary,
-              }}
-            />
-          </View>
+          <BarraProgreso
+            valor={resumen.porcentajeCarbohidratos}
+            etiqueta="Consumo de carbohidratos"
+            textoValor={`${resumen.carbohidratosConsumidos} de ${resumen.metaCarbohidratos} gramos`}
+            color={palette.primary}
+            claseCaja="h-2 bg-primary-light/25"
+          />
         </View>
 
         {/* Grasas */}
@@ -192,15 +195,13 @@ export function CaloriasGauge({
               / Meta: {resumen.metaGrasas}g
             </Text>
           </View>
-          <View className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <View
-              className="h-full rounded-full"
-              style={{
-                width: `${Math.round(resumen.porcentajeGrasas * 100)}%`,
-                backgroundColor: palette.accentStrong,
-              }}
-            />
-          </View>
+          <BarraProgreso
+            valor={resumen.porcentajeGrasas}
+            etiqueta="Consumo de grasas"
+            textoValor={`${resumen.grasasConsumidas} de ${resumen.metaGrasas} gramos`}
+            color={palette.accentStrong}
+            claseCaja="h-2 bg-primary-light/25"
+          />
         </View>
       </View>
     </View>

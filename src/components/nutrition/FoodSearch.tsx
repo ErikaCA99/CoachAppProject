@@ -1,13 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Keyboard,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Keyboard, TouchableOpacity, View } from "react-native";
 
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { ErrorEnLinea } from "@/components/ui/InlineError";
+import { CampoBusqueda } from "@/components/ui/SearchField";
 import { Text, TextInput } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { calcularPorcion } from "@/controllers/NutritionController";
@@ -78,7 +75,7 @@ export function BuscadorAlimentos({
   };
 
   return (
-    <View className="mb-5 rounded-3xl border border-border/50 bg-white p-4 shadow-sm">
+    <View className="mb-5 rounded-3xl border border-border/50 bg-background p-4 shadow-sm">
       {/* Encabezado */}
       <View className="mb-3 flex-row items-center gap-2.5">
         <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/15">
@@ -95,32 +92,15 @@ export function BuscadorAlimentos({
       </View>
 
       {/* Campo de búsqueda */}
-      <View className="h-11 flex-row items-center rounded-xl border border-border/60 bg-slate-50/50 px-3">
-        <Ionicons name="search-outline" size={16} color={palette.textMuted} />
-        <TextInput
-          value={texto}
-          onChangeText={(t) => {
-            setTexto(t);
-            setSeleccionado(null);
-          }}
-          placeholder="Ej. arroz cocido, pechuga de pollo, plátano"
-          placeholderTextColor="#9ca3af"
-          autoCorrect={false}
-          returnKeyType="search"
-          className="ml-2 flex-1 text-sm text-foreground"
-          accessibilityLabel="Buscar alimento"
-        />
-        {texto.length > 0 ? (
-          <TouchableOpacity
-            onPress={limpiar}
-            accessibilityRole="button"
-            accessibilityLabel="Limpiar búsqueda"
-            hitSlop={8}
-          >
-            <Ionicons name="close-circle" size={18} color={palette.textMuted} />
-          </TouchableOpacity>
-        ) : null}
-      </View>
+      <CampoBusqueda
+        valor={texto}
+        onCambiar={(t) => {
+          setTexto(t);
+          setSeleccionado(null);
+        }}
+        placeholder="Ej. arroz cocido, pollo, plátano"
+        etiqueta="Buscar alimento"
+      />
 
       {/* Detalle del alimento seleccionado */}
       {seleccionado ? (
@@ -136,8 +116,8 @@ export function BuscadorAlimentos({
             value={nombre}
             onChangeText={setNombre}
             placeholder={seleccionado.descripcionEs || seleccionado.descripcion}
-            placeholderTextColor="#9ca3af"
-            className="h-10 rounded-xl border border-border/60 bg-white px-3 text-sm text-foreground"
+            placeholderTextColor={palette.textMuted}
+            className="h-10 rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground"
           />
 
           <Text className="mb-1 mt-3 text-sm font-bold tracking-wider text-text-muted">
@@ -151,7 +131,7 @@ export function BuscadorAlimentos({
                 setErrorAgregar(null);
               }}
               keyboardType="numeric"
-              className="h-10 w-20 rounded-xl border border-border/60 bg-white text-center text-sm font-semibold text-foreground"
+              className="h-10 w-20 rounded-xl border border-border/60 bg-background text-center text-sm font-semibold text-foreground"
               accessibilityLabel="Gramos consumidos"
             />
             {PORCIONES_RAPIDAS.map((g) => (
@@ -159,8 +139,10 @@ export function BuscadorAlimentos({
                 key={g}
                 onPress={() => setGramos(String(g))}
                 activeOpacity={0.7}
-                className={`rounded-full px-3 py-1.5 ${
-                  gramosNum === g ? "bg-primary" : "bg-white"
+                accessibilityRole="button"
+                accessibilityState={{ selected: gramosNum === g }}
+                className={`min-h-11 justify-center rounded-full px-3 ${
+                  gramosNum === g ? "bg-primary" : "bg-background"
                 } border border-border/60`}
               >
                 <Text
@@ -176,7 +158,7 @@ export function BuscadorAlimentos({
 
           {/* Vista previa de la porción */}
           {porcion ? (
-            <View className="mt-3 flex-row items-center justify-between rounded-xl bg-white p-3">
+            <View className="mt-3 flex-row items-center justify-between rounded-xl bg-background p-3">
               <View>
                 <Text className="text-2xl font-extrabold text-foreground">
                   {porcion.calorias}
@@ -200,7 +182,8 @@ export function BuscadorAlimentos({
             <TouchableOpacity
               onPress={() => setSeleccionado(null)}
               activeOpacity={0.7}
-              className="h-11 flex-1 items-center justify-center rounded-2xl border border-border/60 bg-white"
+              accessibilityRole="button"
+              className="h-11 flex-1 items-center justify-center rounded-2xl border border-border/60 bg-background"
             >
               <Text className="text-sm font-semibold text-text-secondary">
                 Cancelar
@@ -209,6 +192,7 @@ export function BuscadorAlimentos({
             <TouchableOpacity
               onPress={handleAgregar}
               disabled={guardando || !porcion}
+              accessibilityState={{ disabled: guardando || !porcion }}
               activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel="Agregar alimento al registro de hoy"
@@ -217,7 +201,7 @@ export function BuscadorAlimentos({
               }`}
             >
               {guardando ? (
-                <ActivityIndicator color={palette.background} />
+                <IndicadorCarga decorativo color={palette.background} />
               ) : (
                 <Text className="text-sm font-bold text-background">
                   Agregar al día
@@ -231,7 +215,7 @@ export function BuscadorAlimentos({
         <View className="mt-3">
           {cargando ? (
             <View className="flex-row items-center justify-center gap-2 py-4">
-              <ActivityIndicator size="small" color={palette.primary} />
+              <IndicadorCarga decorativo size="small" color={palette.primary} />
               <Text className="text-sm text-text-muted">Buscando…</Text>
             </View>
           ) : error ? (
@@ -257,7 +241,7 @@ export function BuscadorAlimentos({
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`${alimento.descripcionEs || alimento.descripcion}, ${alimento.caloriasPor100g} calorías por 100 gramos`}
-                  className="flex-row items-center justify-between rounded-xl border border-border/40 bg-white p-3"
+                  className="flex-row items-center justify-between rounded-xl border border-border/40 bg-background p-3"
                 >
                   <View className="flex-1 pr-3">
                     <Text

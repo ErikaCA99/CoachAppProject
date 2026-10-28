@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
+import { CampoFormulario } from "@/components/ui/FormField";
 import { ErrorEnLinea } from "@/components/ui/InlineError";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 
 export interface DatosNuevoAlimento {
@@ -17,13 +19,17 @@ export interface DatosNuevoAlimento {
 interface FormularioAlimentoProps {
   onGuardar: (datos: DatosNuevoAlimento) => Promise<void>;
   guardando?: boolean;
+  /** Sin encabezado plegable: el formulario siempre se ve (p. ej. dentro de una hoja). */
+  siempreAbierto?: boolean;
 }
 
 export function FormularioAlimento({
   onGuardar,
   guardando = false,
+  siempreAbierto = false,
 }: FormularioAlimentoProps) {
   const [expandido, setExpandido] = useState(false);
+  const visible = siempreAbierto || expandido;
   const [nombre, setNombre] = useState("");
   const [calorias, setCalorias] = useState("");
   const [proteinas, setProteinas] = useState("");
@@ -75,58 +81,63 @@ export function FormularioAlimento({
   };
 
   return (
-    <View className="mb-5 overflow-hidden rounded-3xl border border-border/50 bg-white shadow-sm">
+    <View
+      className={
+        siempreAbierto
+          ? "mb-2"
+          : "mb-5 overflow-hidden rounded-3xl border border-border/50 bg-background shadow-sm"
+      }
+    >
       {/* Botón de expansión / Encabezado */}
-      <TouchableOpacity
-        onPress={() => setExpandido((prev) => !prev)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel="Desplegar formulario para registrar alimento"
-        className="flex-row items-center justify-between p-4"
-      >
-        <View className="flex-row items-center gap-3">
-          <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-            <Ionicons name="add" size={20} color={palette.primary} />
+      {siempreAbierto ? null : (
+        <TouchableOpacity
+          onPress={() => setExpandido((prev) => !prev)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Registrar alimento manualmente"
+          accessibilityState={{ expanded: expandido }}
+          className="min-h-11 flex-row items-center justify-between p-4"
+        >
+          <View className="flex-row items-center gap-3">
+            <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
+              <Ionicons name="add" size={20} color={palette.primary} />
+            </View>
+            <Text className="text-base font-bold text-foreground">
+              Registrar alimento
+            </Text>
           </View>
-          <Text className="text-base font-bold text-foreground">
-            Registrar alimento
-          </Text>
-        </View>
 
-        <Ionicons
-          name={expandido ? "chevron-up" : "chevron-down"}
-          size={20}
-          color={palette.foreground}
-        />
-      </TouchableOpacity>
+          <Ionicons
+            name={expandido ? "chevron-up" : "chevron-down"}
+            size={20}
+            color={palette.foreground}
+          />
+        </TouchableOpacity>
+      )}
 
       {/* Contenido expandible del formulario */}
-      {expandido ? (
-        <View className="border-t border-border/30 p-4 pt-3">
-          {/* Nombre del alimento */}
+      {visible ? (
+        <View
+          className={siempreAbierto ? "" : "border-t border-border/30 p-4 pt-3"}
+        >
           <View className="mb-3.5">
-            <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
-              NOMBRE DEL ALIMENTO
-            </Text>
-            <TextInput
+            <CampoFormulario
+              mayusculas
+              etiqueta="Nombre del alimento"
               value={nombre}
               onChangeText={(t) => {
                 setNombre(t);
                 limpiarError();
               }}
               placeholder="Ej. Pechuga de pollo, Manzana..."
-              placeholderTextColor="#9ca3af"
-              className="h-11 rounded-xl border border-border/60 bg-slate-50/50 px-3.5 text-sm text-foreground"
             />
           </View>
 
-          {/* Fila 1: Calorías y Proteínas */}
           <View className="mb-3.5 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
-                CALORÍAS (KCAL)
-              </Text>
-              <TextInput
+              <CampoFormulario
+                mayusculas
+                etiqueta="Calorías (kcal)"
                 value={calorias}
                 onChangeText={(t) => {
                   setCalorias(t);
@@ -134,16 +145,12 @@ export function FormularioAlimento({
                 }}
                 placeholder="0"
                 keyboardType="numeric"
-                placeholderTextColor="#9ca3af"
-                className="h-11 rounded-xl border border-border/60 bg-slate-50/50 px-3.5 text-sm text-foreground"
               />
             </View>
-
             <View className="flex-1">
-              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
-                PROTEÍNAS (G)
-              </Text>
-              <TextInput
+              <CampoFormulario
+                mayusculas
+                etiqueta="Proteínas (g)"
                 value={proteinas}
                 onChangeText={(t) => {
                   setProteinas(t);
@@ -151,19 +158,15 @@ export function FormularioAlimento({
                 }}
                 placeholder="0"
                 keyboardType="numeric"
-                placeholderTextColor="#9ca3af"
-                className="h-11 rounded-xl border border-border/60 bg-slate-50/50 px-3.5 text-sm text-foreground"
               />
             </View>
           </View>
 
-          {/* Fila 2: Carbohidratos y Grasas */}
           <View className="mb-4 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
-                CARBOHIDRATOS (G)
-              </Text>
-              <TextInput
+              <CampoFormulario
+                mayusculas
+                etiqueta="Carbohidratos (g)"
                 value={carbohidratos}
                 onChangeText={(t) => {
                   setCarbohidratos(t);
@@ -171,16 +174,12 @@ export function FormularioAlimento({
                 }}
                 placeholder="0"
                 keyboardType="numeric"
-                placeholderTextColor="#9ca3af"
-                className="h-11 rounded-xl border border-border/60 bg-slate-50/50 px-3.5 text-sm text-foreground"
               />
             </View>
-
             <View className="flex-1">
-              <Text className="mb-1.5 text-sm font-bold tracking-wider text-text-muted">
-                GRASAS (G)
-              </Text>
-              <TextInput
+              <CampoFormulario
+                mayusculas
+                etiqueta="Grasas (g)"
                 value={grasas}
                 onChangeText={(t) => {
                   setGrasas(t);
@@ -188,8 +187,6 @@ export function FormularioAlimento({
                 }}
                 placeholder="0"
                 keyboardType="numeric"
-                placeholderTextColor="#9ca3af"
-                className="h-11 rounded-xl border border-border/60 bg-slate-50/50 px-3.5 text-sm text-foreground"
               />
             </View>
           </View>
@@ -200,13 +197,14 @@ export function FormularioAlimento({
           <TouchableOpacity
             onPress={handleGuardar}
             disabled={guardando}
+            accessibilityState={{ disabled: guardando }}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Agregar alimento"
             className="h-12 items-center justify-center rounded-2xl bg-primary"
           >
             {guardando ? (
-              <ActivityIndicator color={palette.background} />
+              <IndicadorCarga decorativo color={palette.background} />
             ) : (
               <Text className="text-base font-bold text-background">
                 Agregar alimento
