@@ -22,4 +22,18 @@ export const palette = {
   success: "#1a8062",
   warning: "#f2c0a2",
   error: "#c0391b",
+  /** Botones deshabilitados (extremo único del degradado gris). */
+  disabled: "#a3aeab",
+  /** Vista de cámara y cargador: no hay tema oscuro, estos dos fondos son la excepción. */
+  cameraDark: "#0f1d18",
+  cameraDarkEnd: "#132a22",
 } as const;
+
+/**
+ * Devuelve `color` (#rrggbb de la paleta) con la opacidad dada (0..1), para
+ * props nativas que no aceptan clases como `bg-primary/25`.
+ */
+export function conOpacidad(color: string, opacidad: number): string {
+  const alfa = Math.round(Math.min(1, Math.max(0, opacidad)) * 255);
+  return `${color}${alfa.toString(16).padStart(2, "0")}`;
+}

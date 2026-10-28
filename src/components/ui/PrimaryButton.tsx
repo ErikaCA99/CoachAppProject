@@ -49,7 +49,7 @@ export function BotonPrimario({
       <LinearGradient
         colors={
           deshabilitado
-            ? ["#a3aeab", "#a3aeab"]
+            ? [palette.disabled, palette.disabled]
             : [palette.primary, palette.primaryDark]
         }
         start={{ x: 0, y: 0 }}

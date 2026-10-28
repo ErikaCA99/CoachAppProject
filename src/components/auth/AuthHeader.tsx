@@ -31,14 +31,21 @@ export function AuthHeader({ modo }: { modo: ModoAuth }) {
         source={require("@/assets/images/logo-coachapp.png")}
         className="h-14 w-14 rounded-2xl"
         accessibilityIgnoresInvertColors
+        accessible={false}
+        importantForAccessibility="no"
       />
-      <Text className="mt-3 text-2xl font-bold text-foreground">CoachApp</Text>
+      <Text
+        accessibilityRole="header"
+        className="mt-3 text-2xl font-bold text-foreground"
+      >
+        CoachApp
+      </Text>
       <Text className="mt-1 text-sm text-text-muted">{SUBTITULOS[modo]}</Text>
 
       <View className="mt-6 w-full flex-row rounded-2xl bg-primary-light/30 p-1">
         {(
           [
-            { valor: "login", etiqueta: "Iniciar Sesión" },
+            { valor: "login", etiqueta: "Iniciar sesión" },
             { valor: "registro", etiqueta: "Registrarse" },
           ] as const
         ).map((tab) => {
@@ -46,7 +53,7 @@ export function AuthHeader({ modo }: { modo: ModoAuth }) {
           return (
             <TouchableOpacity
               key={tab.valor}
-              className={`flex-1 items-center rounded-xl py-2.5 ${
+              className={`min-h-11 flex-1 items-center justify-center rounded-xl ${
                 activo ? "bg-background shadow-sm" : ""
               }`}
               onPress={() => irA(tab.valor)}

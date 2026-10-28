@@ -82,7 +82,7 @@ export function SelectorNivel({
               <Text className="text-sm font-bold text-foreground">
                 {info.etiqueta}
               </Text>
-              <Text className="mt-1 text-sm text-text-muted">
+              <Text className="mt-1 text-sm text-text-secondary">
                 {info.descripcion}
               </Text>
             </View>

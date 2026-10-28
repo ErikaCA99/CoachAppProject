@@ -92,7 +92,7 @@ export function SelectorObjetivo({
             />
             <Text
               className={`ml-2 flex-1 text-sm ${
-                activo ? "font-semibold text-primary" : "text-foreground"
+                activo ? "font-semibold text-primary-dark" : "text-foreground"
               }`}
               numberOfLines={2}
             >

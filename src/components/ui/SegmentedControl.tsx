@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
+import { conOpacidad, palette } from "@/constants/palette";
 
 interface OpcionSegmento<T extends string> {
   value: T;
@@ -31,6 +31,7 @@ export function SegmentedControl<T extends string>({
 
   return (
     <View
+      accessibilityRole="tablist"
       style={[
         styles.contenedor,
         esPequeno ? styles.contenedorSm : styles.contenedorDefault,
@@ -43,8 +44,9 @@ export function SegmentedControl<T extends string>({
             key={opcion.value}
             onPress={() => onChange(opcion.value)}
             activeOpacity={0.75}
-            accessibilityRole="button"
+            accessibilityRole="tab"
             accessibilityState={{ selected: activo }}
+            hitSlop={esPequeno ? { top: 6, bottom: 6 } : undefined}
             style={[
               styles.opcion,
               esPequeno ? styles.opcionSm : styles.opcionDefault,
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
   contenedor: {
     flexDirection: "row",
     borderRadius: 9999,
-    backgroundColor: "rgba(173, 217, 209, 0.25)",
+    backgroundColor: conOpacidad(palette.primaryLight, 0.25),
   },
   contenedorDefault: {
     padding: 4,
@@ -97,7 +99,7 @@ const styles = StyleSheet.create({
   opcionActiva: {
     backgroundColor: palette.background,
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: palette.foreground,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,

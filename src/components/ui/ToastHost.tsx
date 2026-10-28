@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -35,6 +35,7 @@ export function ToastHost() {
   const ocultar = useToastStore((s) => s.ocultar);
   const [entrada] = useState(() => new Animated.Value(0));
   const reducir = useReducirMovimiento();
+  const ejecutando = useRef(false);
 
   useEffect(() => {
     if (!aviso) return;
@@ -51,7 +52,10 @@ export function ToastHost() {
 
   useEffect(() => {
     if (!aviso) return;
-    const temporizador = setTimeout(ocultar, DURACION_MS[aviso.tipo]);
+    const temporizador = setTimeout(
+      ocultar,
+      aviso.duracionMs ?? DURACION_MS[aviso.tipo],
+    );
     return () => clearTimeout(temporizador);
   }, [aviso, ocultar]);
 
@@ -77,13 +81,11 @@ export function ToastHost() {
           ],
         }}
       >
-        <Pressable
-          onPress={ocultar}
+        <View
           accessibilityRole="alert"
           accessibilityLiveRegion={
             aviso.tipo === "error" ? "assertive" : "polite"
           }
-          accessibilityHint="Toca para cerrar el aviso"
           className="min-h-12 flex-row items-center rounded-2xl px-4 py-3 shadow-lg"
           style={{ backgroundColor: estilo.fondo, elevation: 6 }}
         >
@@ -96,7 +98,43 @@ export function ToastHost() {
           <Text className="ml-3 flex-1 text-sm font-semibold text-background">
             {aviso.mensaje}
           </Text>
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={aviso.accion?.etiqueta ?? "Cerrar aviso"}
+            className="ml-2 min-h-11 min-w-11 items-center justify-center px-2"
+            onPress={async () => {
+              if (ejecutando.current) return;
+              if (!aviso.accion) {
+                ocultar();
+                return;
+              }
+              ejecutando.current = true;
+              ocultar();
+              try {
+                await aviso.accion.ejecutar();
+              } catch (error) {
+                useToastStore
+                  .getState()
+                  .mostrar(
+                    "error",
+                    error instanceof Error
+                      ? error.message
+                      : "No se pudo deshacer. Intenta desde tus rutinas anteriores.",
+                  );
+              } finally {
+                ejecutando.current = false;
+              }
+            }}
+          >
+            {aviso.accion ? (
+              <Text className="text-sm font-bold text-background">
+                {aviso.accion.etiqueta}
+              </Text>
+            ) : (
+              <Ionicons name="close" size={20} color={palette.background} />
+            )}
+          </Pressable>
+        </View>
       </Animated.View>
     </View>
   );

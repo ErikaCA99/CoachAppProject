@@ -37,7 +37,12 @@ export function RachaSemanal({
   return (
     <View>
       <View className="mb-3 flex-row items-center justify-between">
-        <Text className="text-lg font-bold text-foreground">Esta semana</Text>
+        <Text
+          accessibilityRole="header"
+          className="text-lg font-bold text-foreground"
+        >
+          Esta semana
+        </Text>
         <View className="h-7 flex-row items-center gap-1 rounded-full bg-primary-light/30 px-3">
           <Ionicons name="flame" size={14} color={palette.accentStrong} />
           <Text className="text-sm font-bold text-foreground">

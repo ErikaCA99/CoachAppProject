@@ -1,4 +1,5 @@
 import { useToastStore } from "@/store/toast.store";
+import type { OpcionesAviso } from "@/store/toast.store";
 import type { ResultadoAccion } from "@/types/actionResult";
 
 /**
@@ -11,8 +12,8 @@ import type { ResultadoAccion } from "@/types/actionResult";
  * Un `Modal` nativo tapa los avisos: dentro de uno, usa un error en línea.
  */
 export const toast = {
-  exito: (mensaje: string) =>
-    useToastStore.getState().mostrar("exito", mensaje),
+  exito: (mensaje: string, opciones?: OpcionesAviso) =>
+    useToastStore.getState().mostrar("exito", mensaje, opciones),
   error: (mensaje: string) =>
     useToastStore.getState().mostrar("error", mensaje),
   info: (mensaje: string) => useToastStore.getState().mostrar("info", mensaje),

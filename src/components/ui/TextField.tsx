@@ -31,14 +31,15 @@ export function CampoTexto({
           className={`rounded-xl border bg-background px-4 py-3.5 text-[15px] text-foreground ${
             error ? "border-error" : "border-primary-light"
           } ${esContrasena ? "pr-12" : ""}`}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={palette.textMuted}
           secureTextEntry={esContrasena && !visible}
           autoCorrect={false}
           {...inputProps}
         />
         {esContrasena && (
           <TouchableOpacity
-            className="absolute bottom-0 right-3 top-0 justify-center"
+            className="absolute bottom-0 right-1 top-0 w-11 items-center justify-center"
+            accessibilityRole="button"
             onPress={() => setVisible((v) => !v)}
             accessibilityLabel={
               visible ? "Ocultar contraseña" : "Mostrar contraseña"

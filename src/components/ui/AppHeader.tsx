@@ -58,6 +58,7 @@ export function AppHeader({
 
         <View className="flex-1 pr-2">
           <Text
+            accessibilityRole="header"
             className="text-[26px] font-bold text-foreground"
             numberOfLines={1}
           >
