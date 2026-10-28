@@ -71,6 +71,7 @@ const cliente = create({
 });
 
 export interface FiltrosEjercicios {
+  signal?: AbortSignal;
   categoria?: number;
   equipo?: number;
   busqueda?: string;
@@ -85,6 +86,7 @@ export async function listarEjerciciosWger(
   const { data } = await cliente.get<WgerPaginado<WgerExerciseInfo>>(
     "/exerciseinfo/",
     {
+      signal: filtros.signal,
       params: {
         category: filtros.categoria,
         equipment: filtros.equipo,

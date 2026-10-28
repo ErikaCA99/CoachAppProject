@@ -1,14 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Modal, TouchableOpacity, View } from "react-native";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
+import { CampoBusqueda } from "@/components/ui/SearchField";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { useBuscarEjercicios } from "@/hooks/useExerciseSearch";
 import type { EjercicioWger } from "@/models/entities/WgerExercise";
@@ -23,42 +21,44 @@ export function SelectorEjercicios({
   onCerrar: () => void;
   onSeleccionar: (ejercicio: EjercicioWger) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const { busqueda, setBusqueda, resultados, cargando } =
     useBuscarEjercicios(visible);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onCerrar}>
-      <View className="flex-1 bg-background pt-14">
+      <View
+        accessibilityViewIsModal
+        className="flex-1 bg-background"
+        style={{ paddingTop: insets.top + 8 }}
+      >
         <View className="flex-row items-center justify-between px-5 pb-3">
-          <Text className="text-lg font-bold text-foreground">
+          <Text
+            accessibilityRole="header"
+            className="text-lg font-bold text-foreground"
+          >
             Elegir ejercicio
           </Text>
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel="Cerrar selector de ejercicios"
-            hitSlop={12}
+            className="h-11 w-11 items-center justify-center"
             onPress={onCerrar}
           >
             <Ionicons name="close" size={26} color={palette.foreground} />
           </TouchableOpacity>
         </View>
 
-        <View className="mx-5 mb-3 flex-row items-center rounded-2xl border border-border bg-primary-light/20 px-3">
-          <Ionicons name="search" size={18} color={palette.textMuted} />
-          <TextInput
-            className="ml-2 flex-1 py-2.5 text-sm text-foreground"
-            placeholder="Buscar ejercicio..."
-            placeholderTextColor="#6b7280"
-            value={busqueda}
-            onChangeText={setBusqueda}
+        <View className="mx-5 mb-3">
+          <CampoBusqueda
+            valor={busqueda}
+            onCambiar={setBusqueda}
+            placeholder="Buscar ejercicio"
           />
         </View>
 
         {cargando ? (
-          <ActivityIndicator
-            style={{ marginTop: 24 }}
-            color={palette.primary}
-          />
+          <IndicadorCarga style={{ marginTop: 24 }} color={palette.primary} />
         ) : (
           <FlatList
             data={resultados}

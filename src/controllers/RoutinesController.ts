@@ -52,7 +52,9 @@ function elegirAleatorios<T>(items: T[], cantidad: number): T[] {
 async function elegirConImagen(
   items: EjercicioWger[],
   cantidad: number,
+  signal?: AbortSignal,
 ): Promise<EjercicioWger[]> {
+  signal?.throwIfAborted();
   const tieneImagen = await Promise.all(
     items.map(async (item) =>
       item.imagenUrl
@@ -61,6 +63,7 @@ async function elegirConImagen(
           null,
     ),
   );
+  signal?.throwIfAborted();
   const conImagen = items.filter((_, i) => tieneImagen[i]);
   const sinImagen = items.filter((_, i) => !tieneImagen[i]);
   const elegidos = elegirAleatorios(conImagen, cantidad);
@@ -73,7 +76,9 @@ async function armarDia(
   numeroDia: number,
   bloque: BloqueDia,
   parametros: ParametrosSerie,
+  signal?: AbortSignal,
 ): Promise<DiaRutina> {
+  signal?.throwIfAborted();
   const cantidades = repartirCantidad(
     bloque.cantidadEjercicios,
     bloque.categoriasIds.length,
@@ -81,13 +86,13 @@ async function armarDia(
 
   const resultadosPorCategoria = await Promise.all(
     bloque.categoriasIds.map((categoriaId) =>
-      EjerciciosWgerController.listar({ categoriaId }),
+      EjerciciosWgerController.listar({ categoriaId, signal }),
     ),
   );
 
   const seleccionadosPorCategoria = await Promise.all(
     resultadosPorCategoria.map((resultado, indice) =>
-      elegirConImagen(resultado.items, cantidades[indice]),
+      elegirConImagen(resultado.items, cantidades[indice], signal),
     ),
   );
 
@@ -114,12 +119,14 @@ async function armarDia(
  * importa Firestore, wger ni la heurística directamente.
  */
 export const RutinasController = {
-  /** Genera una rutina heurística (IA) real, usando ejercicios de wger, y la guarda como activa. */
-  async generarRutinaConIA(
+  /** Genera un borrador en memoria. No guarda ni modifica la rutina activa. */
+  async generarVistaPrevia(
     usuarioId: string,
     objetivo: ObjetivoUsuario,
     nivel: NivelExperiencia,
-  ): Promise<string> {
+    signal?: AbortSignal,
+  ): Promise<Omit<Rutina, "creadoEn">> {
+    signal?.throwIfAborted();
     const validacion = generarRutinaIASchema.safeParse({ objetivo, nivel });
     if (!validacion.success) {
       throw new Error(
@@ -130,6 +137,7 @@ export const RutinasController = {
     // Datos físicos del perfil: entradas del modelo de IA (edad, IMC,
     // género, días disponibles). Si faltan, `construirFeatures` imputa.
     const perfil = await obtenerPerfilUsuario(usuarioId);
+    signal?.throwIfAborted();
     const planificacion = await planificarRutina({
       objetivo: validacion.data.objetivo,
       nivel: validacion.data.nivel,
@@ -140,10 +148,11 @@ export const RutinasController = {
       diasDisponibles: perfil?.diasDisponibles,
     });
     const plan = planificacion.plan;
+    signal?.throwIfAborted();
 
     const planSemanal = await Promise.all(
       plan.bloques.map((bloque, indice) =>
-        armarDia(indice + 1, bloque, plan.parametrosSerie),
+        armarDia(indice + 1, bloque, plan.parametrosSerie, signal),
       ),
     );
 
@@ -160,9 +169,49 @@ export const RutinasController = {
       confianzaModelo: planificacion.confianza,
     };
 
-    const rutinaId = await guardarRutina(usuarioId, rutina);
+    signal?.throwIfAborted();
+    if (planSemanal.some((dia) => dia.ejercicios.length === 0)) {
+      throw new Error("No hay ejercicios suficientes para preparar la rutina.");
+    }
+    return rutina;
+  },
+
+  /** Guarda un borrador confirmado sin cambiar la rutina activa. */
+  async guardarVistaPrevia(
+    usuarioId: string,
+    rutina: Omit<Rutina, "creadoEn">,
+  ) {
+    if (rutina.usuarioId !== usuarioId) throw new Error("Usuario inválido.");
+    crearRutinaPersonalizadaSchema.parse(rutina);
+    return guardarRutina(usuarioId, rutina);
+  },
+
+  /** Registra la rutina anterior en el momento de activar para poder deshacer. */
+  async activarConAnterior(usuarioId: string, rutinaId: string) {
+    const [anterior, nueva] = await Promise.all([
+      RutinasController.obtenerActiva(usuarioId),
+      obtenerRutina(usuarioId, rutinaId),
+    ]);
+    if (!nueva) throw new Error("La nueva rutina ya no existe.");
     await actualizarPerfilUsuario(usuarioId, { rutinaActivaId: rutinaId });
-    return rutinaId;
+    return anterior;
+  },
+
+  async deshacerActivacion(
+    usuarioId: string,
+    nuevaId: string,
+    anteriorId: string | null,
+  ) {
+    const perfil = await obtenerPerfilUsuario(usuarioId);
+    if (perfil?.rutinaActivaId !== nuevaId) {
+      throw new Error(
+        "Tu rutina activa cambió. No se modificó tu selección actual.",
+      );
+    }
+    if (anteriorId && !(await obtenerRutina(usuarioId, anteriorId))) {
+      throw new Error("La rutina anterior ya no está disponible.");
+    }
+    await actualizarPerfilUsuario(usuarioId, { rutinaActivaId: anteriorId });
   },
 
   /**

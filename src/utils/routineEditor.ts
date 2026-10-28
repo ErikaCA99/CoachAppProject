@@ -103,3 +103,43 @@ export function quitarEjercicio(
 export function contarEjercicios(dias: DiaRutina[]): number {
   return dias.reduce((acc, dia) => acc + dia.ejercicios.length, 0);
 }
+
+/** Sustituye el ejercicio conservando la carga del borrador y evitando repeticiones. */
+export function sustituirEjercicio(
+  rutina: import("@/models/entities/Routine").Rutina,
+  indiceDia: number,
+  indiceEjercicio: number,
+  nuevo: EjercicioWger,
+) {
+  const dia = rutina.planSemanal[indiceDia];
+  if (!dia?.ejercicios[indiceEjercicio])
+    throw new Error("Ejercicio no disponible.");
+  if (
+    dia.ejercicios.some(
+      (e, i) => i !== indiceEjercicio && e.maquinaId === nuevo.id,
+    )
+  ) {
+    throw new Error("Ese ejercicio ya está incluido en este día.");
+  }
+  return {
+    ...rutina,
+    planSemanal: rutina.planSemanal.map((d, i) =>
+      i === indiceDia
+        ? {
+            ...d,
+            ejercicios: d.ejercicios.map((e, j) =>
+              j === indiceEjercicio
+                ? {
+                    ...e,
+                    maquinaId: nuevo.id,
+                    maquinaCatalogoId: undefined,
+                    nombre: nuevo.nombre,
+                    imagenUrl: nuevo.imagenUrl,
+                  }
+                : e,
+            ),
+          }
+        : d,
+    ),
+  };
+}

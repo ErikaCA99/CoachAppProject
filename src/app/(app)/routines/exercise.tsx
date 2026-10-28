@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Image, ScrollView, View } from "react-native";
+import { Image, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ImagenStorage } from "@/components/machines/StorageImage";
 import { SeccionFicha } from "@/components/machines/SheetSection";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
@@ -98,7 +99,7 @@ function Ficha({
         style={{ height: ALTO_DEMOSTRACION }}
       >
         {cargando ? (
-          <ActivityIndicator color={palette.primary} />
+          <IndicadorCarga color={palette.primary} />
         ) : ejercicio?.imagenUrl ? (
           <Image
             source={{ uri: ejercicio.imagenUrl }}
@@ -153,7 +154,9 @@ function Ficha({
               key={`s-${m}`}
               className="rounded-full bg-primary-light/40 px-3 py-1.5"
             >
-              <Text className="text-sm font-semibold text-primary">{m}</Text>
+              <Text className="text-sm font-semibold text-primary-dark">
+                {m}
+              </Text>
             </View>
           ))}
           {ejercicio.equipo.map((e) => (

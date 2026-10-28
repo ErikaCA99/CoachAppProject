@@ -22,6 +22,7 @@ import {
  */
 export const EjerciciosWgerController = {
   async listar(opciones: {
+    signal?: AbortSignal;
     categoriaId?: number;
     equipoId?: number;
     busqueda?: string;

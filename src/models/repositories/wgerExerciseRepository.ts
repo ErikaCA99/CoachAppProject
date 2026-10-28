@@ -159,6 +159,7 @@ export interface ResultadoListarEjercicios {
 const TAMANO_PAGINA = 20;
 
 export async function listarEjercicios(opciones: {
+  signal?: AbortSignal;
   categoriaId?: number;
   equipoId?: number;
   busqueda?: string;
@@ -166,6 +167,7 @@ export async function listarEjercicios(opciones: {
 }): Promise<ResultadoListarEjercicios> {
   const offset = opciones.offset ?? 0;
   const respuesta = await listarEjerciciosWger({
+    signal: opciones.signal,
     categoria: opciones.categoriaId,
     equipo: opciones.equipoId,
     busqueda: opciones.busqueda,

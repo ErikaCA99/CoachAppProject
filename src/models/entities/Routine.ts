@@ -2,6 +2,11 @@ import type { NivelExperiencia, ObjetivoUsuario } from "./User";
 
 export type TipoRutina = "ia" | "personalizada";
 
+export interface ParametrosGeneracion {
+  objetivo: ObjetivoUsuario;
+  nivel: NivelExperiencia;
+}
+
 export interface EjercicioRutina {
   /** Id del ejercicio en wger (nombre histórico: antes el catálogo era wger). */
   maquinaId: number;

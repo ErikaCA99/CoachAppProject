@@ -12,6 +12,7 @@ import Svg, {
 } from "react-native-svg";
 
 import { Text } from "@/components/ui/Typography";
+import { palette } from "@/constants/palette";
 import { useReducirMovimiento } from "@/hooks/useReducedMotion";
 import { avanzarHaciaCien, porcentajeSimulado } from "@/utils/loadingProgress";
 
@@ -23,12 +24,16 @@ import { avanzarHaciaCien, porcentajeSimulado } from "@/utils/loadingProgress";
  *   avance): sube hasta ~92 % mientras se espera y llega a 100 % cuando
  *   `terminado` pasa a true; entonces llama a `onTerminar` una sola vez.
  * - Respeta "reducir movimiento" del sistema: sin bucles de animación.
- * - Usa colores propios (fondo oscuro con verde lima) distintos de la paleta
- *   clara del resto de la app, por eso no usa `palette`.
+ * - Fondo oscuro (`palette.cameraDark*`) con acentos `primaryLight`/`primary`:
+ *   es la única vista oscura junto con el escáner, y usa solo la paleta.
  */
 
-const LIMA = "#b8ff2e";
-const FONDO = ["#0e1d14", "#0f1512", "#0a0d0b"] as const;
+const ACENTO = palette.primaryLight;
+const FONDO = [
+  palette.cameraDarkEnd,
+  palette.cameraDark,
+  palette.cameraDark,
+] as const;
 
 // Lienzo SVG (coordenadas del dibujo) — 1:1 con los píxeles.
 const ANCHO = 260;
@@ -158,8 +163,8 @@ export function RoutineGeneratingLoader({
           <Svg width={ANCHO} height={ALTO} style={StyleSheet.absoluteFill}>
             <Defs>
               <RadialGradient id="resplandor" cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={LIMA} stopOpacity={0.2} />
-                <Stop offset="1" stopColor={LIMA} stopOpacity={0} />
+                <Stop offset="0" stopColor={ACENTO} stopOpacity={0.2} />
+                <Stop offset="1" stopColor={ACENTO} stopOpacity={0} />
               </RadialGradient>
             </Defs>
             <Circle cx={CX} cy={CY} r={118} fill="url(#resplandor)" />
@@ -187,7 +192,7 @@ export function RoutineGeneratingLoader({
                 cy={CY}
                 r={108}
                 fill="none"
-                stroke={LIMA}
+                stroke={ACENTO}
                 strokeOpacity={0.28}
                 strokeWidth={1.5}
                 strokeDasharray="2 9"
@@ -221,7 +226,7 @@ export function RoutineGeneratingLoader({
               <Path
                 d={RUTA_ESQUINAS}
                 fill="none"
-                stroke={LIMA}
+                stroke={ACENTO}
                 strokeOpacity={0.2}
                 strokeWidth={10}
                 strokeLinecap="round"
@@ -230,14 +235,14 @@ export function RoutineGeneratingLoader({
               <Path
                 d={RUTA_ESQUINAS}
                 fill="none"
-                stroke={LIMA}
+                stroke={ACENTO}
                 strokeWidth={4}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <Path
                 d={`M${MARCO.izq + 26},${MARCO.aba - 26} H${MARCO.izq + 43}`}
-                stroke={LIMA}
+                stroke={ACENTO}
                 strokeWidth={3}
                 strokeLinecap="round"
               />
@@ -294,12 +299,12 @@ export function RoutineGeneratingLoader({
                   x2="0"
                   y2="1"
                 >
-                  <Stop offset="0" stopColor="#74c20a" />
-                  <Stop offset="1" stopColor="#4a9a00" />
+                  <Stop offset="0" stopColor={palette.primary} />
+                  <Stop offset="1" stopColor={palette.primaryDark} />
                 </SvgLinearGradient>
                 <SvgLinearGradient id="placaMedia" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0" stopColor="#97dc12" />
-                  <Stop offset="1" stopColor="#62b200" />
+                  <Stop offset="0" stopColor={palette.primaryLight} />
+                  <Stop offset="1" stopColor={palette.primary} />
                 </SvgLinearGradient>
                 <SvgLinearGradient
                   id="placaInterior"
@@ -308,8 +313,8 @@ export function RoutineGeneratingLoader({
                   x2="0"
                   y2="1"
                 >
-                  <Stop offset="0" stopColor="#bdf33a" />
-                  <Stop offset="1" stopColor="#7acb0c" />
+                  <Stop offset="0" stopColor={palette.background} />
+                  <Stop offset="1" stopColor={palette.primaryLight} />
                 </SvgLinearGradient>
               </Defs>
               {/* Barra */}
@@ -319,7 +324,7 @@ export function RoutineGeneratingLoader({
                 width={132}
                 height={12}
                 rx={6}
-                fill="#ffffff"
+                fill={palette.background}
               />
               {/* Placas: derecha y su espejo a la izquierda */}
               {PLACAS.map((placa) => (
@@ -370,11 +375,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     height: 2,
     borderRadius: 1,
-    backgroundColor: LIMA,
+    backgroundColor: ACENTO,
   },
   porcentaje: {
     marginTop: 20,
-    color: LIMA,
+    color: ACENTO,
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 2,
@@ -382,7 +387,7 @@ const styles = StyleSheet.create({
   },
   titulo: {
     marginTop: 8,
-    color: "#ffffff",
+    color: palette.background,
     fontSize: 30,
     fontWeight: "700",
     letterSpacing: -0.5,

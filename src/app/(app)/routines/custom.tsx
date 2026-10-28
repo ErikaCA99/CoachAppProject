@@ -5,7 +5,11 @@ import { ScrollView, TouchableOpacity, View } from "react-native";
 
 import { SelectorEjercicios } from "@/components/routines/ExercisePicker";
 import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { AppHeader } from "@/components/ui/AppHeader";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { PantallaBase } from "@/components/ui/ScreenBase";
+import { CampoFormulario } from "@/components/ui/FormField";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { useEditorRutinaPersonalizada } from "@/hooks/useCustomRoutineEditor";
 import type { EjercicioWger } from "@/models/entities/WgerExercise";
@@ -52,25 +56,25 @@ export default function RutinaPersonalizadaScreen() {
     else toast.desdeResultado(resultado);
   };
 
-  return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 40 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text className="mb-4 text-2xl font-bold text-foreground">
-        Crear rutina personalizada
-      </Text>
+  const volver = () =>
+    router.canGoBack() ? router.back() : router.replace("/(app)/routines");
 
-      <Text className="mb-1.5 text-sm font-semibold text-text-muted">
-        NOMBRE DE LA RUTINA
-      </Text>
-      <TextInput
-        className="mb-6 rounded-2xl border border-border bg-primary-light/20 p-3.5 text-base text-foreground"
-        value={nombreRutina}
-        onChangeText={setNombreRutina}
-        placeholder="Ej. Mi rutina de fuerza"
-      />
+  return (
+    <PantallaBase
+      encabezado={
+        <AppHeader title="Rutina personalizada" onBackPress={volver} />
+      }
+      espacioInferior={40}
+    >
+      <View className="mb-6">
+        <CampoFormulario
+          etiqueta="Nombre de la rutina"
+          mayusculas
+          value={nombreRutina}
+          onChangeText={setNombreRutina}
+          placeholder="Ej. Mi rutina de fuerza"
+        />
+      </View>
 
       <View className="mb-4 flex-row items-center justify-between">
         <Text className="text-sm font-semibold text-text-muted">
@@ -83,7 +87,7 @@ export default function RutinaPersonalizadaScreen() {
             onPress={agregarDia}
           >
             <Ionicons name="add" size={16} color={palette.primary} />
-            <Text className="ml-1 text-sm font-bold text-primary">
+            <Text className="ml-1 text-sm font-bold text-primary-dark">
               Agregar día
             </Text>
           </TouchableOpacity>
@@ -137,15 +141,15 @@ export default function RutinaPersonalizadaScreen() {
         ))}
       </ScrollView>
 
-      <Text className="mb-1.5 text-sm font-semibold text-text-muted">
-        ENFOQUE DEL DÍA {diaSeleccionado.dia}
-      </Text>
-      <TextInput
-        className="mb-4 rounded-2xl border border-border bg-primary-light/20 p-3.5 text-base text-foreground"
-        value={diaSeleccionado.enfoque}
-        onChangeText={actualizarEnfoque}
-        placeholder="Ej. Pecho y tríceps"
-      />
+      <View className="mb-4">
+        <CampoFormulario
+          etiqueta={`Enfoque del día ${diaSeleccionado.dia}`}
+          mayusculas
+          value={diaSeleccionado.enfoque}
+          onChangeText={actualizarEnfoque}
+          placeholder="Ej. Pecho y tríceps"
+        />
+      </View>
 
       {diaSeleccionado.ejercicios.map((ejercicio, indice) => (
         <View
@@ -172,8 +176,8 @@ export default function RutinaPersonalizadaScreen() {
           </View>
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Quitar ejercicio"
-            hitSlop={14}
+            accessibilityLabel={`Quitar ${ejercicio.nombre}`}
+            className="h-11 w-11 items-center justify-center"
             onPress={() => quitarEjercicio(indice)}
           >
             <Ionicons name="trash-outline" size={18} color={palette.error} />
@@ -192,23 +196,17 @@ export default function RutinaPersonalizadaScreen() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessibilityRole="button"
-        className="items-center rounded-2xl bg-primary p-4"
+      <BotonPrimario
+        titulo={guardando ? "Guardando..." : "Guardar rutina"}
         onPress={handleGuardar}
-        disabled={guardando}
-        style={guardando ? { opacity: 0.6 } : undefined}
-      >
-        <Text className="text-base font-bold text-background">
-          {guardando ? "Guardando..." : "Guardar rutina"}
-        </Text>
-      </TouchableOpacity>
+        cargando={guardando}
+      />
 
       <SelectorEjercicios
         visible={modalVisible}
         onCerrar={() => setModalVisible(false)}
         onSeleccionar={handleAgregarEjercicio}
       />
-    </ScrollView>
+    </PantallaBase>
   );
 }
