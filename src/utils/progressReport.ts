@@ -1,3 +1,4 @@
+import { palette } from "@/constants/palette";
 import type { Entrenamiento } from "@/models/entities/Workout";
 import type { ProgresoFisico } from "@/models/entities/PhysicalProgress";
 import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
@@ -242,13 +243,13 @@ export function calcularResumenReporte(datos: DatosReporte): ResumenReporte {
 // ──────────────────────────────────────────────────────────────────────────
 
 const COLOR = {
-  primario: "#1a8062",
-  primarioClaro: "#add9d1",
-  acento: "#f29580",
-  acentoFuerte: "#c0391b",
-  texto: "#1f2937",
-  textoSuave: "#6b7280",
-  borde: "#e5e7eb",
+  primario: palette.primary,
+  primarioClaro: palette.primaryLight,
+  acento: palette.accent,
+  acentoFuerte: palette.accentStrong,
+  texto: palette.foreground,
+  textoSuave: palette.textMuted,
+  borde: palette.primaryLight,
 };
 
 function escapar(texto: string): string {

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 
+import { BarraProgreso } from "@/components/ui/ProgressBar";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import type { DiaSemanaSeguimiento } from "@/utils/workoutStats";
@@ -32,7 +33,14 @@ export function SeguimientoSemanal({
 
       <View className="flex-row justify-between">
         {dias.map((dia) => (
-          <View key={dia.fecha} className="items-center gap-1.5">
+          <View
+            key={dia.fecha}
+            accessible
+            accessibilityLabel={`Día ${dia.numeroDia} del mes, ${
+              dia.completado ? "completado" : dia.esHoy ? "hoy" : "pendiente"
+            }`}
+            className="items-center gap-1.5"
+          >
             <Text className="text-sm font-semibold text-text-secondary">
               {dia.etiqueta}
             </Text>
@@ -65,10 +73,12 @@ export function SeguimientoSemanal({
         ))}
       </View>
 
-      <View className="mt-4 h-1.5 overflow-hidden rounded-full bg-primary-light/25">
-        <View
-          className="h-full rounded-full bg-primary"
-          style={{ width: `${Math.round(progreso * 100)}%` }}
+      <View className="mt-4">
+        <BarraProgreso
+          valor={progreso}
+          etiqueta="Progreso de la semana"
+          textoValor={`${completadosSemana} de ${totalSemana} días completados`}
+          claseCaja="h-1.5 bg-primary-light/25"
         />
       </View>
       <Text className="mt-2 text-right text-sm text-text-secondary">

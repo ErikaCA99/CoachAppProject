@@ -42,7 +42,6 @@ export function useProgresoScreen() {
   const [entrenamientos, setEntrenamientos] = useState<ConId<Entrenamiento>[]>(
     [],
   );
-  const [marcandoEntreno, setMarcandoEntreno] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -97,10 +96,6 @@ export function useProgresoScreen() {
 
   const resumenEntrenos = useMemo(
     () => EntrenamientosController.resumen(entrenamientos),
-    [entrenamientos],
-  );
-  const diaCompletadoHoy = useMemo(
-    () => EntrenamientosController.deHoy(entrenamientos)?.dia ?? null,
     [entrenamientos],
   );
 
@@ -164,35 +159,6 @@ export function useProgresoScreen() {
     [uid],
   );
 
-  const alternarDia = useCallback(
-    async (numeroDia: number): Promise<ResultadoAccion> => {
-      if (!uid || !rutinaActiva) return OK;
-      setMarcandoEntreno(true);
-      try {
-        if (diaCompletadoHoy === numeroDia) {
-          await EntrenamientosController.desmarcarHoy(uid);
-        } else {
-          await EntrenamientosController.marcarCompletadoHoy(
-            uid,
-            rutinaActiva.id,
-            numeroDia,
-          );
-        }
-        return OK;
-      } catch (error) {
-        console.error("Error al marcar el entrenamiento:", error);
-        return {
-          ok: false,
-          titulo: "Error",
-          mensaje: "No se pudo actualizar tu entrenamiento de hoy.",
-        };
-      } finally {
-        setMarcandoEntreno(false);
-      }
-    },
-    [uid, rutinaActiva, diaCompletadoHoy],
-  );
-
   return {
     // estado de carga
     cargando,
@@ -217,11 +183,8 @@ export function useProgresoScreen() {
     // rutinas / entrenamientos
     rutinaActiva,
     resumenEntrenos,
-    diaCompletadoHoy,
-    marcandoEntreno,
     // acciones
     registrar,
     eliminar,
-    alternarDia,
   };
 }

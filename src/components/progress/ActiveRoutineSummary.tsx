@@ -28,7 +28,10 @@ export function RutinaActivaResumen({ rutina }: RutinaActivaResumenProps) {
       <Text className="text-sm font-bold uppercase tracking-wider text-background/80">
         Rutina activa
       </Text>
-      <Text className="mb-3 mt-0.5 text-lg font-bold text-background">
+      <Text
+        accessibilityRole="header"
+        className="mb-3 mt-0.5 text-lg font-bold text-background"
+      >
         {rutina.nombre}
       </Text>
       <View className="flex-row flex-wrap gap-2">

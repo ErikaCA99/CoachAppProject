@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import {
@@ -36,7 +37,7 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
   };
 
   return (
-    <View className="mb-6 rounded-3xl border border-border/50 bg-white p-4 shadow-sm">
+    <View className="mb-6 rounded-3xl border border-border/50 bg-background p-4 shadow-sm">
       <View className="mb-3 flex-row items-center gap-2.5">
         <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/15">
           <Ionicons
@@ -65,10 +66,10 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityState={{ selected: activo }}
-              className={`flex-1 items-center rounded-full border py-1.5 ${
+              className={`min-h-11 flex-1 items-center justify-center rounded-full border ${
                 activo
                   ? "border-primary bg-primary"
-                  : "border-border/60 bg-white"
+                  : "border-border/60 bg-background"
               }`}
             >
               <Text
@@ -86,13 +87,14 @@ export function TarjetaReporte({ usuarioId }: TarjetaReporteProps) {
       <TouchableOpacity
         onPress={handleGenerar}
         disabled={generando}
+        accessibilityState={{ disabled: generando }}
         activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel="Generar reporte en PDF"
         className="h-11 flex-row items-center justify-center gap-2 rounded-2xl bg-primary"
       >
         {generando ? (
-          <ActivityIndicator color={palette.background} />
+          <IndicadorCarga decorativo color={palette.background} />
         ) : (
           <>
             <Ionicons
