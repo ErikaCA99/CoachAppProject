@@ -25,7 +25,7 @@ export function TarjetaMaquina({ maquina, onPress }: TarjetaMaquinaProps) {
       accessibilityRole="button"
       accessibilityLabel={`${maquina.nombre}, ${maquina.categoria}`}
     >
-      <View className="bg-white">
+      <View className="bg-background">
         <ImagenStorage
           ruta={maquina.imagenPrincipal}
           style={{ width: "100%", aspectRatio: 1 }}

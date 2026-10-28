@@ -29,7 +29,7 @@ function VisorDemostracion({
 
   return (
     <View className="overflow-hidden rounded-2xl border border-border bg-background">
-      <View className="bg-white">
+      <View className="bg-background">
         <Image
           key={animar ? "animacion" : "estatica"}
           source={animar ? demostracion.recurso : demostracion.vistaEstatica}
@@ -103,7 +103,7 @@ export function DemostracionesLocales({ maquinaId }: { maquinaId: string }) {
               className={`min-h-12 justify-center rounded-xl px-4 py-3 active:opacity-80 ${item.id === seleccion.id ? "bg-primary" : "bg-primary-light/25"}`}
             >
               <Text
-                className={`text-sm font-semibold ${item.id === seleccion.id ? "text-background" : "text-primary"}`}
+                className={`text-sm font-semibold ${item.id === seleccion.id ? "text-background" : "text-primary-dark"}`}
               >
                 {item.nombre}
               </Text>

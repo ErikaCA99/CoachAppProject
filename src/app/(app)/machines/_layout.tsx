@@ -1,6 +1,10 @@
 import { Stack } from "expo-router";
 import { useReducirMovimiento } from "@/hooks/useReducedMotion";
 
+export const unstable_settings = {
+  initialRouteName: "index",
+};
+
 /**
  * Stack de la Guía de Máquinas. Las tres pantallas dibujan su propio
  * encabezado (foto a pantalla completa en el detalle, fondo oscuro en el

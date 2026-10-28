@@ -59,7 +59,7 @@ export function HojaSugerenciasMaquina({
           onPress={() => onElegir(maquina)}
           className="mb-2.5 min-h-[72px] flex-row items-center rounded-2xl border border-border bg-background p-2.5"
         >
-          <View className="h-14 w-14 overflow-hidden rounded-xl bg-white">
+          <View className="h-14 w-14 overflow-hidden rounded-xl bg-background">
             <ImagenStorage
               ruta={maquina.imagenPrincipal}
               style={{ width: 56, height: 56 }}

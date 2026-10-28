@@ -37,7 +37,7 @@ function Pose({
 }) {
   return (
     <View className="flex-1 items-center">
-      <View className="w-full overflow-hidden rounded-xl bg-white">
+      <View className="w-full overflow-hidden rounded-xl bg-background">
         <ImagenStorage
           ruta={ruta}
           style={{ width: "100%", aspectRatio: 1 }}
@@ -105,7 +105,7 @@ export function TarjetaPosesEjercicio({
           <Pose ruta={poses[1]} etiqueta="Final" nombre={ejercicio.nombre} />
         </View>
       ) : (
-        <View className="overflow-hidden rounded-xl bg-white">
+        <View className="overflow-hidden rounded-xl bg-background">
           <ImagenStorage
             ruta={ejercicio.gifPath}
             style={{ width: "100%", aspectRatio: 1.6 }}
@@ -116,7 +116,7 @@ export function TarjetaPosesEjercicio({
       )}
 
       <View className="mt-3 min-h-11 flex-row items-center justify-center gap-1 rounded-xl bg-primary-light/25">
-        <Text className="text-sm font-bold text-primary">
+        <Text className="text-sm font-bold text-primary-dark">
           Ver animación y pasos
         </Text>
         <Ionicons

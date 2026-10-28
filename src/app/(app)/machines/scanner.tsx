@@ -4,7 +4,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Linking,
   StyleSheet,
   TouchableOpacity,
@@ -19,15 +18,17 @@ import {
   type SugerenciaMaquina,
 } from "@/components/machines/scanner/SuggestionsSheet";
 import { IndicadorDeteccionAR } from "@/components/machines/scanner/ARDetectionIndicator";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
+import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
+import { conOpacidad, palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import type { DificultadEjercicio, Maquina } from "@/models/entities/Machine";
 import { toast } from "@/utils/toast";
 
 type Fase = "inicio" | "escaneando" | "analizando" | "eligiendo" | "detectada";
 
-const FONDO = ["#0f1d18", "#132a22"] as const;
+const FONDO = [palette.cameraDark, palette.cameraDarkEnd] as const;
 const LADO_MARCO = 220;
 
 const ETIQUETA_DIFICULTAD: Record<DificultadEjercicio, string> = {
@@ -51,7 +52,7 @@ function MarcoEscaneo({ detectada }: { detectada: boolean }) {
         style={{
           ...StyleSheet.absoluteFill,
           borderWidth: 1,
-          borderColor: `${color}66`,
+          borderColor: conOpacidad(color, 0.4),
           borderRadius: 18,
         }}
       />
@@ -107,13 +108,14 @@ function MarcoEscaneo({ detectada }: { detectada: boolean }) {
 }
 
 /**
- * Escáner de máquinas (interfaz de "realidad aumentada").
+ * Escáner de máquinas: toma una foto y la clasifica con el modelo local.
  *
- * Flujo: inicio → cámara → captura → reconocimiento → ficha superpuesta en
- * la cámara. Mientras no exista el modelo de IA
- * (`services/ai/reconocimientoMaquinas.ts`), el reconocimiento devuelve
- * `null` y el usuario CONFIRMA la máquina en una lista. Desde la ficha de una
- * máquina (`?maquinaId=`), se muestra esa máquina directamente sobre la cámara.
+ * Flujo: cámara → captura → reconocimiento → ficha superpuesta en la cámara.
+ * Si el permiso ya está concedido, la cámara se abre al entrar; la pantalla
+ * explicativa solo aparece cuando falta el permiso. Si el modelo duda, el
+ * usuario elige entre las candidatas o CONFIRMA la máquina en una lista.
+ * Desde la ficha de una máquina (`?maquinaId=`), se muestra esa máquina
+ * directamente sobre la cámara.
  */
 export default function EscanerScreen() {
   const router = useRouter();
@@ -123,7 +125,10 @@ export default function EscanerScreen() {
   const [permiso, pedirPermiso] = useCameraPermissions();
   const camara = useRef<CameraView>(null);
 
-  const [fase, setFase] = useState<Fase>("inicio");
+  /** Fase elegida por el usuario; "inicio" delega en {@link fase} (derivada). */
+  const [faseManual, setFase] = useState<Fase>("inicio");
+  /** La precarga de `?maquinaId=` falló: se escanea como si no hubiera máquina. */
+  const [precargaFallida, setPrecargaFallida] = useState(false);
   /** En "eligiendo" es la candidata; en "detectada", la confirmada. */
   const [maquina, setMaquina] = useState<Maquina | null>(null);
   const [catalogo, setCatalogo] = useState<Maquina[]>([]);
@@ -143,7 +148,10 @@ export default function EscanerScreen() {
     let activo = true;
     MaquinasController.obtenerPorId(maquinaId)
       .then((m) => activo && setMaquina(m))
-      .catch((error) => console.warn("No se pudo cargar la máquina:", error));
+      .catch((error) => {
+        console.warn("No se pudo cargar la máquina:", error);
+        if (activo) setPrecargaFallida(true);
+      });
     return () => {
       activo = false;
     };
@@ -152,11 +160,18 @@ export default function EscanerScreen() {
   const volver = () =>
     router.canGoBack() ? router.back() : router.replace("/(app)/machines");
 
-  const iniciar = async () => {
-    const respuesta = permiso?.granted ? permiso : await pedirPermiso();
-    if (!respuesta.granted) return;
-    setFase(maquinaId && maquina ? "detectada" : "escaneando");
-  };
+  /**
+   * Con el permiso concedido la cámara se abre sola: la fase "inicio" solo
+   * se queda cuando falta el permiso o mientras carga la máquina de `?maquinaId=`.
+   */
+  const fase: Fase =
+    faseManual !== "inicio" || !permiso?.granted
+      ? faseManual
+      : maquinaId && !precargaFallida
+        ? maquina
+          ? "detectada"
+          : "inicio"
+        : "escaneando";
 
   const reiniciarEscaneo = () => {
     setMaquina(null);
@@ -229,6 +244,8 @@ export default function EscanerScreen() {
 
   const camaraActiva = fase !== "inicio" && permiso?.granted;
   const permisoDenegado = permiso && !permiso.granted && !permiso.canAskAgain;
+  /** Aún no se sabe el estado del permiso, o falta cargar la máquina precargada. */
+  const preparando = fase === "inicio" && (!permiso || permiso.granted);
 
   return (
     <View className="flex-1" style={{ backgroundColor: FONDO[0] }}>
@@ -250,15 +267,21 @@ export default function EscanerScreen() {
       >
         <TouchableOpacity
           onPress={volver}
-          className="h-9 w-9 items-center justify-center rounded-full bg-white/15"
+          className="h-11 w-11 items-center justify-center rounded-full bg-background/15"
+          accessibilityRole="button"
           accessibilityLabel="Volver"
         >
-          <Ionicons name="arrow-back" size={18} color="#ffffff" />
+          <Ionicons name="arrow-back" size={22} color={palette.background} />
         </TouchableOpacity>
-        <View className="rounded-full bg-white/15 px-4 py-1.5">
-          <Text className="text-sm font-bold text-white">Escáner AR</Text>
+        <View className="rounded-full bg-background/15 px-4 py-2">
+          <Text
+            className="text-sm font-bold text-background"
+            accessibilityRole="header"
+          >
+            Identificar máquina
+          </Text>
         </View>
-        <View className="h-9 w-9" />
+        <View className="h-11 w-11" />
       </View>
 
       {/* Identificación visual: miniatura de la máquina + ícono 3D */}
@@ -274,73 +297,61 @@ export default function EscanerScreen() {
 
       {/* Contenido central */}
       <View className="flex-1 items-center justify-center px-8">
-        {fase === "inicio" && (
+        {preparando && (
+          <IndicadorCarga size="large" color={palette.background} />
+        )}
+
+        {fase === "inicio" && !preparando && (
           <>
-            <LinearGradient
-              colors={[palette.accentStrong, palette.accent]}
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+            <View className="h-20 w-20 items-center justify-center rounded-full bg-accent-strong">
+              <Ionicons
+                name="camera-outline"
+                size={36}
+                color={palette.background}
+              />
+            </View>
+            <Text
+              accessibilityRole="header"
+              className="mt-6 text-center text-xl font-bold text-background"
             >
-              <Ionicons name="camera-outline" size={36} color="#ffffff" />
-            </LinearGradient>
-            <Text className="mt-6 text-xl font-bold text-white">
-              {maquina ? maquina.nombre : "Escanea una Máquina"}
+              Necesitamos la cámara
             </Text>
-            <Text className="mt-2 text-center text-sm leading-5 text-white/70">
-              {maquina
-                ? "Apunta tu cámara a la máquina para ver sus ejercicios en realidad aumentada"
-                : "Apunta tu cámara a cualquier máquina del gimnasio para ver ejercicios en realidad aumentada"}
+            <Text className="mt-2 text-center text-sm leading-5 text-background/80">
+              Para identificar la máquina con una foto. Si prefieres no darla,
+              puedes buscarla en el catálogo.
             </Text>
-            {permisoDenegado ? (
-              <TouchableOpacity
-                className="mt-8 rounded-2xl bg-white/15 px-6 py-3"
-                onPress={() => Linking.openSettings()}
-              >
-                <Text className="text-sm font-bold text-white">
-                  Activar la cámara en Ajustes
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={iniciar}
-                className="mt-8 overflow-hidden rounded-2xl"
-                accessibilityRole="button"
-              >
-                <LinearGradient
-                  colors={[palette.accentStrong, palette.accent]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 28,
-                    paddingVertical: 14,
-                  }}
-                >
-                  <Ionicons name="scan" size={18} color="#ffffff" />
-                  <Text className="ml-2 text-sm font-bold text-white">
-                    Iniciar Escaneo
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
+            <View className="mt-8 self-stretch">
+              <BotonPrimario
+                titulo={permisoDenegado ? "Abrir ajustes" : "Permitir cámara"}
+                onPress={() => {
+                  if (permisoDenegado) void Linking.openSettings();
+                  else void pedirPermiso();
+                }}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={volver}
+              className="mt-2 min-h-11 items-center justify-center px-4"
+              accessibilityRole="button"
+            >
+              <Text className="text-sm font-bold text-background">
+                Buscar en el catálogo
+              </Text>
+            </TouchableOpacity>
           </>
         )}
 
         {(fase === "escaneando" || fase === "analizando") && (
           <>
             <MarcoEscaneo detectada={false} />
-            <Text className="mt-6 text-sm font-bold text-white">
-              {fase === "analizando"
-                ? "Analizando..."
-                : "Escaneando máquina..."}
-            </Text>
+            {fase === "analizando" && (
+              <Text
+                className="mt-6 text-sm font-bold text-background"
+                accessibilityLiveRegion="polite"
+              >
+                Analizando la foto...
+              </Text>
+            )}
           </>
         )}
 
@@ -353,19 +364,23 @@ export default function EscanerScreen() {
           <>
             <TouchableOpacity
               onPress={capturar}
-              className="mb-4 h-16 w-16 items-center justify-center self-center rounded-full border-4 border-white bg-white/20"
-              accessibilityLabel="Capturar"
+              className="mb-4 h-16 w-16 items-center justify-center self-center rounded-full border-4 border-background bg-background/20"
+              accessibilityRole="button"
+              accessibilityLabel="Identificar máquina"
             />
-            <View className="rounded-2xl bg-white/10 px-4 py-3">
-              <Text className="text-center text-sm text-white/80">
-                Mantén la cámara enfocada en la máquina y toca el botón
+            <View className="rounded-2xl bg-background/10 px-4 py-3">
+              <Text className="text-center text-sm text-background/80">
+                Encuadra la máquina y toca el botón para identificarla
               </Text>
             </View>
           </>
         )}
 
         {fase === "analizando" && (
-          <ActivityIndicator color="#ffffff" style={{ marginBottom: 24 }} />
+          <IndicadorCarga
+            color={palette.background}
+            style={{ marginBottom: 24 }}
+          />
         )}
 
         {fase === "eligiendo" && sugerencias.length > 0 && !verCatalogo && (
@@ -398,15 +413,19 @@ export default function EscanerScreen() {
             style={{ borderRadius: 24, padding: 16 }}
           >
             <View className="mb-3 flex-row items-center">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-white/20">
-                <Ionicons name="locate-outline" size={18} color="#ffffff" />
+              <View className="h-9 w-9 items-center justify-center rounded-xl bg-background/20">
+                <Ionicons
+                  name="locate-outline"
+                  size={18}
+                  color={palette.background}
+                />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="text-sm text-white/80">
+                <Text className="text-sm text-background/80">
                   {esSugerida ? "Máquina detectada" : "Máquina confirmada"}
                 </Text>
                 <Text
-                  className="text-lg font-bold text-white"
+                  className="text-lg font-bold text-background"
                   numberOfLines={1}
                 >
                   {maquina.nombre}
@@ -417,10 +436,10 @@ export default function EscanerScreen() {
             {maquina.ejerciciosGif.slice(0, 4).map((e) => (
               <View
                 key={e.workoutxId}
-                className="mb-2 flex-row items-center justify-between rounded-xl bg-white/15 px-3 py-2.5"
+                className="mb-2 flex-row items-center justify-between rounded-xl bg-background/15 px-3 py-2.5"
               >
                 <Text
-                  className="flex-1 text-sm font-semibold text-white"
+                  className="flex-1 text-sm font-semibold text-background"
                   numberOfLines={1}
                 >
                   {e.nombre}
@@ -428,7 +447,7 @@ export default function EscanerScreen() {
                 <View
                   className={`ml-2 rounded-full px-2 py-0.5 ${ETIQUETA_DIFICULTAD[e.dificultad]}`}
                 >
-                  <Text className="text-sm font-bold text-white">
+                  <Text className="text-sm font-bold text-background">
                     {e.dificultad}
                   </Text>
                 </View>
@@ -437,7 +456,8 @@ export default function EscanerScreen() {
 
             <View className="mt-2 flex-row gap-3">
               <TouchableOpacity
-                className="flex-1 items-center rounded-2xl bg-white py-3"
+                accessibilityRole="button"
+                className="min-h-11 flex-1 items-center justify-center rounded-2xl bg-background py-3"
                 onPress={() =>
                   router.replace({
                     pathname: "/(app)/machines/[id]",
@@ -446,15 +466,16 @@ export default function EscanerScreen() {
                 }
               >
                 <Text className="text-sm font-bold text-primary">
-                  Ver Detalles
+                  Ver detalles
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 items-center rounded-2xl bg-white/20 py-3"
+                accessibilityRole="button"
+                className="min-h-11 flex-1 items-center justify-center rounded-2xl bg-background/20 py-3"
                 onPress={reiniciarEscaneo}
               >
-                <Text className="text-sm font-bold text-white">
-                  Escanear Otra
+                <Text className="text-sm font-bold text-background">
+                  Escanear otra
                 </Text>
               </TouchableOpacity>
             </View>

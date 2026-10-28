@@ -1,13 +1,9 @@
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Platform,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, TouchableOpacity, View } from "react-native";
 
 import { ImagenStorage } from "@/components/machines/StorageImage";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
@@ -130,7 +126,7 @@ export function DemostracionEjercicio({
           accessibilityLiveRegion="polite"
         >
           {alternativa.tipo === "cargando" && (
-            <ActivityIndicator color={palette.primary} />
+            <IndicadorCarga decorativo color={palette.primary} />
           )}
           <Text className="mt-3 text-center text-sm leading-6 text-text-secondary">
             {alternativa.tipo === "cargando"

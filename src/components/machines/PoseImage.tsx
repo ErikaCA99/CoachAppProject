@@ -57,7 +57,7 @@ export function ImagenPoses({
 }: ImagenPosesProps) {
   return (
     <View>
-      <View className="overflow-hidden rounded-xl bg-white">
+      <View className="overflow-hidden rounded-xl bg-background">
         <ImagenStorage
           ruta={ruta}
           style={{ width: "100%", aspectRatio: PROPORCION_POSES }}

@@ -30,7 +30,7 @@ export function IndicadorDeteccionAR({
       accessibilityLabel={`${etiqueta}: ${maquina.nombre}`}
       accessibilityLiveRegion="polite"
     >
-      <View className="overflow-hidden rounded-xl bg-white">
+      <View className="overflow-hidden rounded-xl bg-background">
         <ImagenStorage
           ruta={maquina.imagenPrincipal}
           style={{ width: 42, height: 42 }}
@@ -43,16 +43,20 @@ export function IndicadorDeteccionAR({
             size={12}
             color={confirmada ? palette.primaryLight : palette.secondary}
           />
-          <Text className="ml-1 text-sm font-semibold text-white/80">
+          <Text className="ml-1 text-sm font-semibold text-background/80">
             {etiqueta}
           </Text>
         </View>
-        <Text className="text-sm font-bold text-white" numberOfLines={1}>
+        <Text className="text-sm font-bold text-background" numberOfLines={1}>
           {maquina.nombre}
         </Text>
       </View>
-      <View className="ml-3 h-9 w-9 items-center justify-center rounded-xl bg-white/15">
-        <MaterialCommunityIcons name="cube-scan" size={20} color="#ffffff" />
+      <View className="ml-3 h-9 w-9 items-center justify-center rounded-xl bg-background/15">
+        <MaterialCommunityIcons
+          name="cube-scan"
+          size={20}
+          color={palette.background}
+        />
       </View>
     </View>
   );

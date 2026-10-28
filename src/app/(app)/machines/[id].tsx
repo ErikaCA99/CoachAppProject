@@ -3,7 +3,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Modal,
   Platform,
   ScrollView,
@@ -20,7 +19,11 @@ import { GuiaMaquinaTabs } from "@/components/machines/MachineGuideTabs";
 import { ImagenPoses } from "@/components/machines/PoseImage";
 import { ClavesSeguridad } from "@/components/machines/SafetyKeys";
 import { SeccionFicha } from "@/components/machines/SheetSection";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorCarga } from "@/components/ui/LoadError";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
@@ -28,6 +31,8 @@ import type { EjercicioWger } from "@/models/entities/WgerExercise";
 import type { EjercicioGif, Maquina } from "@/models/entities/Machine";
 import { useAuthStore } from "@/store/auth.store";
 import type { DetalleEjercicioGenerado } from "@/utils/machineExercise";
+
+type VistaEjercicio = "pasos" | "poses" | "animacion";
 
 const ALTO_PORTADA = 220;
 /** Máximo de fotos de variantes en la galería, para no descargar decenas. */
@@ -41,6 +46,10 @@ export default function MachineDetail() {
   const uid = useAuthStore((s) => s.user?.uid);
 
   const [maquina, setMaquina] = useState<Maquina | null | undefined>();
+  // Falló la carga (red, permisos): distinto de que la máquina no exista.
+  const [errorCarga, setErrorCarga] = useState(false);
+  const [intento, setIntento] = useState(0);
+  const [vistaEjercicio, setVistaEjercicio] = useState<VistaEjercicio>("pasos");
   const [reproduciendo, setReproduciendo] = useState(true);
   const [modalRutina, setModalRutina] = useState(false);
   const [modalEjercicio, setModalEjercicio] = useState(false);
@@ -62,34 +71,54 @@ export default function MachineDetail() {
       .then((m) => activo && setMaquina(m))
       .catch((error) => {
         console.error("Error al cargar la máquina:", error);
-        if (activo) setMaquina(null);
+        if (activo) setErrorCarga(true);
       });
     return () => {
       activo = false;
     };
-  }, [id]);
+  }, [id, intento]);
+
+  const reintentarCarga = () => {
+    setErrorCarga(false);
+    setMaquina(undefined);
+    setIntento((n) => n + 1);
+  };
 
   const volver = () =>
     router.canGoBack() ? router.back() : router.replace("/(app)/machines");
 
+  if (errorCarga) {
+    return (
+      <View className="flex-1 justify-center bg-background">
+        <ErrorCarga
+          mensaje="No se pudo cargar la ficha. Revisa tu conexión e inténtalo de nuevo."
+          onReintentar={reintentarCarga}
+        />
+      </View>
+    );
+  }
+
   if (maquina === undefined) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color={palette.primary} />
+        <IndicadorCarga size="large" color={palette.primary} />
       </View>
     );
   }
 
   if (maquina === null) {
     return (
-      <View className="flex-1 items-center justify-center bg-background p-6">
-        <Ionicons name="alert-circle-outline" size={40} color={palette.error} />
-        <Text className="mt-3 text-center text-sm text-error">
-          No se encontró esta máquina.
-        </Text>
-        <TouchableOpacity className="mt-4" onPress={volver}>
-          <Text className="font-bold text-primary">Volver al catálogo</Text>
-        </TouchableOpacity>
+      <View className="flex-1 justify-center bg-background">
+        <EmptyState
+          icon="search-outline"
+          title="Esta máquina ya no está"
+          description="Puede que se haya retirado del catálogo."
+          actionButton={{
+            label: "Volver al catálogo",
+            icon: "arrow-back-outline",
+            onPress: volver,
+          }}
+        />
       </View>
     );
   }
@@ -104,6 +133,7 @@ export default function MachineDetail() {
     setDetalleEjercicio(null);
     setDetalleGenerado(null);
     setMensajeDetalleEjercicio(null);
+    setVistaEjercicio("pasos");
     setModalEjercicio(true);
     setCargandoDetalleEjercicio(true);
 
@@ -119,20 +149,20 @@ export default function MachineDetail() {
   const detalleGuia = detalleEjercicio ?? detalleGenerado;
 
   return (
-    <View className="flex-1 bg-primary-light/15">
+    <View className="flex-1 bg-background">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         {/* Portada */}
-        <View style={{ height: ALTO_PORTADA }} className="bg-white">
+        <View style={{ height: ALTO_PORTADA }} className="bg-background">
           <ImagenStorage
             ruta={maquina.imagenPrincipal}
             style={{ width: "100%", height: ALTO_PORTADA }}
             accessibilityLabel={maquina.nombre}
           />
           <LinearGradient
-            colors={["transparent", "rgba(242, 248, 246, 0.95)"]}
+            colors={["transparent", palette.background]}
             style={{
               position: "absolute",
               left: 0,
@@ -156,7 +186,10 @@ export default function MachineDetail() {
           <Text className="text-sm font-bold uppercase tracking-wider text-primary">
             {maquina.categoria}
           </Text>
-          <Text className="text-2xl font-bold text-foreground">
+          <Text
+            accessibilityRole="header"
+            className="text-2xl font-bold text-foreground"
+          >
             {maquina.nombre}
           </Text>
 
@@ -218,7 +251,7 @@ export default function MachineDetail() {
                   {variantes.map((v) => (
                     <View
                       key={v.handle}
-                      className="mr-3 w-32 overflow-hidden rounded-xl border border-primary-light/60 bg-white"
+                      className="mr-3 w-32 overflow-hidden rounded-xl border border-primary-light/60 bg-background"
                     >
                       <ImagenStorage
                         ruta={v.imagen}
@@ -253,7 +286,7 @@ export default function MachineDetail() {
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Ver con la cámara en realidad aumentada"
+            accessibilityLabel="Ver la máquina con la cámara"
             activeOpacity={0.7}
             className="h-14 w-14 items-center justify-center rounded-2xl border border-border bg-background"
             onPress={() =>
@@ -341,156 +374,195 @@ export default function MachineDetail() {
                     </Text>
                   </View>
                   <View className="rounded-full bg-primary-light/25 px-3 py-2">
-                    <Text className="text-sm font-semibold text-primary">
+                    <Text className="text-sm font-semibold text-primary-dark">
                       {detalleGuia?.categoria || maquina.categoria}
                     </Text>
                   </View>
                 </View>
 
-                {ejercicioGifSeleccionado.imagenPoses ? (
-                  <View className="mb-5 rounded-3xl border border-primary-light/60 p-3">
-                    <ImagenPoses
-                      ruta={ejercicioGifSeleccionado.imagenPoses}
-                      nombre={ejercicioGifSeleccionado.nombre}
-                      mostrarLeyenda
-                    />
-                  </View>
-                ) : null}
-
-                <View className="mb-5 overflow-hidden rounded-3xl border border-primary-light/60 bg-white">
-                  <View className="flex-row items-center justify-between bg-primary-light/20 px-4 py-3">
-                    <Text className="font-bold text-foreground">
-                      {ejercicioGifSeleccionado.imagenPoses
-                        ? "Animación del movimiento"
-                        : "Observa la técnica"}
-                    </Text>
-                    <Ionicons
-                      name="body-outline"
-                      size={20}
-                      color={palette.primary}
-                      accessible={false}
-                    />
-                  </View>
-                  <DemostracionEjercicio
-                    key={ejercicioGifSeleccionado.workoutxId}
-                    ejercicio={ejercicioGifSeleccionado}
-                    alto={Math.min(width * 0.8, 340)}
-                    reproduciendo={reproduciendo}
+                <View className="mb-5">
+                  <SegmentedControl
+                    options={[
+                      { value: "pasos", label: "Pasos" },
+                      { value: "poses", label: "Poses" },
+                      { value: "animacion", label: "Animación" },
+                    ]}
+                    value={vistaEjercicio}
+                    onChange={setVistaEjercicio}
                   />
-                  {Platform.OS !== "web" ? (
-                    <TouchableOpacity
-                      onPress={() => setReproduciendo((valor) => !valor)}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        reproduciendo
-                          ? "Pausar demostración"
-                          : "Reproducir demostración"
-                      }
-                      className="min-h-12 flex-row items-center justify-center bg-primary px-4 py-3"
-                    >
-                      <Ionicons
-                        name={reproduciendo ? "pause-outline" : "play-outline"}
-                        size={20}
-                        color={palette.background}
-                        accessible={false}
-                      />
-                      <Text className="ml-2 text-sm font-semibold text-background">
-                        {reproduciendo
-                          ? "Pausar demostración"
-                          : "Reproducir demostración"}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <Text className="px-4 py-3 text-center text-sm text-text-secondary">
-                      Demostración del movimiento
-                    </Text>
-                  )}
                 </View>
 
-                <SeccionFicha titulo="Músculos trabajados" icono="body-outline">
-                  <Text className="mb-2 text-sm font-semibold uppercase text-text-secondary">
-                    Principal
-                  </Text>
-                  <Text className="text-base font-bold text-primary">
-                    {ejercicioGifSeleccionado.musculoObjetivo.toLowerCase() ===
-                    "glutes"
-                      ? "Glúteos"
-                      : ejercicioGifSeleccionado.musculoObjetivo}
-                  </Text>
-                  {!!detalleGuia?.gruposMusculares.length && (
-                    <View className="mt-3 flex-row flex-wrap gap-2">
-                      {detalleGuia.gruposMusculares.map((musculo, indice) => (
-                        <View
-                          key={`${musculo}-${indice}`}
-                          className="rounded-full bg-primary-light/20 px-3 py-2"
+                {vistaEjercicio === "poses" &&
+                  (ejercicioGifSeleccionado.imagenPoses ? (
+                    <>
+                      <View className="mb-5 rounded-3xl border border-primary-light/60 p-3">
+                        <ImagenPoses
+                          ruta={ejercicioGifSeleccionado.imagenPoses}
+                          nombre={ejercicioGifSeleccionado.nombre}
+                          mostrarLeyenda
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <Text className="mb-5 text-sm leading-6 text-text-secondary">
+                      Este ejercicio no tiene imagen de poses. Mira la animación
+                      o los pasos.
+                    </Text>
+                  ))}
+
+                {vistaEjercicio === "animacion" && (
+                  <>
+                    <View className="mb-5 overflow-hidden rounded-3xl border border-primary-light/60 bg-background">
+                      <View className="flex-row items-center justify-between bg-primary-light/20 px-4 py-3">
+                        <Text className="font-bold text-foreground">
+                          {ejercicioGifSeleccionado.imagenPoses
+                            ? "Animación del movimiento"
+                            : "Observa la técnica"}
+                        </Text>
+                        <Ionicons
+                          name="body-outline"
+                          size={20}
+                          color={palette.primary}
+                          accessible={false}
+                        />
+                      </View>
+                      <DemostracionEjercicio
+                        key={ejercicioGifSeleccionado.workoutxId}
+                        ejercicio={ejercicioGifSeleccionado}
+                        alto={Math.min(width * 0.8, 340)}
+                        reproduciendo={reproduciendo}
+                      />
+                      {Platform.OS !== "web" ? (
+                        <TouchableOpacity
+                          onPress={() => setReproduciendo((valor) => !valor)}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            reproduciendo
+                              ? "Pausar demostración"
+                              : "Reproducir demostración"
+                          }
+                          className="min-h-12 flex-row items-center justify-center bg-primary px-4 py-3"
                         >
-                          <Text className="text-sm text-text-secondary">
-                            {musculo}
+                          <Ionicons
+                            name={
+                              reproduciendo ? "pause-outline" : "play-outline"
+                            }
+                            size={20}
+                            color={palette.background}
+                            accessible={false}
+                          />
+                          <Text className="ml-2 text-sm font-semibold text-background">
+                            {reproduciendo
+                              ? "Pausar demostración"
+                              : "Reproducir demostración"}
                           </Text>
-                        </View>
-                      ))}
+                        </TouchableOpacity>
+                      ) : (
+                        <Text className="px-4 py-3 text-center text-sm text-text-secondary">
+                          Demostración del movimiento
+                        </Text>
+                      )}
                     </View>
-                  )}
-                </SeccionFicha>
+                  </>
+                )}
               </>
             )}
 
-            {cargandoDetalleEjercicio ? (
-              <View
-                className="items-center py-6"
-                accessibilityLiveRegion="polite"
-              >
-                <ActivityIndicator color={palette.primary} />
-                <Text className="mt-2 text-sm text-text-secondary">
-                  Cargando pasos del ejercicio...
-                </Text>
-              </View>
-            ) : detalleGuia ? (
+            {vistaEjercicio === "pasos" && (
               <>
-                <SeccionFicha
-                  titulo="Ejecución paso a paso"
-                  icono="list-outline"
-                >
-                  {detalleGuia.instrucciones.length > 0 ? (
-                    detalleGuia.instrucciones.map((paso, i) => (
-                      <View
-                        key={i}
-                        className="mb-3 flex-row rounded-2xl bg-primary-light/15 p-3"
-                      >
-                        <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-primary">
-                          <Text className="text-sm font-bold text-background">
-                            {i + 1}
-                          </Text>
-                        </View>
-                        <Text className="flex-1 text-base leading-6 text-foreground">
-                          {paso}
-                        </Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text className="text-sm leading-6 text-text-secondary">
-                      No hay pasos disponibles para este ejercicio.
-                    </Text>
-                  )}
-                </SeccionFicha>
-                {!!detalleGuia.descripcion && (
-                  <SeccionFicha
-                    key={ejercicioGifSeleccionado?.workoutxId}
-                    titulo="Más sobre este ejercicio"
-                    icono="information-circle-outline"
-                    plegable
+                {cargandoDetalleEjercicio ? (
+                  <View
+                    className="items-center py-6"
+                    accessibilityLiveRegion="polite"
                   >
-                    <Text className="text-base leading-6 text-text-secondary">
-                      {detalleGuia.descripcion}
+                    <IndicadorCarga decorativo color={palette.primary} />
+                    <Text className="mt-2 text-sm text-text-secondary">
+                      Cargando pasos del ejercicio...
                     </Text>
-                  </SeccionFicha>
+                  </View>
+                ) : detalleGuia ? (
+                  <>
+                    <SeccionFicha
+                      titulo="Ejecución paso a paso"
+                      icono="list-outline"
+                    >
+                      {detalleGuia.instrucciones.length > 0 ? (
+                        detalleGuia.instrucciones.map((paso, i) => (
+                          <View
+                            key={i}
+                            className="mb-3 flex-row rounded-2xl bg-primary-light/15 p-3"
+                          >
+                            <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-primary">
+                              <Text className="text-sm font-bold text-background">
+                                {i + 1}
+                              </Text>
+                            </View>
+                            <Text className="flex-1 text-base leading-6 text-foreground">
+                              {paso}
+                            </Text>
+                          </View>
+                        ))
+                      ) : (
+                        <Text className="text-sm leading-6 text-text-secondary">
+                          No hay pasos disponibles para este ejercicio.
+                        </Text>
+                      )}
+                    </SeccionFicha>
+                    {!!detalleGuia.descripcion && (
+                      <SeccionFicha
+                        key={ejercicioGifSeleccionado?.workoutxId}
+                        titulo="Más sobre este ejercicio"
+                        icono="information-circle-outline"
+                        plegable
+                      >
+                        <Text className="text-base leading-6 text-text-secondary">
+                          {detalleGuia.descripcion}
+                        </Text>
+                      </SeccionFicha>
+                    )}
+                  </>
+                ) : (
+                  <Text className="mb-4 text-sm text-text-secondary">
+                    {mensajeDetalleEjercicio ||
+                      "El detalle del ejercicio no está disponible."}
+                  </Text>
+                )}
+
+                {ejercicioGifSeleccionado && (
+                  <>
+                    <SeccionFicha
+                      titulo="Músculos trabajados"
+                      icono="body-outline"
+                    >
+                      <Text className="mb-2 text-sm font-semibold uppercase text-text-secondary">
+                        Principal
+                      </Text>
+                      <Text className="text-base font-bold text-primary">
+                        {ejercicioGifSeleccionado.musculoObjetivo.toLowerCase() ===
+                        "glutes"
+                          ? "Glúteos"
+                          : ejercicioGifSeleccionado.musculoObjetivo}
+                      </Text>
+                      {!!detalleGuia?.gruposMusculares.length && (
+                        <View className="mt-3 flex-row flex-wrap gap-2">
+                          {detalleGuia.gruposMusculares.map(
+                            (musculo, indice) => (
+                              <View
+                                key={`${musculo}-${indice}`}
+                                className="rounded-full bg-primary-light/20 px-3 py-2"
+                              >
+                                <Text className="text-sm text-text-secondary">
+                                  {musculo}
+                                </Text>
+                              </View>
+                            ),
+                          )}
+                        </View>
+                      )}
+                    </SeccionFicha>
+                  </>
                 )}
               </>
-            ) : (
-              <Text className="mb-4 text-sm text-text-secondary">
-                {mensajeDetalleEjercicio ||
-                  "El detalle del ejercicio no está disponible."}
-              </Text>
             )}
 
             <View className="mb-4">

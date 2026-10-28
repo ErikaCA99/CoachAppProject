@@ -5,11 +5,21 @@ import {
   ActivityIndicator,
   Platform,
   View,
+  type ViewProps,
   type ViewStyle,
 } from "react-native";
 
-import { palette } from "@/constants/palette";
+import { conOpacidad, palette } from "@/constants/palette";
 import { useUrlStorage } from "@/hooks/useStorageUrl";
+
+type PropsAccesibilidad = Pick<
+  ViewProps,
+  | "accessible"
+  | "accessibilityLabel"
+  | "accessibilityRole"
+  | "accessibilityElementsHidden"
+  | "importantForAccessibility"
+>;
 
 /** Subconjunto de estilos válido tanto para `View` como para `expo-image`. */
 type EstiloImagen = Pick<
@@ -42,6 +52,15 @@ export function ImagenStorage({
 }: ImagenStorageProps) {
   const url = useUrlStorage(ruta);
   const imagenRef = useRef<Image>(null);
+  // Sin etiqueta la imagen es decorativa (el nombre ya está en el texto
+  // contiguo): se oculta para que TalkBack no anuncie «sin etiquetar».
+  const propsAccesibilidad: PropsAccesibilidad = accessibilityLabel
+    ? { accessible: true, accessibilityLabel, accessibilityRole: "image" }
+    : {
+        accessible: false,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: "no-hide-descendants",
+      };
 
   useEffect(() => {
     if (Platform.OS === "web") return;
@@ -51,7 +70,10 @@ export function ImagenStorage({
 
   if (url === undefined) {
     return (
-      <View style={[{ alignItems: "center", justifyContent: "center" }, style]}>
+      <View
+        style={[{ alignItems: "center", justifyContent: "center" }, style]}
+        {...propsAccesibilidad}
+      >
         <ActivityIndicator color={palette.primary} />
       </View>
     );
@@ -64,10 +86,11 @@ export function ImagenStorage({
           {
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "rgba(173, 217, 209, 0.25)",
+            backgroundColor: conOpacidad(palette.primaryLight, 0.25),
           },
           style,
         ]}
+        {...propsAccesibilidad}
       >
         <Ionicons name={iconoVacio} size={28} color={palette.primary} />
       </View>
@@ -88,7 +111,7 @@ export function ImagenStorage({
       }}
       cachePolicy="memory-disk"
       transition={200}
-      accessibilityLabel={accessibilityLabel}
+      {...propsAccesibilidad}
     />
   );
 }

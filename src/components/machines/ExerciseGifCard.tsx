@@ -33,7 +33,7 @@ export function TarjetaEjercicioGif({
       }
       className="mr-3 w-44 overflow-hidden rounded-2xl border border-primary-light/70 bg-background"
     >
-      <View className="bg-white">
+      <View className="bg-background">
         <ImagenStorage
           ruta={ejercicio.gifPath}
           style={{ width: "100%", aspectRatio: 1 }}

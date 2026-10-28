@@ -50,7 +50,7 @@ export function TarjetaSeleccionEscaneo({
         esSugerencia ? "Máquina sugerida" : "Máquina seleccionada"
       }: ${maquina.nombre}, ${maquina.categoria}`}
     >
-      <View className="overflow-hidden rounded-xl bg-white">
+      <View className="overflow-hidden rounded-xl bg-background">
         <ImagenStorage
           ruta={maquina.imagenPrincipal}
           style={{ width: 56, height: 56 }}
@@ -77,8 +77,12 @@ export function TarjetaSeleccionEscaneo({
             </View>
           ) : (
             <View className="flex-row items-center rounded-full bg-primary px-2 py-0.5">
-              <Ionicons name="checkmark-circle" size={12} color="#ffffff" />
-              <Text className="ml-1 text-sm font-bold text-white">
+              <Ionicons
+                name="checkmark-circle"
+                size={12}
+                color={palette.background}
+              />
+              <Text className="ml-1 text-sm font-bold text-background">
                 Seleccionada
               </Text>
             </View>

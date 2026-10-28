@@ -2,20 +2,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
   ScrollView,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ChipFiltro } from "@/components/machines/FilterChip";
+import { HojaFiltros } from "@/components/machines/FilterSheet";
 import { TarjetaMaquina } from "@/components/machines/MachineCard";
+import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { PantallaBase } from "@/components/ui/ScreenBase";
+import { CampoBusqueda } from "@/components/ui/SearchField";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import {
@@ -23,11 +25,6 @@ import {
   type Maquina,
   type TipoMaquina,
 } from "@/models/entities/Machine";
-
-const TIPOS = Object.entries(TIPOS_MAQUINA) as [
-  TipoMaquina,
-  (typeof TIPOS_MAQUINA)[TipoMaquina],
-][];
 
 /**
  * Guía de Máquinas: catálogo de las máquinas del gimnasio (Firestore).
@@ -41,6 +38,7 @@ export default function MachinesScreen() {
   const [busqueda, setBusqueda] = useState("");
   const [categoria, setCategoria] = useState<string | undefined>();
   const [tipo, setTipo] = useState<TipoMaquina | undefined>();
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,93 +96,109 @@ export default function MachinesScreen() {
   );
 
   return (
-    <SafeAreaView edges={["top"]} className="flex-1 bg-background">
-      <View className="flex-1 bg-primary-light/15">
-        {/* Encabezado */}
-        <View className="px-4 pb-3 pt-4">
-          <AppHeader
-            title="Guía de Máquinas"
-            subtitle={
-              hayFiltros
-                ? `${filtradas.length} de ${catalogo.length} máquinas`
-                : `${catalogo.length} máquinas`
-            }
-            secondaryAction={{
-              icon: "scan",
-              label: "Escanear una máquina",
-              onPress: () => router.push("/(app)/machines/scanner"),
-            }}
-            onProfilePress={() => router.push("/(app)/profile")}
-          />
-
-          <View className="mt-4 flex-row items-center rounded-2xl border border-primary-light bg-background px-3">
-            <Ionicons name="search" size={18} color={palette.textMuted} />
-            <TextInput
-              className="ml-2 flex-1 py-2.5 text-sm text-foreground"
-              placeholder="Buscar máquinas, músculos o ejercicios..."
-              placeholderTextColor="#9ca3af"
-              value={busqueda}
-              onChangeText={setBusqueda}
-              returnKeyType="search"
+    <>
+      <PantallaBase
+        conScroll={false}
+        encabezado={
+          <View className="pb-3">
+            <AppHeader
+              title="Guía de máquinas"
+              subtitle={
+                hayFiltros
+                  ? `${filtradas.length} de ${catalogo.length} máquinas`
+                  : `${catalogo.length} máquinas`
+              }
+              secondaryAction={{
+                icon: "scan",
+                label: "Escanear una máquina",
+                onPress: () => router.push("/(app)/machines/scanner"),
+              }}
+              onProfilePress={() => router.push("/(app)/profile")}
             />
-            {busqueda.length > 0 && (
+
+            <View className="mt-4">
+              <CampoBusqueda
+                valor={busqueda}
+                onCambiar={setBusqueda}
+                placeholder="Buscar máquina o músculo"
+                etiqueta="Buscar máquina"
+              />
+            </View>
+
+            <View className="mt-3 flex-row items-center">
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-1"
+                accessibilityLabel="Grupo muscular"
+              >
+                <ChipFiltro
+                  texto="Todos"
+                  activo={!categoria}
+                  onPress={() => setCategoria(undefined)}
+                />
+                {categorias.map((c) => (
+                  <ChipFiltro
+                    key={c}
+                    texto={c}
+                    activo={categoria === c}
+                    onPress={() =>
+                      setCategoria(categoria === c ? undefined : c)
+                    }
+                  />
+                ))}
+              </ScrollView>
               <Pressable
-                onPress={() => setBusqueda("")}
-                accessibilityLabel="Borrar búsqueda"
-                className="p-1 active:opacity-60"
+                onPress={() => setFiltrosAbiertos(true)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  tipo ? "Filtros, 1 activo" : "Filtros, ninguno activo"
+                }
+                className="ml-1 min-h-11 flex-row items-center rounded-full border border-primary bg-background px-3.5 active:opacity-70"
               >
                 <Ionicons
-                  name="close-circle"
-                  size={18}
-                  color={palette.textMuted}
+                  name="options-outline"
+                  size={16}
+                  color={palette.primary}
                 />
+                <Text className="ml-1.5 text-sm font-bold text-primary">
+                  Filtros
+                </Text>
+                {tipo ? (
+                  <View className="ml-1.5 h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1">
+                    <Text className="text-xs font-bold text-background">1</Text>
+                  </View>
+                ) : null}
               </Pressable>
-            )}
+            </View>
+
+            {tipo ? (
+              <View className="mt-2 flex-row">
+                <Pressable
+                  onPress={() => setTipo(undefined)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Quitar filtro Tipo: ${TIPOS_MAQUINA[tipo].etiqueta}`}
+                  className="min-h-11 flex-row items-center rounded-full border border-primary-light pl-4 pr-3 active:opacity-70"
+                >
+                  <Text className="text-sm font-semibold text-foreground">
+                    Tipo: {TIPOS_MAQUINA[tipo].etiqueta}
+                  </Text>
+                  <Ionicons
+                    name="close"
+                    size={16}
+                    color={palette.textSecondary}
+                    style={{ marginLeft: 8 }}
+                  />
+                </Pressable>
+              </View>
+            ) : null}
           </View>
-
-          <Text className="mb-2 mt-4 text-sm font-bold uppercase tracking-wider text-text-secondary">
-            Grupo muscular
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <ChipFiltro
-              texto="Todos"
-              activo={!categoria}
-              onPress={() => setCategoria(undefined)}
-            />
-            {categorias.map((c) => (
-              <ChipFiltro
-                key={c}
-                texto={c}
-                activo={categoria === c}
-                onPress={() => setCategoria(categoria === c ? undefined : c)}
-              />
-            ))}
-          </ScrollView>
-
-          <Text className="mb-2 mt-3 text-sm font-bold uppercase tracking-wider text-text-secondary">
-            Tipo
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <ChipFiltro
-              texto="Todos"
-              activo={!tipo}
-              onPress={() => setTipo(undefined)}
-            />
-            {TIPOS.map(([valor, info]) => (
-              <ChipFiltro
-                key={valor}
-                texto={info.etiqueta}
-                activo={tipo === valor}
-                onPress={() => setTipo(tipo === valor ? undefined : valor)}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
+        }
+      >
         {/* Contenido */}
         {cargando ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={palette.primary} />
+            <IndicadorCarga decorativo size="large" color={palette.primary} />
             <Text className="mt-3 text-sm text-text-muted">
               Cargando máquinas...
             </Text>
@@ -212,7 +226,7 @@ export default function MachinesScreen() {
             renderItem={renderItem}
             numColumns={2}
             columnWrapperStyle={{ gap: 12 }}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
             refreshControl={
               <RefreshControl
@@ -255,7 +269,14 @@ export default function MachinesScreen() {
             }
           />
         )}
-      </View>
-    </SafeAreaView>
+      </PantallaBase>
+
+      <HojaFiltros
+        visible={filtrosAbiertos}
+        tipo={tipo}
+        onCambiarTipo={setTipo}
+        onCerrar={() => setFiltrosAbiertos(false)}
+      />
+    </>
   );
 }

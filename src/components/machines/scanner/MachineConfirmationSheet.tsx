@@ -5,7 +5,8 @@ import { ScrollView, TouchableOpacity, View } from "react-native";
 import { ListaMaquinasAgrupada } from "@/components/machines/scanner/GroupedMachineList";
 import { TarjetaSeleccionEscaneo } from "@/components/machines/scanner/ScanSelectionCard";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { Text, TextInput } from "@/components/ui/Typography";
+import { CampoBusqueda } from "@/components/ui/SearchField";
+import { Text } from "@/components/ui/Typography";
 import { palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import type { Maquina } from "@/models/entities/Machine";
@@ -63,26 +64,13 @@ export function HojaConfirmacionMaquina({
         confianzaSugerencia={confianzaSugerencia}
       />
 
-      <View className="mb-1 mt-3 flex-row items-center rounded-xl border border-primary-light px-3">
-        <Ionicons name="search" size={16} color={palette.textMuted} />
-        <TextInput
-          className="ml-2 flex-1 py-2.5 text-sm text-foreground"
-          placeholder="Buscar por nombre o músculo..."
-          placeholderTextColor={palette.textMuted}
-          value={busqueda}
-          onChangeText={setBusqueda}
-          accessibilityLabel="Buscar máquina"
-          returnKeyType="search"
+      <View className="mb-1 mt-3">
+        <CampoBusqueda
+          valor={busqueda}
+          onCambiar={setBusqueda}
+          placeholder="Buscar máquina o músculo"
+          etiqueta="Buscar máquina"
         />
-        {buscando ? (
-          <TouchableOpacity
-            onPress={() => setBusqueda("")}
-            className="h-9 w-9 items-center justify-center"
-            accessibilityLabel="Borrar búsqueda"
-          >
-            <Ionicons name="close-circle" size={18} color={palette.textMuted} />
-          </TouchableOpacity>
-        ) : null}
       </View>
 
       <ScrollView
@@ -111,7 +99,13 @@ export function HojaConfirmacionMaquina({
           titulo="Confirmar selección"
           onPress={onConfirmar}
           deshabilitado={!seleccionada}
-          icono={<Ionicons name="checkmark-circle" size={18} color="#ffffff" />}
+          icono={
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={palette.background}
+            />
+          }
         />
         <TouchableOpacity
           onPress={onReintentar}
