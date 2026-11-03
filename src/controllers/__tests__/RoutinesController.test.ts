@@ -66,6 +66,30 @@ it("genera una vista previa sin guardar ni activar nada", async () => {
   expect(actualizarPerfilUsuario).not.toHaveBeenCalled();
 });
 
+it("genera con AbortSignal nativo sin throwIfAborted", async () => {
+  const signal = { aborted: false } as AbortSignal;
+  const rutina = await RutinasController.generarVistaPrevia(
+    "u1",
+    "ganar_masa",
+    "intermedio",
+    signal,
+  );
+  expect(rutina.planSemanal[0].ejercicios).toHaveLength(1);
+});
+
+it("rechaza una señal nativa cancelada antes de consultar datos", async () => {
+  const signal = { aborted: true } as AbortSignal;
+  await expect(
+    RutinasController.generarVistaPrevia(
+      "u1",
+      "ganar_masa",
+      "intermedio",
+      signal,
+    ),
+  ).rejects.toMatchObject({ name: "AbortError" });
+  expect(obtenerPerfilUsuario).not.toHaveBeenCalled();
+});
+
 it("cancelar aborta la solicitud de ejercicios y no persiste resultados tardíos", async () => {
   const abort = new AbortController();
   jest

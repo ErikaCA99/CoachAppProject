@@ -34,6 +34,15 @@ import {
   type ParametrosSerie,
 } from "@/utils/routineGenerator";
 
+/** React Native usa AbortSignal sin el método web throwIfAborted. */
+function verificarCancelacion(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    const error = new Error("Generación cancelada.");
+    error.name = "AbortError";
+    throw error;
+  }
+}
+
 /** Elige `cantidad` elementos al azar de `items` (sin repetir), preservando variedad entre días. */
 function elegirAleatorios<T>(items: T[], cantidad: number): T[] {
   const copia = [...items];
@@ -54,7 +63,7 @@ async function elegirConImagen(
   cantidad: number,
   signal?: AbortSignal,
 ): Promise<EjercicioWger[]> {
-  signal?.throwIfAborted();
+  verificarCancelacion(signal);
   const tieneImagen = await Promise.all(
     items.map(async (item) =>
       item.imagenUrl
@@ -63,7 +72,7 @@ async function elegirConImagen(
           null,
     ),
   );
-  signal?.throwIfAborted();
+  verificarCancelacion(signal);
   const conImagen = items.filter((_, i) => tieneImagen[i]);
   const sinImagen = items.filter((_, i) => !tieneImagen[i]);
   const elegidos = elegirAleatorios(conImagen, cantidad);
@@ -78,7 +87,7 @@ async function armarDia(
   parametros: ParametrosSerie,
   signal?: AbortSignal,
 ): Promise<DiaRutina> {
-  signal?.throwIfAborted();
+  verificarCancelacion(signal);
   const cantidades = repartirCantidad(
     bloque.cantidadEjercicios,
     bloque.categoriasIds.length,
@@ -126,7 +135,7 @@ export const RutinasController = {
     nivel: NivelExperiencia,
     signal?: AbortSignal,
   ): Promise<Omit<Rutina, "creadoEn">> {
-    signal?.throwIfAborted();
+    verificarCancelacion(signal);
     const validacion = generarRutinaIASchema.safeParse({ objetivo, nivel });
     if (!validacion.success) {
       throw new Error(
@@ -137,7 +146,7 @@ export const RutinasController = {
     // Datos físicos del perfil: entradas del modelo de IA (edad, IMC,
     // género, días disponibles). Si faltan, `construirFeatures` imputa.
     const perfil = await obtenerPerfilUsuario(usuarioId);
-    signal?.throwIfAborted();
+    verificarCancelacion(signal);
     const planificacion = await planificarRutina({
       objetivo: validacion.data.objetivo,
       nivel: validacion.data.nivel,
@@ -148,7 +157,7 @@ export const RutinasController = {
       diasDisponibles: perfil?.diasDisponibles,
     });
     const plan = planificacion.plan;
-    signal?.throwIfAborted();
+    verificarCancelacion(signal);
 
     const planSemanal = await Promise.all(
       plan.bloques.map((bloque, indice) =>
@@ -169,7 +178,7 @@ export const RutinasController = {
       confianzaModelo: planificacion.confianza,
     };
 
-    signal?.throwIfAborted();
+    verificarCancelacion(signal);
     if (planSemanal.some((dia) => dia.ejercicios.length === 0)) {
       throw new Error("No hay ejercicios suficientes para preparar la rutina.");
     }

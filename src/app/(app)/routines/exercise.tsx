@@ -76,7 +76,7 @@ function Ficha({
       : null;
   const hayDescripcionReal =
     descripcion && descripcion !== "Sin descripción disponible.";
-  const usaGif = !ejercicio?.imagenUrl && respaldo?.gif != null;
+  const usaRespaldo = !ejercicio?.imagenUrl && respaldo != null;
 
   return (
     <ScrollView
@@ -128,11 +128,17 @@ function Ficha({
               </View>
             ))}
           </View>
+        ) : respaldo?.miniatura ? (
+          <ImagenStorage
+            ruta={respaldo.miniatura}
+            style={{ width: "100%", height: ALTO_DEMOSTRACION }}
+            accessibilityLabel={`Demostración de ${titulo}`}
+          />
         ) : (
           <Ionicons name="barbell-outline" size={56} color={palette.primary} />
         )}
       </View>
-      {usaGif && respaldo?.atribucionGymVisual ? (
+      {usaRespaldo && respaldo?.atribucionGymVisual ? (
         <Text className="-mt-2 mb-3 text-right text-sm text-text-muted">
           {respaldo.atribucionGymVisual}
         </Text>

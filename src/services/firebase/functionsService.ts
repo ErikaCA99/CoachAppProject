@@ -8,11 +8,12 @@ export async function invocarFuncion<T>(
   nombre: string,
   datos: unknown,
   schema: z.ZodType<T>,
+  opciones: { timeoutMs?: number } = {},
 ): Promise<T> {
   if (!auth.currentUser) throw new Error("Inicia sesión para continuar.");
   try {
     const respuesta = await httpsCallable<unknown, unknown>(funciones, nombre, {
-      timeout: 20000,
+      timeout: opciones.timeoutMs ?? 20000,
     })(datos);
     const validacion = schema.safeParse(respuesta.data);
     if (!validacion.success)

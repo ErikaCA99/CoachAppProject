@@ -39,7 +39,8 @@ export function MiniaturaEjercicio({
       />
     );
   }
-  const ruta = respaldo?.imagenes[0] ?? respaldo?.miniatura ?? null;
+  const ruta =
+    respaldo?.imagenes[0] ?? respaldo?.miniatura ?? respaldo?.gif ?? null;
   return (
     <ImagenStorage
       ruta={ruta}
@@ -79,8 +80,8 @@ export function DemostracionRutina({
       />
     );
   }
-  const usaGif = respaldo?.gif != null;
-  const ruta = respaldo?.gif ?? respaldo?.imagenes[0] ?? null;
+  const ruta =
+    respaldo?.gif ?? respaldo?.imagenes[0] ?? respaldo?.miniatura ?? null;
   return (
     <View style={{ width: "100%", height: "100%" }}>
       <ImagenStorage
@@ -90,7 +91,7 @@ export function DemostracionRutina({
         iconoVacio="barbell-outline"
         accessibilityLabel={`Demostración de ${nombre}`}
       />
-      {usaGif && respaldo?.atribucionGymVisual ? (
+      {ruta && respaldo?.atribucionGymVisual ? (
         <Text className="absolute bottom-1 right-2 text-[10px] text-text-muted">
           {respaldo.atribucionGymVisual}
         </Text>
