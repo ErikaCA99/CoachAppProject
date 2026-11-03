@@ -16,6 +16,8 @@ expo-env.d.ts
 /.kotlin/
 /android/
 /ios/
+modules/coach-ar/android/build/
+modules/coach-ar/android/.gradle/
 *.orig.*
 *.jks
 *.p8
