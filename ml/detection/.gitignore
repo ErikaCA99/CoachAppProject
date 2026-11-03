@@ -2,6 +2,8 @@
 dataset/
 runs/
 *.pt
+*.zip
 *.jsonl
 __pycache__/
 .test-tmp/
+
