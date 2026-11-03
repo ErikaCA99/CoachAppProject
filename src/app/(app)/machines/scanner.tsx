@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useIsFocused } from "expo-router/react-navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Linking,
@@ -18,12 +19,18 @@ import {
   type SugerenciaMaquina,
 } from "@/components/machines/scanner/SuggestionsSheet";
 import { IndicadorDeteccionAR } from "@/components/machines/scanner/ARDetectionIndicator";
+import {
+  AR_NATIVA_DISPONIBLE,
+  CamaraAR,
+} from "@/components/machines/scanner/MachineARView";
 import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
 import { BotonPrimario } from "@/components/ui/PrimaryButton";
 import { Text } from "@/components/ui/Typography";
 import { conOpacidad, palette } from "@/constants/palette";
 import { MaquinasController } from "@/controllers/MachinesController";
 import type { DificultadEjercicio, Maquina } from "@/models/entities/Machine";
+import type { ResultadoEscaneo } from "@/controllers/MachinesController";
+import type { CamaraARRef, EstadoAR } from "@/services/ar/machineAR.types";
 import { toast } from "@/utils/toast";
 
 type Fase = "inicio" | "escaneando" | "analizando" | "eligiendo" | "detectada";
@@ -108,7 +115,7 @@ function MarcoEscaneo({ detectada }: { detectada: boolean }) {
 }
 
 /**
- * Escáner de máquinas: toma una foto y la clasifica con el modelo local.
+ * Escáner: reconocimiento local/nube y anclaje espacial ARCore en Android.
  *
  * Flujo: cámara → captura → reconocimiento → ficha superpuesta en la cámara.
  * Si el permiso ya está concedido, la cámara se abre al entrar; la pantalla
@@ -119,11 +126,23 @@ function MarcoEscaneo({ detectada }: { detectada: boolean }) {
  */
 export default function EscanerScreen() {
   const router = useRouter();
+  const enfocada = useIsFocused();
   const insets = useSafeAreaInsets();
   const { height: altoPantalla } = useWindowDimensions();
   const { maquinaId } = useLocalSearchParams<{ maquinaId?: string }>();
   const [permiso, pedirPermiso] = useCameraPermissions();
   const camara = useRef<CameraView>(null);
+  const camaraAR = useRef<CamaraARRef>(null);
+  const solicitud = useRef(0);
+  const capturando = useRef(false);
+  const [usarAR, setUsarAR] = useState(AR_NATIVA_DISPONIBLE);
+  const [estadoAR, setEstadoAR] = useState<EstadoAR>({
+    estado: "buscando",
+    mensaje: "Mueve lentamente el teléfono para detectar superficies.",
+  });
+  const [capturaId, setCapturaId] = useState<string | null>(null);
+  const [deteccion, setDeteccion] = useState<ResultadoEscaneo | null>(null);
+  const modoAR = usarAR && !!CamaraAR;
 
   /** Fase elegida por el usuario; "inicio" delega en {@link fase} (derivada). */
   const [faseManual, setFase] = useState<Fase>("inicio");
@@ -142,12 +161,30 @@ export default function EscanerScreen() {
   /** El usuario descartó las candidatas y busca en el catálogo completo. */
   const [verCatalogo, setVerCatalogo] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      solicitud.current += 1;
+      capturando.current = false;
+      setFase("escaneando");
+      setMaquina(null);
+      setDeteccion(null);
+      setCapturaId(null);
+      setSugerencia(null);
+      setSugerencias([]);
+      setVerCatalogo(false);
+    };
+  }, [enfocada]);
+
   // Máquina preseleccionada desde su ficha ("Ver en Realidad Aumentada").
   useEffect(() => {
     if (!maquinaId) return;
     let activo = true;
     MaquinasController.obtenerPorId(maquinaId)
-      .then((m) => activo && setMaquina(m))
+      .then((m) => {
+        if (!activo) return;
+        if (m) setMaquina(m);
+        else setPrecargaFallida(true);
+      })
       .catch((error) => {
         console.warn("No se pudo cargar la máquina:", error);
         if (activo) setPrecargaFallida(true);
@@ -174,6 +211,10 @@ export default function EscanerScreen() {
         : "escaneando";
 
   const reiniciarEscaneo = () => {
+    solicitud.current += 1;
+    capturando.current = false;
+    setCapturaId(null);
+    setDeteccion(null);
     setMaquina(null);
     setSugerencia(null);
     setSugerencias([]);
@@ -182,16 +223,33 @@ export default function EscanerScreen() {
   };
 
   const capturar = async () => {
+    if (capturando.current) return;
+    capturando.current = true;
+    const numeroSolicitud = ++solicitud.current;
     setFase("analizando");
     let resultado = null;
     try {
-      const foto = await camara.current?.takePictureAsync({ quality: 0.5 });
+      const foto = modoAR
+        ? await camaraAR.current?.capturar()
+        : await camara.current?.takePictureAsync({ quality: 0.5 });
+      if (numeroSolicitud !== solicitud.current) return;
+      setCapturaId(foto && "capturaId" in foto ? foto.capturaId : null);
       resultado = foto
         ? await MaquinasController.reconocerDesdeFoto(foto.uri)
         : null;
     } catch (error) {
       console.warn("No se pudo analizar la foto:", error);
+      if (numeroSolicitud !== solicitud.current) return;
+      capturando.current = false;
+      setFase("escaneando");
+      toast.error(
+        "No se pudo analizar la foto. Comprueba la cámara y vuelve a intentarlo.",
+      );
+      return;
     }
+    if (numeroSolicitud !== solicitud.current) return;
+    capturando.current = false;
+    setDeteccion(resultado);
 
     setSugerencia(
       resultado
@@ -219,8 +277,10 @@ export default function EscanerScreen() {
     try {
       // Sin modelo o con baja confianza: el usuario confirma la máquina.
       setCatalogo(await MaquinasController.listar());
+      if (numeroSolicitud !== solicitud.current) return;
       setFase("eligiendo");
     } catch (error) {
+      if (numeroSolicitud !== solicitud.current) return;
       console.error("No se pudo cargar el catálogo de máquinas:", error);
       setFase("escaneando");
       toast.error(
@@ -246,10 +306,22 @@ export default function EscanerScreen() {
   const permisoDenegado = permiso && !permiso.granted && !permiso.canAskAgain;
   /** Aún no se sabe el estado del permiso, o falta cargar la máquina precargada. */
   const preparando = fase === "inicio" && (!permiso || permiso.granted);
+  const objetivoAR =
+    fase === "detectada"
+      ? MaquinasController.prepararObjetivoAR(maquina, deteccion, capturaId)
+      : null;
 
   return (
     <View className="flex-1" style={{ backgroundColor: FONDO[0] }}>
-      {camaraActiva ? (
+      {camaraActiva && modoAR && CamaraAR ? (
+        <CamaraAR
+          ref={camaraAR}
+          style={StyleSheet.absoluteFill}
+          activa={enfocada}
+          objetivo={objetivoAR}
+          onEstado={(evento) => setEstadoAR(evento.nativeEvent)}
+        />
+      ) : camaraActiva && enfocada ? (
         <CameraView
           ref={camara}
           style={StyleSheet.absoluteFill}
@@ -258,7 +330,9 @@ export default function EscanerScreen() {
       ) : (
         <LinearGradient colors={FONDO} style={StyleSheet.absoluteFill} />
       )}
-      {camaraActiva && <View className="absolute inset-0 bg-black/30" />}
+      {camaraActiva && (
+        <View pointerEvents="none" className="absolute inset-0 bg-black/15" />
+      )}
 
       {/* Barra superior */}
       <View
@@ -296,7 +370,10 @@ export default function EscanerScreen() {
       ) : null}
 
       {/* Contenido central */}
-      <View className="flex-1 items-center justify-center px-8">
+      <View
+        pointerEvents="box-none"
+        className="flex-1 items-center justify-center px-8"
+      >
         {preparando && (
           <IndicadorCarga size="large" color={palette.background} />
         )}
@@ -343,7 +420,9 @@ export default function EscanerScreen() {
 
         {(fase === "escaneando" || fase === "analizando") && (
           <>
-            <MarcoEscaneo detectada={false} />
+            <View pointerEvents="none">
+              <MarcoEscaneo detectada={false} />
+            </View>
             {fase === "analizando" && (
               <Text
                 className="mt-6 text-sm font-bold text-background"
@@ -355,15 +434,61 @@ export default function EscanerScreen() {
           </>
         )}
 
-        {fase === "detectada" && <MarcoEscaneo detectada />}
+        {fase === "detectada" && !modoAR && <MarcoEscaneo detectada />}
       </View>
 
       {/* Parte inferior según la fase */}
       <View className="px-4" style={{ paddingBottom: insets.bottom + 12 }}>
+        {camaraActiva && modoAR && (
+          <View className="mb-3 rounded-2xl bg-black/75 px-4 py-3">
+            <Text
+              accessibilityLiveRegion="polite"
+              className="text-sm text-background"
+            >
+              {estadoAR.mensaje}
+            </Text>
+            {estadoAR.estado === "anclada" && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => void camaraAR.current?.recolocar()}
+                className="min-h-12 justify-center"
+              >
+                <Text className="font-bold text-background">
+                  Recolocar información
+                </Text>
+              </TouchableOpacity>
+            )}
+            {(estadoAR.estado === "error" ||
+              estadoAR.estado === "noCompatible" ||
+              estadoAR.estado === "instalando") && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => {
+                  setUsarAR(false);
+                  reiniciarEscaneo();
+                }}
+                className="min-h-12 justify-center"
+              >
+                <Text className="font-bold text-background">
+                  Usar cámara sin AR
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         {fase === "escaneando" && (
           <>
             <TouchableOpacity
               onPress={capturar}
+              disabled={
+                modoAR &&
+                !["lista", "anclada", "colocar"].includes(estadoAR.estado)
+              }
+              accessibilityState={{
+                disabled:
+                  modoAR &&
+                  !["lista", "anclada", "colocar"].includes(estadoAR.estado),
+              }}
               className="mb-4 h-16 w-16 items-center justify-center self-center rounded-full border-4 border-background bg-background/20"
               accessibilityRole="button"
               accessibilityLabel="Identificar máquina"

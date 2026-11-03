@@ -2,18 +2,26 @@ import { Buffer } from "node:buffer";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { defineSecret } from "firebase-functions/params";
+import { defineSecret, defineString } from "firebase-functions/params";
 import { logger } from "firebase-functions";
 import {
   busquedaSchema,
   respuestaUsdaSchema,
   escrituraRutinaSchema,
   rutinaSchema,
+  reconocimientoSchema,
+  respuestaReconocimientoSchema,
 } from "./schemas.mjs";
+import { interpretarRespuesta } from "./reconocimiento.mjs";
 import { consumirCuota } from "./quota.mjs";
 initializeApp();
 const db = getFirestore();
 const usdaKey = defineSecret("USDA_API_KEY");
+// Reconocimiento de máquinas (endpoint dedicado de Ultralytics Platform). La
+// clave del despliegue vive solo en Secret Manager; la URL no es secreta y se
+// lee de functions/.env.
+const ultralyticsKey = defineSecret("ULTRALYTICS_API_KEY");
+const ultralyticsUrl = defineString("ULTRALYTICS_ENDPOINT_URL");
 const opciones = {
   region: "us-central1",
   enforceAppCheck: true,
@@ -23,13 +31,13 @@ const opciones = {
   memory: "256MiB",
 };
 
-function usuario(request) {
+function usuario(request, limiteBytes = 262144) {
   if (
     !request.auth ||
     request.auth.token.firebase?.sign_in_provider === "anonymous"
   )
     throw new HttpsError("unauthenticated", "Inicia sesión para continuar.");
-  if (request.rawRequest?.rawBody?.length > 262144)
+  if (request.rawRequest?.rawBody?.length > limiteBytes)
     throw new HttpsError("invalid-argument", "Solicitud demasiado grande.");
   return request.auth.uid;
 }
@@ -162,4 +170,84 @@ export const guardarRutina = onCall(opciones, (request) =>
     });
     return { id: ref.id };
   }),
+);
+
+// Lee el cuerpo de una respuesta externa acotando los bytes reales.
+async function leerJsonAcotado(response, limite) {
+  const reader = response.body.getReader();
+  let size = 0;
+  const chunks = [];
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > limite)
+        throw new HttpsError(
+          "unavailable",
+          "Respuesta externa demasiado grande.",
+        );
+      chunks.push(value);
+    }
+  } finally {
+    await reader.cancel();
+  }
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+}
+
+export const reconocerMaquina = onCall(
+  // El plan gratuito (1 vCPU) escala a cero: el primer arranque tarda hasta ~1 min.
+  { ...opciones, secrets: [ultralyticsKey], timeoutSeconds: 60 },
+  (request) =>
+    seguro("reconocerMaquina", async () => {
+      // La foto en base64 supera el límite de 256 KB de las otras funciones.
+      const uid = usuario(request, 600000);
+      const { imagenBase64 } = validar(reconocimientoSchema, request.data);
+      await consumirCuota(db, uid, "reconocer", { global: true });
+      const url = new URL(ultralyticsUrl.value());
+      if (url.protocol !== "https:")
+        throw new HttpsError(
+          "failed-precondition",
+          "Servicio de reconocimiento no configurado.",
+        );
+      if (!url.pathname.endsWith("/predict"))
+        url.pathname = `${url.pathname.replace(/\/+$/, "")}/predict`;
+      // El endpoint espera multipart con el archivo; `source` en base64 solo
+      // existe en la API de la plataforma (máx. 4096 caracteres).
+      const form = new FormData();
+      form.append(
+        "file",
+        new Blob([Buffer.from(imagenBase64, "base64")], { type: "image/jpeg" }),
+        "foto.jpg",
+      );
+      form.append("conf", "0.1"); // bajo a propósito: la app pide top-3
+      form.append("iou", "0.7");
+      form.append("imgsz", "640");
+      // Contrato explícito: Ultralytics entrega píxeles; los normalizamos una sola vez.
+      form.append("normalize", "false");
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${ultralyticsKey.value()}` },
+        body: form,
+        signal: AbortSignal.timeout(50000),
+        redirect: "error",
+      });
+      if (response.status === 429)
+        throw new HttpsError(
+          "resource-exhausted",
+          "Servicio de reconocimiento temporalmente ocupado.",
+        );
+      if (!response.ok)
+        throw new HttpsError(
+          "unavailable",
+          "Servicio de reconocimiento no disponible.",
+        );
+      const datos = await leerJsonAcotado(response, 1000000);
+      const resultado = respuestaReconocimientoSchema.safeParse({
+        sugerencias: interpretarRespuesta(datos),
+      });
+      if (!resultado.success)
+        throw new HttpsError("unavailable", "Respuesta externa inválida.");
+      return resultado.data;
+    }),
 );

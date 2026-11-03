@@ -22,6 +22,8 @@ import {
   type DetalleEjercicioGenerado,
 } from "@/utils/machineExercise";
 import { normalizarTexto } from "@/utils/text";
+import type { CajaDeteccion } from "@/schemas/machineRecognition.schema";
+import type { ObjetivoAR } from "@/services/ar/machineAR.types";
 import { obtenerAnimacionExacta } from "@/models/repositories/exerciseDbRepository";
 import { obtenerDemostracionesLocales } from "@/models/repositories/localDemonstrationRepository";
 
@@ -42,10 +44,11 @@ export interface ResultadoEscaneo {
   maquina: Maquina;
   /** 0..1 */
   confianza: number;
+  caja?: CajaDeteccion;
   /** `true` si la confianza no alcanza el umbral: el usuario debe confirmar. */
   requiereConfirmacion: boolean;
   /** Las siguientes candidatas (hasta 2) tras la principal, de más a menos probable. */
-  alternativas: { maquina: Maquina; confianza: number }[];
+  alternativas: { maquina: Maquina; confianza: number; caja?: CajaDeteccion }[];
 }
 
 /** Detalle de un ejercicio de la ficha: de wger si existe, o generado localmente. */
@@ -59,6 +62,29 @@ export type DetalleEjercicioResuelto =
  * importan Firestore, Storage ni el repositorio.
  */
 export const MaquinasController = {
+  /** La geometría pertenece a la candidata confirmada, nunca a otra máquina. */
+  prepararObjetivoAR(
+    maquina: Maquina | null,
+    resultado: ResultadoEscaneo | null,
+    capturaId: string | null,
+  ): ObjetivoAR | null {
+    if (!maquina) return null;
+    const candidata =
+      resultado?.maquina.id === maquina.id
+        ? resultado
+        : resultado?.alternativas.find(
+            (item) => item.maquina.id === maquina.id,
+          );
+    const caja = candidata?.caja;
+    return {
+      clave: `${capturaId ?? "manual"}:${maquina.id}`,
+      capturaId: caja ? capturaId : null,
+      centroX: caja ? (caja.x1 + caja.x2) / 2 : null,
+      centroY: caja ? (caja.y1 + caja.y2) / 2 : null,
+      nombre: maquina.nombre,
+      detalle: maquina.instrucciones[0] ?? maquina.descripcion,
+    };
+  },
   demostracionesLocales: obtenerDemostracionesLocales,
   /** Alternativa opcional a WorkoutX; no sustituye los datos del catálogo. */
   async obtenerAnimacionAlternativa(
@@ -204,14 +230,19 @@ export const MaquinasController = {
         resultado.alternativas.map(async (alternativa) => {
           const candidata = await obtenerMaquina(alternativa.maquinaId);
           return candidata
-            ? { maquina: candidata, confianza: alternativa.confianza }
+            ? {
+                maquina: candidata,
+                confianza: alternativa.confianza,
+                caja: alternativa.caja,
+              }
             : null;
         }),
       )
-    ).filter((a): a is { maquina: Maquina; confianza: number } => a !== null);
+    ).filter((a) => a !== null);
     return {
       maquina,
       confianza: resultado.confianza,
+      caja: resultado.caja,
       requiereConfirmacion: resultado.confianza < CONFIANZA_MINIMA,
       alternativas,
     };

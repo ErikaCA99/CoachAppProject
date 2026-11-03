@@ -2,8 +2,13 @@ import { Buffer } from "buffer";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { decode as decodificarJpeg } from "jpeg-js";
 import type { TfliteModel } from "react-native-fast-tflite";
+import {
+  respuestaReconocimientoSchema,
+  type CajaDeteccion,
+} from "@/schemas/machineRecognition.schema";
 
 import { ETIQUETAS_MAQUINAS } from "@/services/ai/machineLabels";
+import { invocarFuncion } from "@/services/firebase/functionsService";
 
 /**
  * Reconocimiento de máquinas por cámara (TensorFlow Lite, on-device).
@@ -16,6 +21,13 @@ import { ETIQUETAS_MAQUINAS } from "@/services/ai/machineLabels";
  * Entrada: float32 [1, 224, 224, 3], RGB 0..255 (la normalización de
  * MobileNetV2 va dentro del modelo). Salida: float32 [1, 35] probabilidades.
  *
+ * Modo nube (opcional): con `EXPO_PUBLIC_RECONOCIMIENTO_NUBE=true` la foto se
+ * envía a la Cloud Function `reconocerMaquina`, que consulta el endpoint de
+ * Ultralytics con la clave guardada en Secret Manager (nunca en el APK). Si la
+ * llamada falla (sin internet, cuota, servicio caído) se usa este modelo local.
+ * Si el servicio responde pero no reconoce ninguna máquina del catálogo, se
+ * devuelve `null` y el escáner cae en la selección manual.
+ *
  * Importante: los términos de WorkoutX prohíben entrenar modelos con sus GIFs
  * sin permiso escrito; el dataset sale solo de las fotos de catálogo.
  */
@@ -24,8 +36,13 @@ export interface ResultadoReconocimiento {
   maquinaId: string;
   /** 0..1 */
   confianza: number;
+  caja?: CajaDeteccion;
   /** Las siguientes candidatas (top-3 sin incluir la primera). */
-  alternativas: { maquinaId: string; confianza: number }[];
+  alternativas: {
+    maquinaId: string;
+    confianza: number;
+    caja?: CajaDeteccion;
+  }[];
 }
 
 /**
@@ -89,7 +106,66 @@ async function prepararEntrada(fotoUri: string): Promise<Float32Array> {
   return Float32Array.from(data); // [224*224*3] en orden RGB
 }
 
+const NUBE_ACTIVA = process.env.EXPO_PUBLIC_RECONOCIMIENTO_NUBE === "true";
+/** Lado mayor de la foto enviada a la nube (el JPEG pesa ~50–120 KB). */
+const LADO_NUBE = 640;
+
+/** Foto completa (sin recorte) reducida y en JPEG base64 para el endpoint. */
+async function prepararFotoNube(fotoUri: string): Promise<string> {
+  const original = await ImageManipulator.manipulate(fotoUri).renderAsync();
+  const reducida = await ImageManipulator.manipulate(original)
+    .resize(
+      original.width >= original.height
+        ? { width: LADO_NUBE }
+        : { height: LADO_NUBE },
+    )
+    .renderAsync();
+  const { base64 } = await reducida.saveAsync({
+    format: SaveFormat.JPEG,
+    compress: 0.7,
+    base64: true,
+  });
+  if (!base64) throw new Error("No se pudo leer la foto");
+  return base64;
+}
+
+async function reconocerEnNube(
+  fotoUri: string,
+): Promise<ResultadoReconocimiento | null> {
+  const imagenBase64 = await prepararFotoNube(fotoUri);
+  const { sugerencias } = await invocarFuncion(
+    "reconocerMaquina",
+    { imagenBase64 },
+    respuestaReconocimientoSchema,
+    // El endpoint gratuito escala a cero: el primer arranque puede tardar.
+    { timeoutMs: 55000 },
+  );
+  const catalogo = new Set(ETIQUETAS_MAQUINAS);
+  const validas = sugerencias.filter((s) => catalogo.has(s.maquinaId));
+  if (validas.length === 0) return null;
+  const [mejor, ...resto] = validas;
+  return {
+    maquinaId: mejor.maquinaId,
+    confianza: mejor.confianza,
+    caja: mejor.caja,
+    alternativas: resto.slice(0, 2),
+  };
+}
+
 export async function reconocerMaquina(
+  fotoUri: string,
+): Promise<ResultadoReconocimiento | null> {
+  if (NUBE_ACTIVA) {
+    try {
+      return await reconocerEnNube(fotoUri);
+    } catch (error) {
+      console.warn("Reconocimiento en la nube no disponible:", error);
+    }
+  }
+  return reconocerLocal(fotoUri);
+}
+
+async function reconocerLocal(
   fotoUri: string,
 ): Promise<ResultadoReconocimiento | null> {
   try {
