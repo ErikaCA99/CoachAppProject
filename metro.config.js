@@ -25,17 +25,29 @@ config.resolver.assetExts.push("tflite");
 // /.*[/\\]dist[/\\].*/ bloquea también node_modules/**/dist/** (react-native-css-interop,
 // react-native-chart-kit, @radix-ui/*, ...) y rompe la resolución de módulos.
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const rootDir = (name) =>
-  new RegExp("^" + escapeRe(path.join(__dirname, name)) + "[/\\\\].*");
+const rootDir = (name) => {
+  // En Windows los separadores pueden ser / o \ según la capa de Metro (posixPathMatchesPattern).
+  const fullPath = path.resolve(__dirname, ...name.split("/"));
+  const pattern = escapeRe(fullPath).replace(/\\\\/g, "[/\\\\]");
+  return new RegExp("^" + pattern + "([/\\\\].*)?$");
+};
 
 const exclusionList = [
   rootDir("android"),
   rootDir("ios"),
   rootDir("dist"),
+  rootDir("functions"),
+  rootDir("ml"),
+  rootDir("_tmp"),
+  rootDir(".gradle"),
   // Herramientas del asistente: no son fuentes ni recursos de la aplicación.
   rootDir(".agents"),
+  rootDir(".claude"),
   rootDir(".kiro"),
   rootDir(".codex"),
+  // Artefactos de compilación generados por módulos locales.
+  rootDir("modules/coach-ar/android/build"),
+  rootDir("modules/coach-ar/android/.gradle"),
 ];
 
 if (Array.isArray(config.resolver.blockList)) {
