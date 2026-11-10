@@ -53,10 +53,11 @@ export function normalizarClase(texto) {
 }
 
 /**
- * El detector se entrenó con 42 clases y el catálogo tiene 35 máquinas.
- * Tres clases son la misma máquina con otro nombre (ALIAS_CLASES); las otras
- * cuatro no tienen ficha en el catálogo y se ignoran (la app cae en la
- * selección manual). Confirmar los alias antes de la defensa.
+ * Detector YOLO26m (Ultralytics, dataset `gym-machines-data`): 41 clases.
+ * 35 se llaman igual que los ids del catálogo; las 6 de CLASES_SIN_FICHA son
+ * equipo libre o accesorios sin ficha y se ignoran (la app cae en la
+ * selección manual). ALIAS_CLASES conserva los nombres de la v1 (YOLO11x,
+ * 42 clases) por si se vuelve a desplegar ese modelo; con la v2 no se usan.
  */
 export const ALIAS_CLASES = {
   "bicep-curl-machine": "curl-biceps",
@@ -64,10 +65,12 @@ export const ALIAS_CLASES = {
   "extension-cuadriceps": "extension-piernas",
 };
 export const CLASES_SIN_FICHA = [
-  "banco-olimpico-declinado-con-extension-de-piernas",
-  "poleas-doble-cable",
-  "press-alto",
-  "remo-alto",
+  "mancuerdas",
+  "pelota",
+  "barra-de-pesas",
+  "step-aerobics",
+  "saco-boxeo",
+  "pesa-rusa",
 ];
 
 // Respuesta de Ultralytics: { images: [{ results: [{ class, name, confidence, box }] }] }
@@ -125,4 +128,14 @@ export function interpretarRespuesta(
   return [...mejor.values()]
     .sort((a, b) => b.confianza - a.confianza)
     .slice(0, max);
+}
+
+/** Resumen de la respuesta cruda para los logs (sin la imagen). */
+export function resumirRespuesta(datos) {
+  return candidatas(datos)
+    .map(({ clase, confianza }) => ({
+      clase: String(clase ?? ""),
+      confianza: Number.isFinite(confianza) ? Math.round(confianza * 1000) / 1000 : null,
+    }))
+    .slice(0, 10);
 }

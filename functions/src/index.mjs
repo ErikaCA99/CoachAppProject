@@ -12,7 +12,7 @@ import {
   reconocimientoSchema,
   respuestaReconocimientoSchema,
 } from "./schemas.mjs";
-import { interpretarRespuesta } from "./reconocimiento.mjs";
+import { interpretarRespuesta, resumirRespuesta } from "./reconocimiento.mjs";
 import { consumirCuota } from "./quota.mjs";
 initializeApp();
 const db = getFirestore();
@@ -22,6 +22,18 @@ const usdaKey = defineSecret("USDA_API_KEY");
 // lee de functions/.env.
 const ultralyticsKey = defineSecret("ULTRALYTICS_API_KEY");
 const ultralyticsUrl = defineString("ULTRALYTICS_ENDPOINT_URL");
+// Parámetros de inferencia del endpoint (los del ejemplo de Ultralytics Platform).
+const ultralyticsConf = defineString("ULTRALYTICS_CONF", { default: "0.25" });
+const ultralyticsIou = defineString("ULTRALYTICS_IOU", { default: "0.5" });
+const ultralyticsImgsz = defineString("ULTRALYTICS_IMGSZ", { default: "640" });
+
+/** Número dentro del rango del contrato OpenAPI; si no, el valor por defecto. */
+function parametroNumerico(param, min, max, porDefecto) {
+  const valor = Number(param.value());
+  return Number.isFinite(valor) && valor >= min && valor <= max
+    ? valor
+    : porDefecto;
+}
 const opciones = {
   region: "us-central1",
   enforceAppCheck: true,
@@ -172,6 +184,16 @@ export const guardarRutina = onCall(opciones, (request) =>
   }),
 );
 
+// Texto de una respuesta de error, solo para el log (nunca se envía al cliente).
+async function leerTextoTruncado(response, limite) {
+  try {
+    const texto = await response.text();
+    return texto.slice(0, limite);
+  } catch {
+    return "";
+  }
+}
+
 // Lee el cuerpo de una respuesta externa acotando los bytes reales.
 async function leerJsonAcotado(response, limite) {
   const reader = response.body.getReader();
@@ -212,17 +234,22 @@ export const reconocerMaquina = onCall(
         );
       if (!url.pathname.endsWith("/predict"))
         url.pathname = `${url.pathname.replace(/\/+$/, "")}/predict`;
-      // El endpoint espera multipart con el archivo; `source` en base64 solo
-      // existe en la API de la plataforma (máx. 4096 caracteres).
+      // Contrato: docs/ultralytics-endpoint.openapi.yaml (gym-detect-object,
+      // version-003, southamerica-west1). Se envía el JPEG en `file`
+      // (multipart); `source` también acepta base64 pero pesa un 33 % más.
       const form = new FormData();
       form.append(
         "file",
         new Blob([Buffer.from(imagenBase64, "base64")], { type: "image/jpeg" }),
         "foto.jpg",
       );
-      form.append("conf", "0.1"); // bajo a propósito: la app pide top-3
-      form.append("iou", "0.7");
-      form.append("imgsz", "640");
+      // Rangos del contrato: conf 0.01–1, iou 0–0.95, imgsz 32–1280.
+      form.append("conf", String(parametroNumerico(ultralyticsConf, 0.01, 1, 0.25)));
+      form.append("iou", String(parametroNumerico(ultralyticsIou, 0, 0.95, 0.5)));
+      form.append(
+        "imgsz",
+        String(Math.round(parametroNumerico(ultralyticsImgsz, 32, 1280, 640))),
+      );
       // Contrato explícito: Ultralytics entrega píxeles; los normalizamos una sola vez.
       form.append("normalize", "false");
       const response = await fetch(url, {
@@ -232,19 +259,38 @@ export const reconocerMaquina = onCall(
         signal: AbortSignal.timeout(50000),
         redirect: "error",
       });
-      if (response.status === 429)
-        throw new HttpsError(
-          "resource-exhausted",
-          "Servicio de reconocimiento temporalmente ocupado.",
-        );
-      if (!response.ok)
+      if (!response.ok) {
+        // Códigos del contrato OpenAPI del endpoint (docs/ultralytics-endpoint.openapi.yaml).
+        logger.warn("Ultralytics respondió con error", {
+          status: response.status,
+          retryAfter: response.headers.get("retry-after"),
+          detalle: await leerTextoTruncado(response, 2000),
+        });
+        if (response.status === 429)
+          throw new HttpsError(
+            "resource-exhausted",
+            "Servicio de reconocimiento temporalmente ocupado.",
+          );
+        if ([400, 413, 422].includes(response.status))
+          throw new HttpsError(
+            "invalid-argument",
+            "La foto no es válida para el reconocimiento.",
+          );
+        // 401 = clave inválida o de otro endpoint; 500 = error de inferencia.
         throw new HttpsError(
           "unavailable",
           "Servicio de reconocimiento no disponible.",
         );
+      }
       const datos = await leerJsonAcotado(response, 1000000);
+      const sugerencias = interpretarRespuesta(datos);
+      // Diagnóstico: qué devolvió YOLO y qué llegó al catálogo (sin la foto).
+      logger.info("reconocerMaquina", {
+        detecciones: resumirRespuesta(datos),
+        sugerencias: sugerencias.map((s) => s.maquinaId),
+      });
       const resultado = respuestaReconocimientoSchema.safeParse({
-        sugerencias: interpretarRespuesta(datos),
+        sugerencias,
       });
       if (!resultado.success)
         throw new HttpsError("unavailable", "Respuesta externa inválida.");

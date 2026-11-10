@@ -142,7 +142,11 @@ async function reconocerEnNube(
   );
   const catalogo = new Set(ETIQUETAS_MAQUINAS);
   const validas = sugerencias.filter((s) => catalogo.has(s.maquinaId));
-  if (validas.length === 0) return null;
+  if (validas.length === 0) {
+    // El servicio respondió, pero YOLO no vio ninguna máquina del catálogo.
+    console.info("Reconocimiento en la nube: sin máquinas del catálogo.");
+    return null;
+  }
   const [mejor, ...resto] = validas;
   return {
     maquinaId: mejor.maquinaId,
@@ -155,6 +159,9 @@ async function reconocerEnNube(
 export async function reconocerMaquina(
   fotoUri: string,
 ): Promise<ResultadoReconocimiento | null> {
+  // Diagnóstico: EXPO_PUBLIC_* se incrusta al empaquetar; si sale "local"
+  // con el .env en true, reinicia Metro con `npx expo start -c`.
+  console.info(`[reconocimiento] modo: ${NUBE_ACTIVA ? "nube" : "local"}`);
   if (NUBE_ACTIVA) {
     try {
       return await reconocerEnNube(fotoUri);

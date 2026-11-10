@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import {
   ALIAS_CLASES,
   CLASES_SIN_FICHA,
@@ -8,6 +8,7 @@ import {
   interpretarRespuesta,
   normalizarClase,
   normalizarCaja,
+  resumirRespuesta,
 } from "../src/reconocimiento.mjs";
 import {
   reconocimientoSchema,
@@ -83,28 +84,30 @@ test("las 3 clases con otro nombre se convierten al id del catálogo", () => {
   );
 });
 
-const RESULTADOS_DETECTOR = new URL(
-  "../../ml/detection/runs/best42-evaluation/results.json",
-  import.meta.url,
-);
-test(
-  "las 42 clases del detector: 35 o alias llegan al catálogo, 4 se ignoran",
-  {
-    skip:
-      !existsSync(RESULTADOS_DETECTOR) &&
-      "falta ml/detection/runs (no versionado)",
-  },
-  () => {
-    const yaml = readFileSync(RESULTADOS_DETECTOR, "utf8");
-    const clases = Object.values(JSON.parse(yaml).classes);
-    assert.equal(clases.length, 42);
-    const sinFicha = clases.filter((n) => {
-      const id = ALIAS_CLASES[normalizarClase(n)] ?? normalizarClase(n);
-      return !ETIQUETAS_MAQUINAS.includes(id);
-    });
-    assert.deepEqual(sinFicha.sort(), [...CLASES_SIN_FICHA].sort());
-  },
-);
+// Clases del detector YOLO26m desplegado (Ultralytics, gym-machines-data).
+const CLASES_DETECTOR_V2 = [
+  "prensa-piernas", "abductores-aductores", "curl-biceps", "curl-femoral",
+  "extension-piernas", "press-pecho", "press-hombro", "smith", "pec-deck",
+  "estacion-poleas", "dominadas-fondos-asistidos", "extension-espalda",
+  "jalon-pecho", "caminadora", "bicicleta-estatica", "mancuerdas", "remo-t",
+  "pelota", "barra_de_pesas", "step_aerobics", "saco_boxeo", "pesa_rusa",
+  "abdominal", "banco-pecho", "triceps", "pantorrillas", "patada-gluteo",
+  "hip-thrust", "eliptica", "extension-curl-piernas", "multiestacion",
+  "palanca-peso-muerto", "remo-sentado", "torso-rotatorio", "escaladora",
+  "sentadilla-guiada", "biceps-triceps", "elevaciones-laterales",
+  "banco-predicador", "multicadera", "rack-sentadilla",
+];
+
+test("las 41 clases del detector: las 35 del catálogo llegan, 6 se ignoran", () => {
+  assert.equal(CLASES_DETECTOR_V2.length, 41);
+  const ids = CLASES_DETECTOR_V2.map(
+    (n) => ALIAS_CLASES[normalizarClase(n)] ?? normalizarClase(n),
+  );
+  const conFicha = ids.filter((id) => ETIQUETAS_MAQUINAS.includes(id));
+  const sinFicha = ids.filter((id) => !ETIQUETAS_MAQUINAS.includes(id));
+  assert.deepEqual([...conFicha].sort(), [...ETIQUETAS_MAQUINAS].sort());
+  assert.deepEqual(sinFicha.sort(), [...CLASES_SIN_FICHA].sort());
+});
 
 test("descarta clases sin ficha, confianzas inválidas y respuestas vacías", () => {
   assert.deepEqual(
@@ -213,4 +216,37 @@ test("sin geometría válida conserva la clasificación pero no inventa coordena
     }).success,
     false,
   );
+});
+
+// Ejemplo de respuesta del contrato OpenAPI (docs/ultralytics-endpoint.openapi.yaml).
+const EJEMPLO_CONTRATO = (name, confidence) => ({
+  images: [
+    {
+      shape: [480, 640],
+      results: [
+        { name, class: 0, confidence, box: { x1: 10, y1: 20, x2: 100, y2: 200 } },
+      ],
+    },
+  ],
+  metadata: { imageCount: 1, functionTimeCall: 0.018 },
+});
+
+test("contrato OpenAPI: interpreta la respuesta de /predict", () => {
+  assert.deepEqual(interpretarRespuesta(EJEMPLO_CONTRATO("prensa-piernas", 0.92)), [
+    {
+      maquinaId: "prensa-piernas",
+      confianza: 0.92,
+      caja: { x1: 10 / 640, y1: 20 / 480, x2: 100 / 640, y2: 200 / 480 },
+    },
+  ]);
+  // Una clase ajena al catálogo (la del ejemplo oficial) no llega a la app.
+  assert.deepEqual(interpretarRespuesta(EJEMPLO_CONTRATO("person", 0.92)), []);
+  assert.deepEqual(interpretarRespuesta(EJEMPLO_CONTRATO("pesa_rusa", 0.9)), []);
+});
+
+test("resumen para logs: clase y confianza crudas, sin cajas", () => {
+  assert.deepEqual(resumirRespuesta(EJEMPLO_CONTRATO("pesa_rusa", 0.91234)), [
+    { clase: "pesa_rusa", confianza: 0.912 },
+  ]);
+  assert.deepEqual(resumirRespuesta(null), []);
 });

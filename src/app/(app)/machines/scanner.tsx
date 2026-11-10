@@ -265,6 +265,8 @@ export default function EscanerScreen() {
     }
     // Con baja confianza no se preselecciona nada: se ofrecen las candidatas.
     setMaquina(null);
+    if (!resultado)
+      toast.info("No reconocí ninguna máquina. Elígela de la lista.");
     setSugerencias(
       resultado
         ? [
