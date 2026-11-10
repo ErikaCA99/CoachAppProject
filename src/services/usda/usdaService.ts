@@ -19,12 +19,24 @@ const respuestaSchema = z.object({ foods: z.array(alimentoSchema).max(25) });
 export type UsdaNutriente = z.infer<typeof nutrienteSchema>;
 export type UsdaAlimento = z.infer<typeof alimentoSchema>;
 
+/**
+ * React Native (Hermes) implementa AbortSignal sin `throwIfAborted()`: llamarlo
+ * lanza "undefined is not a function". Se comprueba `aborted` a mano.
+ */
+function verificarCancelacion(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    const error = new Error("Búsqueda cancelada.");
+    error.name = "AbortError";
+    throw error;
+  }
+}
+
 /** Authenticated proxy: USDA credentials exist only in Secret Manager. */
 export async function buscarAlimentosUsda(
   consulta: string,
   opciones: { tamanoPagina?: number; signal?: AbortSignal } = {},
 ): Promise<UsdaAlimento[]> {
-  opciones.signal?.throwIfAborted();
+  verificarCancelacion(opciones.signal);
   const datos = z
     .object({
       consulta: z.string().trim().min(2).max(100),
@@ -37,6 +49,6 @@ export async function buscarAlimentosUsda(
     respuestaSchema,
   );
   // Callable SDK has no AbortSignal; discard stale responses, never retry mutations.
-  opciones.signal?.throwIfAborted();
+  verificarCancelacion(opciones.signal);
   return respuesta.foods;
 }
