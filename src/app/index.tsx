@@ -25,16 +25,14 @@ export default function WelcomeScreen() {
       </View>
 
       <View className="flex-1 justify-center px-4">
-        <View className="flex-row items-center justify-center">
+        <View className="items-center justify-center">
           <Image
-            source={require("@/assets/images/logo-coachapp.png")}
-            className="h-9 w-9 rounded-xl"
-            accessible={false}
-            importantForAccessibility="no"
+            source={require("@/assets/images/coachApp_logo_v4.png")}
+            className="h-16 w-56"
+            resizeMode="contain"
+            accessibilityRole="header"
+            accessibilityLabel="CoachApp, guía de máquinas de gimnasio"
           />
-          <Text className="ml-2.5 text-2xl font-bold text-foreground">
-            CoachApp
-          </Text>
         </View>
         <Text className="mx-8 mt-3 text-center text-sm text-text-secondary">
           Disfruta de la mejor experiencia del deporte con rutinas
