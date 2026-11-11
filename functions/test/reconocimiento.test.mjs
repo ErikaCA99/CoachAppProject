@@ -9,11 +9,11 @@ import {
   normalizarClase,
   normalizarCaja,
   resumirRespuesta,
-} from "../src/reconocimiento.mjs";
+} from "../src/features/machines/reconocimiento.mjs";
 import {
   reconocimientoSchema,
   respuestaReconocimientoSchema,
-} from "../src/schemas.mjs";
+} from "../src/features/machines/schemas.mjs";
 
 test("las etiquetas del servidor coinciden con las de la app", () => {
   const ts = readFileSync(

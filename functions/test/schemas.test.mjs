@@ -2,10 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   busquedaSchema,
+  respuestaUsdaSchema,
+} from "../src/features/nutrition/schemas.mjs";
+import {
   escrituraRutinaSchema,
   rutinaSchema,
-  respuestaUsdaSchema,
-} from "../src/schemas.mjs";
+} from "../src/features/routines/schemas.mjs";
 const ejercicio = {
   maquinaId: 1,
   nombre: "Press",

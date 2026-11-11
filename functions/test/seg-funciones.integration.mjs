@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { guardarRutina, buscarAlimentos, reconocerMaquina } from "../src/index.mjs";
-import { consumirCuota } from "../src/quota.mjs";
+import { consumirCuota } from "../src/shared/quota.mjs";
 
 if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.GCLOUD_PROJECT?.startsWith("demo-"))
   throw new Error("Solo se permite el emulador demo.");

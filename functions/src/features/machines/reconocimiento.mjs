@@ -1,7 +1,7 @@
 // Reconocimiento de máquinas: interpreta la respuesta del endpoint de Ultralytics.
 // Las clases del modelo deben llamarse como los ids del catálogo
 // (`maquinas/{id}`). Esta lista debe coincidir con
-// `src/services/ai/machineLabels.ts`; la prueba `reconocimiento.test.mjs`
+// `src/features/machines/model/rules/machineLabels.ts`; la prueba `reconocimiento.test.mjs`
 // lo comprueba.
 export const ETIQUETAS_MAQUINAS = [
   "banco-pecho",

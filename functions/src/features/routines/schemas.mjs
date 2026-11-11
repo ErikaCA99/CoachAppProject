@@ -1,9 +1,7 @@
 import { z } from "zod";
-export const idSchema = z
-  .string()
-  .min(1)
-  .max(128)
-  .regex(/^[^/]+$/);
+
+import { idSchema } from "../../shared/schemas.mjs";
+
 const objetivo = z.enum([
   "perder_peso",
   "ganar_masa",
@@ -67,56 +65,3 @@ export const escrituraRutinaSchema = z.discriminatedUnion("operacion", [
       .refine((v) => Object.keys(v).length > 0),
   }),
 ]);
-export const busquedaSchema = z.strictObject({
-  consulta: z.string().trim().min(2).max(100),
-  tamanoPagina: z.number().int().min(1).max(25).default(15),
-});
-export const alimentoSchema = z.object({
-  fdcId: z.number().int().positive(),
-  description: z.string().max(1000),
-  dataType: z.string().max(100),
-  foodCategory: z.string().max(300).optional(),
-  foodNutrients: z
-    .array(
-      z.object({
-        nutrientId: z.number().int(),
-        nutrientName: z.string().max(200),
-        nutrientNumber: z.string().max(20).optional(),
-        unitName: z.string().max(30),
-        value: z.number().finite(),
-      }),
-    )
-    .max(200),
-});
-export const respuestaUsdaSchema = z.object({
-  foods: z.array(alimentoSchema).max(25),
-});
-// Foto JPEG reducida (la app envía ~640 px, calidad 0,7) en base64.
-export const reconocimientoSchema = z.strictObject({
-  imagenBase64: z
-    .string()
-    .min(100)
-    .max(450000)
-    .regex(/^[A-Za-z0-9+/]+={0,2}$/)
-    .refine((v) => v.startsWith("/9j/"), "Solo JPEG"),
-});
-export const cajaDeteccionSchema = z
-  .strictObject({
-    x1: z.number().min(0).max(1),
-    y1: z.number().min(0).max(1),
-    x2: z.number().min(0).max(1),
-    y2: z.number().min(0).max(1),
-  })
-  .refine((caja) => caja.x1 < caja.x2 && caja.y1 < caja.y2);
-
-export const respuestaReconocimientoSchema = z.strictObject({
-  sugerencias: z
-    .array(
-      z.strictObject({
-        maquinaId: idSchema,
-        confianza: z.number().min(0).max(1),
-        caja: cajaDeteccionSchema.optional(),
-      }),
-    )
-    .max(3),
-});

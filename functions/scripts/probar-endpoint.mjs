@@ -12,7 +12,7 @@ import { basename } from "node:path";
 import {
   interpretarRespuesta,
   resumirRespuesta,
-} from "../src/reconocimiento.mjs";
+} from "../src/features/machines/reconocimiento.mjs";
 
 if (existsSync(".env")) process.loadEnvFile(".env");
 const [foto, conf = process.env.ULTRALYTICS_CONF ?? "0.25"] =

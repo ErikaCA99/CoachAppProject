@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { guardarRutina, buscarAlimentos } from "../src/index.mjs";
-import { consumirCuota } from "../src/quota.mjs";
+import { consumirCuota } from "../src/shared/quota.mjs";
 // This file is run only via emulators:exec, never against production.
 if (
   !process.env.FIRESTORE_EMULATOR_HOST ||
