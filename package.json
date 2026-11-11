@@ -84,7 +84,7 @@
     "format": "prettier --check src",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:security": "firebase emulators:exec --project demo-coach-security --only firestore,storage \"node --test --test-concurrency=1 tests/security/rules.test.mjs functions/test/security.integration.mjs\"",
+    "test:security": "firebase emulators:exec --project demo-coach-security --only firestore,storage \"node --test --test-concurrency=1 tests/security/rules.test.mjs tests/security/seg-escenarios.test.mjs functions/test/security.integration.mjs functions/test/seg-funciones.integration.mjs\"",
     "test:backend": "npm --prefix functions test"
   },
   "private": true,
