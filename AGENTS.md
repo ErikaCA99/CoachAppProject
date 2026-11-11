@@ -11,20 +11,23 @@
 
 ## Arquitectura (cliente-servidor, capas MVC)
 
+MVC organizado por funcionalidad (`src/features/<x>/`). Detalle y árbol completo en `src/README.md`.
+
 | Capa | Rol MVC | Carpeta |
 |---|---|---|
-| Presentación | Vista | `src/app/` (rutas Expo Router) y `src/components/` |
-| Lógica de Negocio | Controlador | `src/controllers/` y `src/utils/` |
-| Modelo de datos | Modelo | `src/models/entities/`, `src/schemas/` (Zod), `src/models/repositories/` |
-| Integraciones externas | Servicios | `src/services/firebase/` (Firestore, Storage), `src/services/wger/` y `src/services/ai/` |
+| Presentación | Vista | `src/app/` (rutas Expo Router), `src/features/*/view/`; UI genérica en `src/shared/ui/` |
+| Lógica de Negocio | Controlador | `src/features/*/controller/` (casos de uso, hooks de pantalla, stores de la funcionalidad) |
+| Modelo de datos | Modelo | `src/features/*/model/` (`entities/`, `rules/`, `schemas/` Zod, `repositories/`) |
+| Cliente-servidor | Red | `src/features/*/api/` y la infraestructura de `src/core/` (`firebase/`, `http/`, `storage/`, `errors/`) |
 
 Reglas de la arquitectura que hay que respetar al modificar código:
 
-- Los archivos de `src/app/` son **solo Vista**: nunca importan Firebase ni hacen lógica de negocio directamente; siempre pasan por un controlador de `src/controllers/`.
-- Los **repositorios** (`src/models/repositories/`) son el único lugar que conoce la forma real de Firestore (nombres de colección, rutas de subcolección). Controladores y pantallas no arman rutas de Firestore a mano.
-- El SDK de Firebase Auth solo se usa en `AuthController`; el de Storage solo en `src/services/firebase/storageService.ts` (Firestore guarda **rutas** de Storage, no URLs con token).
-- `src/services/firebase/firestoreService.ts` expone helpers genéricos (`listar`, `obtenerPorId`, `crear`, `actualizar`, `eliminar`, `observar`); no lo dupliques ni accedas al SDK de Firestore fuera de `services/firebase`.
+- Los archivos de `src/app/` son **solo Vista**: nunca importan Firebase ni hacen lógica de negocio directamente; siempre pasan por un controlador de `src/features/*/controller/`.
+- Los **repositorios** (`src/features/*/model/repositories/`) son el único lugar que conoce la forma real de Firestore (nombres de colección, rutas de subcolección). Controladores y pantallas no arman rutas de Firestore a mano.
+- El SDK de Firebase Auth solo se usa en `src/core/firebase/authService.ts` (lo consume `AuthController`); el de Storage solo en `src/core/firebase/storageService.ts` (Firestore guarda **rutas** de Storage, no URLs con token).
+- `src/core/firebase/firestoreService.ts` expone helpers genéricos (`listar`, `obtenerPorId`, `crear`, `actualizar`, `eliminar`, `observar`); no lo dupliques ni accedas al SDK de Firestore fuera de `src/core/firebase`.
 - Alias de importación: usa `@/*` (→ `./src/*`), nunca rutas relativas largas tipo `../../../`.
+- Fronteras entre capas y funcionalidades: las verifica ESLint (`import/no-restricted-paths` y `no-restricted-imports` en `eslint.config.js`). Desde otra funcionalidad solo se importa `@/features/x` (dominio puro: entidades, reglas, esquemas), su `controller/`, `view/` o `model/repositories/`; nunca su `api/`. Los SDK de Firebase, axios y AsyncStorage solo se importan dentro de `src/core/`.
 - Enrutamiento (Expo Router): el nombre de archivo **es** la ruta. `(auth)/` y `(app)/` son grupos que no aparecen en la URL. Cada pantalla exporta con `export default` (requisito del router, no opcional). La protección de sesión vive en `src/app/_layout.tsx` con `Stack.Protected` — no reimplementes guards manuales pantalla por pantalla.
 - Suscripciones a datos de Firestore usan `onSnapshot` (método `observar`/`observarPorUsuario`) para tiempo real, no `getDocs` + una función `recargar()` manual — ese patrón viejo fue reemplazado a propósito porque violaba la regla de ESLint `react-hooks/set-state-in-effect`.
 
@@ -42,7 +45,7 @@ usuarios/{usuarioId}                          → doc = perfil, id = uid de Fire
 - `maquinas` y `ejercicios` son catálogos de solo lectura para la app; se escriben únicamente desde scripts de seed con el SDK Admin (fuera de la app, con `serviceAccountKey.json`), nunca desde un cliente autenticado.
 - Los datos propios de cada usuario viven en subcolecciones bajo `usuarios/{usuarioId}` (no en colecciones raíz filtradas por un campo `usuarioId`), aunque el campo `usuarioId` se mantiene también dentro de cada documento como defensa en profundidad para las reglas de seguridad.
 - Las fechas son `Timestamp` de Firestore generados con `serverTimestamp()` desde el repositorio — nunca construyas una fecha en el cliente (`new Date()`) para persistirla.
-- Al LEER, `firestoreService` convierte los `Timestamp` a `Date`: las entidades declaran `creadoEn?: Date` y ningún archivo fuera de `services/firebase/` importa tipos de `firebase/firestore`. El tipo `ConId<T>` vive en `src/models/types.ts`.
+- Al LEER, `firestoreService` convierte los `Timestamp` a `Date`: las entidades declaran `creadoEn?: Date` y ningún archivo fuera de `src/core/firebase/` importa tipos de `firebase/firestore`. El tipo `ConId<T>` vive en `src/core/types.ts`.
 - Las reglas de seguridad de Firestore son la barrera real (las credenciales de Firebase viajan dentro del APK y son públicas por diseño). No asumas que la validación de Zod del cliente es suficiente: las reglas también validan tipos y rangos.
 
 ## Comandos Esenciales
@@ -63,10 +66,10 @@ Este proyecto usa `npm`/`npx`, no `pnpm` ni `yarn` (el equipo probó `npx expo i
 - TypeScript estricto en todo `src/`; sigue el estilo ya presente en el archivo que edites antes que imponer uno nuevo.
 - Nombres de entidades y campos de dominio en **español** (`Usuario`, `Maquina`, `Ejercicio`, `Rutina`, `RegistroNutricional`, `ProgresoFisico`, `usuarioId`, `grupoMuscular`...) — mantén esa convención en código nuevo del dominio; los nombres técnicos de hooks/props de librerías (`useState`, `onPress`) se quedan en inglés como ya está.
 - No modifiques `package.json`, `app.json` ni `tsconfig.json` sin permiso explícito: contienen configuración sensible al funcionamiento del proyecto (`"main": "expo-router/entry"`, `experiments.typedRoutes`, el alias `paths: { "@/*": ["./src/*"] }`). Un cambio accidental ahí rompe el enrutador o el build sin un error obvio.
-- No reintroduzcas React Navigation ni Redux: la decisión de arquitectura vigente es Expo Router (enrutamiento) + **Zustand** (`src/store/`: `auth.store`, `onboarding.store`) para estado global — no hay Redux ni React Context de sesión en este stack.
+- No reintroduzcas React Navigation ni Redux: la decisión de arquitectura vigente es Expo Router (enrutamiento) + **Zustand** (`src/store/`: `auth.store`, `toast.store`; el borrador del onboarding vive en `src/features/profile/controller/onboarding.store.ts`) para estado global — no hay Redux ni React Context de sesión en este stack.
 - Para el catálogo de máquinas/ejercicios: las fuentes de datos externas ya están decididas (wger API y/o `free-exercise-db`, ambas de acceso libre); no propongas scraping de HTML como primera opción — varias de esas páginas están detrás de protección anti-bot y ya existe una vía oficial documentada.
 - El mapeo manual máquina → ejercicio externo (`fuentes-mapeo.json`) se hizo a mano a propósito porque el matching difuso por nombre daba resultados incorrectos; no lo reemplaces por lógica de similitud automática sin que te lo pidan explícitamente.
-- Nunca hardcodees credenciales de Firebase ni las imprimas en un mensaje o commit; viven en `.env` (prefijo `EXPO_PUBLIC_`, no versionado) y se leen en `src/services/firebase/firebase.ts`. Todo lo que lleva `EXPO_PUBLIC_` queda dentro del APK: claves privadas de APIs (p. ej. WorkoutX) **no** van en el `.env` de la app, solo en los scripts de seed fuera del proyecto.
+- Nunca hardcodees credenciales de Firebase ni las imprimas en un mensaje o commit; viven en `.env` (prefijo `EXPO_PUBLIC_`, no versionado) y se leen en `src/config/env.ts` (las usa `src/core/firebase/firebase.ts`). Todo lo que lleva `EXPO_PUBLIC_` queda dentro del APK: claves privadas de APIs (p. ej. WorkoutX) **no** van en el `.env` de la app, solo en los scripts de seed fuera del proyecto.
 
 ## Reglas de Pruebas
 

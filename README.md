@@ -42,15 +42,18 @@ Si falla la llamada, la app recurre al modelo local; también permite selección
 
 ## Estructura
 
-- `src/app/` y `src/components/`: presentación.
-- `src/controllers/`: lógica de negocio.
-- `src/models/`: entidades, tipos y repositorios; `src/schemas/`: validación.
-- `src/services/`: Firebase, IA e integraciones externas.
+MVC por funcionalidad sobre arquitectura cliente-servidor (detalle en `src/README.md`):
+
+- `src/app/`: rutas de Expo Router (Vista de entrada).
+- `src/features/<funcionalidad>/`: `model/` (entidades, reglas, esquemas, repositorios), `api/` (cliente-servidor), `controller/` (casos de uso y hooks), `view/` (componentes) e `index.ts` (API pública de dominio).
+- `src/core/`: infraestructura compartida (Firebase, HTTP, errores, almacenamiento local, validación).
+- `src/shared/`: UI reutilizable, tema y utilidades genéricas.
+- `src/store/` y `src/config/`: estado global y configuración/entorno.
 - `modules/coach-ar/`: módulo nativo Android de realidad aumentada.
 - `functions/`: backend Firebase y sus pruebas.
 - `tests/security/`: pruebas de reglas y autorización.
 - `ml/`: entrenamiento, evaluación y datos; excluidos del paquete EAS.
-- `assets/models/`: modelos incluidos en la app.
+- `assets/`: imágenes, modelos incluidos en la app (`models/`) y demostraciones de ejercicios (`exercises/`).
 
 ## Verificación
 
