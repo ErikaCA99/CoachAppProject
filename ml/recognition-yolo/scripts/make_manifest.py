@@ -21,7 +21,7 @@ from common import PIPE, ROOT, load_app_labels, load_config
 sys.path.insert(0, str(ROOT / "ml"))
 from model_manifest import build_manifest, sha256_file, tool_versions, verify_manifest, write_manifest  # noqa: E402
 
-APP_SERVICE = ROOT / "src/services/ai/machineRecognition.ts"
+APP_SERVICE = ROOT / "src/features/machines/api/machineRecognition.ts"
 REAL_MANIFEST = PIPE / "data/real_photos/manifest.json"
 RESULTS = PIPE / "results"
 
@@ -124,7 +124,7 @@ def create_manifest(tflite: Path, stage: str, weights: Path | None = None, run: 
                      "significado": "probabilidades softmax (suman 1) en el orden de etiquetas.orden"},
         preprocessing={"recorte": "cuadrado central", "redimensionado": "224x224",
                        "normalizacion": "dentro del modelo (/255)",
-                       "referencia_app": "src/services/ai/machineRecognition.ts → prepararEntrada",
+                       "referencia_app": "src/features/machines/api/machineRecognition.ts → prepararEntrada",
                        "nota": "OpenCV solo se usa offline (ml/cv_tools.py); la app no lo ejecuta."},
         thresholds={"confianza_minima_app": threshold, "calibrada_para": "v1.0.0 (MobileNetV2)",
                     "recalibrar": True, "uso_recomendado": "sugerencia top-3 con confirmación"},

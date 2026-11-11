@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter, useSegments } from "expo-router";
 
-import { palette } from "@/constants/palette";
+import { palette } from "@/shared/theme/palette";
 
 /**
  * Tabs de la app autenticada. La protección de sesión y de onboarding vive en

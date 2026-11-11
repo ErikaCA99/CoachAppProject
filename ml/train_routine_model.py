@@ -3,14 +3,14 @@ Entrenamiento del recomendador de rutinas de coach-app (TensorFlow Lite).
 
 El modelo NO genera la rutina completa: predice dos clases que el código de la
 app ya sabe convertir en un plan (`construirPlan(iPlantilla, iEsquema)` en
-`src/utils/routineGenerator.ts`):
+`src/features/routines/model/rules/routineGenerator.ts`):
 
   * plantilla semanal (6 clases)  -> PLANTILLAS_SEMANALES
   * esquema de carga  (4 clases)  -> ESQUEMAS_CARGA
 
 El índice de cada clase DEBE coincidir con el índice del arreglo en TypeScript.
 
-Entrada (contrato de `src/services/ai/features.ts`, VERSION_FEATURES = 1),
+Entrada (contrato de `src/features/routines/model/ai/features.ts`, VERSION_FEATURES = 1),
 10 valores crudos; la normalización va DENTRO del modelo:
   edad, genero_masculino, genero_femenino, imc, nivel(0-2), dias_disponibles,
   obj_perder_peso, obj_ganar_masa, obj_mantenimiento, obj_resistencia
@@ -57,7 +57,7 @@ NOMBRES_FEATURES = [
 # ──────────────────────────────────────────────────────────────────────────
 # 1. Etiquetado
 # ──────────────────────────────────────────────────────────────────────────
-# PORT EXACTO de `decidirClases` (src/utils/routineGenerator.ts).
+# PORT EXACTO de `decidirClases` (src/features/routines/model/rules/routineGenerator.ts).
 # Reglas basadas en recomendaciones generales de prescripción (ACSM / OMS).
 # Si cambias una regla en TypeScript, cámbiala aquí y reentrena.
 DIAS_POR_NIVEL = {"principiante": 3, "intermedio": 4, "avanzado": 5}

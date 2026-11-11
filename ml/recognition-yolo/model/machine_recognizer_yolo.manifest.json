@@ -73,7 +73,7 @@
     "recorte": "cuadrado central",
     "redimensionado": "224x224",
     "normalizacion": "dentro del modelo (/255)",
-    "referencia_app": "src/services/ai/machineRecognition.ts → prepararEntrada",
+    "referencia_app": "src/features/machines/api/machineRecognition.ts → prepararEntrada",
     "nota": "OpenCV solo se usa offline (ml/cv_tools.py); la app no lo ejecuta."
   },
   "umbrales": {

@@ -2,34 +2,33 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
-import { HojaAnadirAlimento } from "@/components/nutrition/AddFoodSheet";
-import { CalculadoraIMCCard } from "@/components/nutrition/BMICalculatorCard";
-import { CaloriasGauge } from "@/components/nutrition/CaloriesGauge";
-import { type DatosNuevoAlimento } from "@/components/nutrition/FoodForm";
-import { ListaAlimentosHoy } from "@/components/nutrition/TodayFoodList";
-import { TablaReferenciaIMC } from "@/components/nutrition/BMIReferenceTable";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { ErrorCarga } from "@/components/ui/LoadError";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { palette } from "@/constants/palette";
-import { AuthController } from "@/controllers/AuthController";
+import { HojaAnadirAlimento } from "@/features/nutrition/view/AddFoodSheet";
+import { CalculadoraIMCCard } from "@/features/nutrition/view/BMICalculatorCard";
+import { CaloriasGauge } from "@/features/nutrition/view/CaloriesGauge";
+import { type DatosNuevoAlimento } from "@/features/nutrition/view/FoodForm";
+import { ListaAlimentosHoy } from "@/features/nutrition/view/TodayFoodList";
+import { TablaReferenciaIMC } from "@/features/nutrition/view/BMIReferenceTable";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { ErrorCarga } from "@/shared/ui/LoadError";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { palette } from "@/shared/theme/palette";
+import { AuthController } from "@/features/auth/controller/AuthController";
+import { calcularMetasNutricionales } from "@/features/nutrition";
 import {
-  calcularMetasNutricionales,
   calcularResumenDiario,
   filtrarAlimentosDeHoy,
   NutritionController,
   type AlimentoRapido,
-} from "@/controllers/NutritionController";
-import { useErrorDeCarga } from "@/hooks/useLoadError";
-import type { AlimentoUSDA } from "@/models/entities/USDAFood";
-import type { RegistroNutricional } from "@/models/entities/NutritionRecord";
-import type { Usuario } from "@/models/entities/User";
-import type { ConId } from "@/models/types";
+} from "@/features/nutrition/controller/NutritionController";
+import { useErrorDeCarga } from "@/shared/hooks/useLoadError";
+import type { AlimentoUSDA, RegistroNutricional } from "@/features/nutrition";
+import type { Usuario } from "@/features/profile";
+import type { ConId } from "@/core/types";
 import { useAuthStore } from "@/store/auth.store";
-import { toast } from "@/utils/toast";
+import { toast } from "@/core/errors/toast";
 
 type VistaNutricion = "diario" | "imc";
 

@@ -14,7 +14,7 @@ cambia por reemplazo de archivo, sin tocar Vista ni Controlador.
 |---|---|---|
 | **Vista** | `src/app/(app)/machines/scanner.tsx`, `src/components/machines/scanner/*` | Captura la foto y muestra "Detectada · N %" o la lista de sugerencias. No conoce el modelo. |
 | **Controlador** | `src/controllers/MachinesController.ts` (`reconocerDesdeFoto`) | Decide: confianza ≥ `CONFIANZA_MINIMA` → detección; si no, sugerencia para confirmar. |
-| **Servicio** (integración) | `src/services/ai/machineRecognition.ts` (+ `.web.ts`), `machineLabels.ts` | Preprocesa la foto, ejecuta el TFLite y devuelve top-3. **Aquí es donde se carga el modelo.** |
+| **Servicio** (integración) | `src/features/machines/api/machineRecognition.ts` (+ `.web.ts`), `machineLabels.ts` | Preprocesa la foto, ejecuta el TFLite y devuelve top-3. **Aquí es donde se carga el modelo.** |
 | **Modelo** (datos) | `src/models/entities/Machine.ts`, `repositories/machineRepository.ts` | Ficha de la máquina en Firestore (`maquinas/{id}`); el id es la clase que predice el modelo. |
 | **Offline (esta carpeta)** | `ml/recognition-yolo/` | Datos → entrenamiento → evaluación → `.tflite` con el contrato de la app. |
 
@@ -77,7 +77,7 @@ python ml/recognition-yolo/scripts/tests/test_labels.py
 ```
 
 Resultado verificado en este código: 35 nombres únicos y el mismo orden en `ml/results/recognition/labels.json`,
-`ml/recognition-yolo/model/labels.json` y `src/services/ai/machineLabels.ts`. El test además verifica la
+`ml/recognition-yolo/model/labels.json` y `src/features/machines/model/rules/machineLabels.ts`. El test además verifica la
 asignación alfabética de IDs que consume YOLO-cls, el mapa hacia el orden de la app, el rechazo de clases
 faltantes/sobrantes y el bloqueo de validaciones vacías. Ningún test sustituye la confirmación visual de que
 la etiqueta humana elegida en una foto real es correcta.

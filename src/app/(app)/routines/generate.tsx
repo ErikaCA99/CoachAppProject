@@ -10,19 +10,19 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { GenerationConfirmationSheet } from "@/components/routines/GenerationConfirmationSheet";
-import type { ParametrosGeneracion } from "@/models/entities/Routine";
-import { RoutinePreview } from "@/components/routines/RoutinePreview";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { useGeneracionRutina } from "@/hooks/useRoutineGeneration";
+import { GenerationConfirmationSheet } from "@/features/routines/view/GenerationConfirmationSheet";
+import type { ParametrosGeneracion } from "@/features/routines";
+import { RoutinePreview } from "@/features/routines/view/RoutinePreview";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { useGeneracionRutina } from "@/features/routines/controller/useRoutineGeneration";
 import {
   NIVELES_EXPERIENCIA,
   OBJETIVOS_USUARIO,
   type NivelExperiencia,
   type ObjetivoUsuario,
-} from "@/models/entities/User";
+} from "@/features/profile";
 
 export default function GenerarRutinaScreen() {
   const router = useRouter();

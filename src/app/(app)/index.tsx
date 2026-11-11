@@ -3,25 +3,25 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StatusBar, View } from "react-native";
 
-import { RachaSemanal } from "@/components/home/WeekStreak";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { EntradaAnimada } from "@/components/ui/AnimatedEntrance";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { AuthController } from "@/controllers/AuthController";
-import { RutinasController } from "@/controllers/RoutinesController";
-import { EntrenamientosController } from "@/controllers/WorkoutsController";
-import type { Rutina } from "@/models/entities/Routine";
-import type { Usuario } from "@/models/entities/User";
-import type { Entrenamiento } from "@/models/entities/Workout";
-import type { ConId } from "@/models/types";
+import { RachaSemanal } from "@/features/workout/view/WeekStreak";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { EntradaAnimada } from "@/shared/ui/AnimatedEntrance";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { AuthController } from "@/features/auth/controller/AuthController";
+import { RutinasController } from "@/features/routines/controller/RoutinesController";
+import { EntrenamientosController } from "@/features/workout/controller/WorkoutsController";
+import type { Rutina } from "@/features/routines";
+import type { Usuario } from "@/features/profile";
+import type { Entrenamiento } from "@/features/workout";
+import type { ConId } from "@/core/types";
 import { useAuthStore } from "@/store/auth.store";
-import { useOnboardingStore } from "@/store/onboarding.store";
+import { useOnboardingStore } from "@/features/profile/controller/onboarding.store";
 import {
   leerSesionEnCurso,
   type SesionGuardada,
-} from "@/utils/workoutSessionStorage";
+} from "@/features/workout/controller/WorkoutsController";
 
 export default function HomeScreen() {
   const { user } = useAuthStore();

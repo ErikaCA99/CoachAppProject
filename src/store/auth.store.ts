@@ -1,9 +1,9 @@
 import { z } from "zod";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { type User, userSchema } from "@/schemas/auth.schema";
+import { motorAlmacenamiento } from "@/core/storage/localStore";
+import { type User, userSchema } from "@/features/auth";
 
 const sesionPersistidaSchema = z.object({
   user: userSchema.nullable(),
@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => motorAlmacenamiento),
       // Persiste usuario + perfilCompleto para que, al reabrir la app, el
       // enrutador sepa a qué grupo ir sin esperar a Firestore (sin parpadeo).
       // isLoading, error, hasHydrated y authInicializado son efímeros.

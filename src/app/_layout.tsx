@@ -11,11 +11,11 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
-import { ToastHost } from "@/components/ui/ToastHost";
+import { ToastHost } from "@/shared/ui/ToastHost";
 import { configureGoogleSignIn } from "@/config/googleSignIn";
-import { useAuthListener } from "@/hooks/useAuthListener";
-import { usePerfilListener } from "@/hooks/useProfileListener";
-import { useReducirMovimiento } from "@/hooks/useReducedMotion";
+import { useAuthListener } from "@/features/auth/controller/useAuthListener";
+import { usePerfilListener } from "@/features/auth/controller/useProfileListener";
+import { useReducirMovimiento } from "@/shared/hooks/useReducedMotion";
 import { useAuthStore } from "@/store/auth.store";
 
 // Mantener el splash nativo hasta saber a qué grupo de rutas ir.

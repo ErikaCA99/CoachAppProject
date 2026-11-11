@@ -8,17 +8,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AuthHeader } from "@/components/auth/AuthHeader";
-import { BotonGoogle } from "@/components/auth/GoogleButton";
-import { ErrorEnLinea } from "@/components/ui/InlineError";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { CampoTexto } from "@/components/ui/TextField";
-import { SeparadorTexto } from "@/components/ui/TextDivider";
-import { Text } from "@/components/ui/Typography";
-import { AuthController } from "@/controllers/AuthController";
-import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import { AuthHeader } from "@/features/auth/view/AuthHeader";
+import { BotonGoogle } from "@/features/auth/view/GoogleButton";
+import { ErrorEnLinea } from "@/shared/ui/InlineError";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { CampoTexto } from "@/shared/ui/TextField";
+import { SeparadorTexto } from "@/shared/ui/TextDivider";
+import { Text } from "@/shared/ui/Typography";
+import { AuthController } from "@/features/auth/controller/AuthController";
+import { useGoogleAuth } from "@/features/auth/controller/useGoogleAuth";
 import { useAuthStore } from "@/store/auth.store";
-import { toast } from "@/utils/toast";
+import { toast } from "@/core/errors/toast";
 
 /**
  * Inicio de sesión. No navega manualmente: cuando Firebase confirma la

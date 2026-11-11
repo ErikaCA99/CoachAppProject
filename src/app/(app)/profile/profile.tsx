@@ -3,19 +3,19 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { CampoFormulario } from "@/components/ui/FormField";
-import { Text } from "@/components/ui/Typography";
-import { SelectorNivel } from "@/components/user/LevelSelector";
-import { SelectorObjetivo } from "@/components/user/GoalSelector";
-import { ErrorCarga } from "@/components/ui/LoadError";
-import { palette } from "@/constants/palette";
-import { AuthController } from "@/controllers/AuthController";
-import { useErrorDeCarga } from "@/hooks/useLoadError";
-import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { CampoFormulario } from "@/shared/ui/FormField";
+import { Text } from "@/shared/ui/Typography";
+import { SelectorNivel } from "@/features/profile/view/LevelSelector";
+import { SelectorObjetivo } from "@/features/profile/view/GoalSelector";
+import { ErrorCarga } from "@/shared/ui/LoadError";
+import { palette } from "@/shared/theme/palette";
+import { AuthController } from "@/features/auth/controller/AuthController";
+import { useErrorDeCarga } from "@/shared/hooks/useLoadError";
+import { useGoogleAuth } from "@/features/auth/controller/useGoogleAuth";
 import {
   GENEROS_USUARIO,
   OPCIONES_DIAS_DISPONIBLES,
@@ -23,9 +23,9 @@ import {
   type NivelExperiencia,
   type ObjetivoUsuario,
   type Usuario,
-} from "@/models/entities/User";
+} from "@/features/profile";
 import { useAuthStore } from "@/store/auth.store";
-import { toast } from "@/utils/toast";
+import { toast } from "@/core/errors/toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PerfilScreen() {

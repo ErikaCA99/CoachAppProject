@@ -9,22 +9,22 @@ import {
   View,
 } from "react-native";
 
-import { ChipFiltro } from "@/components/machines/FilterChip";
-import { HojaFiltros } from "@/components/machines/FilterSheet";
-import { TarjetaMaquina } from "@/components/machines/MachineCard";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { CampoBusqueda } from "@/components/ui/SearchField";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { MaquinasController } from "@/controllers/MachinesController";
+import { ChipFiltro } from "@/features/machines/view/FilterChip";
+import { HojaFiltros } from "@/features/machines/view/FilterSheet";
+import { TarjetaMaquina } from "@/features/machines/view/MachineCard";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { EmptyState } from "@/shared/ui/EmptyState";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { CampoBusqueda } from "@/shared/ui/SearchField";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { MaquinasController } from "@/features/machines/controller/MachinesController";
 import {
   TIPOS_MAQUINA,
   type Maquina,
   type TipoMaquina,
-} from "@/models/entities/Machine";
+} from "@/features/machines";
 
 /**
  * Guía de Máquinas: catálogo de las máquinas del gimnasio (Firestore).

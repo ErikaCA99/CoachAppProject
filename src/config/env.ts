@@ -1,7 +1,7 @@
 import {
   mensajeVariablesFaltantes,
   variablesFaltantes,
-} from "@/utils/environment";
+} from "@/config/environment";
 
 /**
  * Única puerta de entrada a las variables de entorno de la app.

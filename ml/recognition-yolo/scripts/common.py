@@ -40,7 +40,7 @@ EXTERNAL_DIR = ROOT / "ml/detection/dataset/externo-kaggle"   # fotos externas: 
 REAL_DIR = PIPE / "data/real_photos"                          # fotos de gimnasios: {clase}/{archivo}
 APP_LABELS = ROOT / "ml/results/recognition/labels.json"      # orden de clases que espera la app
 MIRROR_LABELS = PIPE / "model/labels.json"
-APP_TYPESCRIPT_LABELS = ROOT / "src/services/ai/machineLabels.ts"
+APP_TYPESCRIPT_LABELS = ROOT / "src/features/machines/model/rules/machineLabels.ts"
 BUILD_DIR = PIPE / "_build"                                   # datasets generados (no se versionan)
 RUNS_DIR = PIPE / "runs"                                      # corridas de entrenamiento (no se versionan)
 

@@ -3,27 +3,27 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { HojaInferior } from "@/components/ui/BottomSheet";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { GenerationConfirmationSheet } from "@/components/routines/GenerationConfirmationSheet";
-import type { Usuario } from "@/models/entities/User";
-import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
-import { ErrorCarga } from "@/components/ui/LoadError";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { AuthController } from "@/controllers/AuthController";
-import { RutinasController } from "@/controllers/RoutinesController";
-import { EntrenamientosController } from "@/controllers/WorkoutsController";
-import { useErrorDeCarga } from "@/hooks/useLoadError";
-import { useIrAMaquina } from "@/hooks/useGoToMachine";
-import type { EjercicioRutina, Rutina } from "@/models/entities/Routine";
-import type { Entrenamiento } from "@/models/entities/Workout";
-import type { ConId } from "@/models/types";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { HojaInferior } from "@/shared/ui/BottomSheet";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { GenerationConfirmationSheet } from "@/features/routines/view/GenerationConfirmationSheet";
+import type { Usuario } from "@/features/profile";
+import { MiniaturaEjercicio } from "@/features/routines/view/ExerciseThumbnail";
+import { ErrorCarga } from "@/shared/ui/LoadError";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { AuthController } from "@/features/auth/controller/AuthController";
+import { RutinasController } from "@/features/routines/controller/RoutinesController";
+import { EntrenamientosController } from "@/features/workout/controller/WorkoutsController";
+import { useErrorDeCarga } from "@/shared/hooks/useLoadError";
+import { useIrAMaquina } from "@/features/machines/controller/useGoToMachine";
+import type { EjercicioRutina, Rutina } from "@/features/routines";
+import type { Entrenamiento } from "@/features/workout";
+import type { ConId } from "@/core/types";
 import { useAuthStore } from "@/store/auth.store";
-import { toast } from "@/utils/toast";
+import { toast } from "@/core/errors/toast";
 
 function RutinaActivaCard({
   rutina,

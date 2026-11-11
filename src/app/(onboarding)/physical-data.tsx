@@ -9,20 +9,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ProgresoPasos } from "@/components/onboarding/StepProgress";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { CampoTexto } from "@/components/ui/TextField";
-import { Text } from "@/components/ui/Typography";
+import { ProgresoPasos } from "@/features/profile/view/StepProgress";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { CampoTexto } from "@/shared/ui/TextField";
+import { Text } from "@/shared/ui/Typography";
 import {
   GENEROS_USUARIO,
   OPCIONES_DIAS_DISPONIBLES,
   type GeneroUsuario,
-} from "@/models/entities/User";
-import {
   datosFisicosSchema,
   type DatosFisicosInput,
-} from "@/schemas/user.schema";
-import { useOnboardingStore } from "@/store/onboarding.store";
+} from "@/features/profile";
+import { useOnboardingStore } from "@/features/profile/controller/onboarding.store";
 
 type Campo = keyof DatosFisicosInput;
 

@@ -9,26 +9,26 @@ import {
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
-import { RutinaActivaResumen } from "@/components/progress/ActiveRoutineSummary";
-import { SeguimientoSemanal } from "@/components/progress/WeeklyTracking";
-import { TarjetaReporte } from "@/components/progress/ReportCard";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorCarga } from "@/components/ui/LoadError";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { TarjetaDato } from "@/components/ui/StatTile";
-import { CampoFormulario } from "@/components/ui/FormField";
-import { Text, type TextInputRef } from "@/components/ui/Typography";
-import { conOpacidad, palette } from "@/constants/palette";
-import { ProgresoController } from "@/controllers/ProgressController";
-import { useProgresoScreen } from "@/hooks/useProgressScreen";
+import { RutinaActivaResumen } from "@/features/progress/view/ActiveRoutineSummary";
+import { SeguimientoSemanal } from "@/features/progress/view/WeeklyTracking";
+import { TarjetaReporte } from "@/features/progress/view/ReportCard";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { EmptyState } from "@/shared/ui/EmptyState";
+import { ErrorCarga } from "@/shared/ui/LoadError";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { TarjetaDato } from "@/shared/ui/StatTile";
+import { CampoFormulario } from "@/shared/ui/FormField";
+import { Text, type TextInputRef } from "@/shared/ui/Typography";
+import { conOpacidad, palette } from "@/shared/theme/palette";
+import { ProgresoController } from "@/features/progress/controller/ProgressController";
+import { useProgresoScreen } from "@/features/progress/controller/useProgressScreen";
 import { useAuthStore } from "@/store/auth.store";
-import type { ResultadoAccion } from "@/types/actionResult";
-import { ETIQUETAS_IMC, type BmiCategory } from "@/utils/bmiCalculator";
-import { toast } from "@/utils/toast";
+import type { ResultadoAccion } from "@/core/errors/actionResult";
+import { ETIQUETAS_IMC, type BmiCategory } from "@/features/nutrition";
+import { toast } from "@/core/errors/toast";
 
 type VistaProgreso = "cuerpo" | "entrenos";
 

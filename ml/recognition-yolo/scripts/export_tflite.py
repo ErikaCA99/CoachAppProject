@@ -1,6 +1,6 @@
 """Exporta los pesos YOLO a TFLite con el MISMO contrato que usa la app y escribe su manifiesto.
 
-Contrato (`src/services/ai/machineRecognition.ts`):
+Contrato (`src/features/machines/api/machineRecognition.ts`):
   entrada  float32 [1,224,224,3], RGB 0..255 (la normalización va dentro del modelo)
   salida   float32 [1,35] probabilidades, en el orden de `machineLabels.ts`
 

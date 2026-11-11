@@ -13,25 +13,29 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { HojaConfirmacionMaquina } from "@/components/machines/scanner/MachineConfirmationSheet";
+import { HojaConfirmacionMaquina } from "@/features/machines/view/scanner/MachineConfirmationSheet";
 import {
   HojaSugerenciasMaquina,
   type SugerenciaMaquina,
-} from "@/components/machines/scanner/SuggestionsSheet";
-import { IndicadorDeteccionAR } from "@/components/machines/scanner/ARDetectionIndicator";
+} from "@/features/machines/view/scanner/SuggestionsSheet";
+import { IndicadorDeteccionAR } from "@/features/machines/view/scanner/ARDetectionIndicator";
 import {
   AR_NATIVA_DISPONIBLE,
   CamaraAR,
-} from "@/components/machines/scanner/MachineARView";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { Text } from "@/components/ui/Typography";
-import { conOpacidad, palette } from "@/constants/palette";
-import { MaquinasController } from "@/controllers/MachinesController";
-import type { DificultadEjercicio, Maquina } from "@/models/entities/Machine";
-import type { ResultadoEscaneo } from "@/controllers/MachinesController";
-import type { CamaraARRef, EstadoAR } from "@/services/ar/machineAR.types";
-import { toast } from "@/utils/toast";
+} from "@/features/machines/view/scanner/MachineARView";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { Text } from "@/shared/ui/Typography";
+import { conOpacidad, palette } from "@/shared/theme/palette";
+import { MaquinasController } from "@/features/machines/controller/MachinesController";
+import type {
+  DificultadEjercicio,
+  Maquina,
+  CamaraARRef,
+  EstadoAR,
+} from "@/features/machines";
+import type { ResultadoEscaneo } from "@/features/machines/controller/MachinesController";
+import { toast } from "@/core/errors/toast";
 
 type Fase = "inicio" | "escaneando" | "analizando" | "eligiendo" | "detectada";
 

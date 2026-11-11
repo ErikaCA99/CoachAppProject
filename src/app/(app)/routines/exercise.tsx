@@ -3,13 +3,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ImagenStorage } from "@/components/machines/StorageImage";
-import { SeccionFicha } from "@/components/machines/SheetSection";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { useFichaEjercicio } from "@/hooks/useExerciseSheet";
+import { ImagenStorage } from "@/features/machines/view/StorageImage";
+import { SeccionFicha } from "@/features/machines/view/SheetSection";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { useFichaEjercicio } from "@/features/exercises/controller/useExerciseSheet";
 
 const ALTO_DEMOSTRACION = 240;
 

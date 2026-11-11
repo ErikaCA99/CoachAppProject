@@ -1,0 +1,209 @@
+import { Ionicons } from "@expo/vector-icons";
+import { TouchableOpacity, View } from "react-native";
+import Svg, { Circle } from "react-native-svg";
+
+import { BarraProgreso } from "@/shared/ui/ProgressBar";
+import { Text } from "@/shared/ui/Typography";
+import { conOpacidad, palette } from "@/shared/theme/palette";
+import type {
+  ResultadoMetas,
+  ResumenNutricionalDiario,
+} from "@/features/nutrition/controller/NutritionController";
+
+interface CaloriasGaugeProps {
+  resumen: ResumenNutricionalDiario;
+  /** Cómo se obtuvo la meta; si falta, se asume la meta por defecto. */
+  origenMeta?: Pick<ResultadoMetas, "personalizada" | "faltantes" | "detalle">;
+  onCompletarPerfil?: () => void;
+}
+
+const NOMBRE_DATO: Record<ResultadoMetas["faltantes"][number], string> = {
+  peso: "peso",
+  altura: "altura",
+  edad: "edad",
+};
+
+export function CaloriasGauge({
+  resumen,
+  origenMeta,
+  onCompletarPerfil,
+}: CaloriasGaugeProps) {
+  const size = 110;
+  const strokeWidth = 9;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset =
+    circumference * (1 - Math.min(1, resumen.porcentajeCalorias));
+
+  return (
+    <View className="mb-4 rounded-3xl border border-border/50 bg-background p-5 shadow-sm">
+      {/* Encabezado de la tarjeta */}
+      <View className="mb-4 flex-row items-center gap-2">
+        <View className="h-8 w-8 items-center justify-center rounded-full bg-accent/20">
+          <Ionicons name="flame" size={18} color={palette.accentStrong} />
+        </View>
+        <Text className="text-base font-bold text-foreground">
+          Calorías del día
+        </Text>
+      </View>
+
+      {/* Indicador circular y meta */}
+      <View className="flex-row items-center justify-between pb-4">
+        {/* Gráfico circular */}
+        <View style={{ width: size, height: size }} className="relative">
+          <Svg width={size} height={size}>
+            {/* Pista de fondo */}
+            <Circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              stroke={conOpacidad(palette.primaryLight, 0.4)}
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            {/* Progreso activo */}
+            <Circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              stroke={palette.primary}
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              rotation="-90"
+              origin={`${size / 2}, ${size / 2}`}
+            />
+          </Svg>
+          <View className="absolute inset-0 items-center justify-center">
+            <Text className="text-2xl font-extrabold text-foreground">
+              {resumen.caloriasConsumidas}
+            </Text>
+            <Text className="text-sm font-semibold text-text-muted">kcal</Text>
+          </View>
+        </View>
+
+        {/* Información de calorías restantes */}
+        <View className="flex-1 pl-6">
+          <Text className="text-sm font-semibold text-text-secondary">
+            {resumen.caloriasRestantes > 0 ? "Te quedan" : "Meta del día"}
+          </Text>
+          <Text className="text-3xl font-extrabold text-foreground">
+            {resumen.caloriasRestantes > 0
+              ? `${resumen.caloriasRestantes} kcal`
+              : "cumplida"}
+          </Text>
+          <Text className="mt-1 text-sm text-text-secondary">
+            de tu meta de {resumen.metaCalorias} kcal
+          </Text>
+          {origenMeta?.personalizada ? (
+            <View className="mt-2 self-start rounded-full bg-primary/10 px-2.5 py-1">
+              <Text className="text-sm font-bold text-primary">
+                PERSONALIZADA
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={onCompletarPerfil}
+              disabled={!onCompletarPerfil}
+              accessibilityState={{ disabled: !onCompletarPerfil }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Completar perfil para personalizar la meta"
+              className="mt-2 self-start rounded-full bg-secondary/30 px-2.5 py-1"
+            >
+              <Text className="text-sm font-bold text-accent-strong">
+                META GENÉRICA · COMPLETA TU{" "}
+                {(origenMeta?.faltantes ?? ["peso", "altura", "edad"])
+                  .map((d) => NOMBRE_DATO[d].toUpperCase())
+                  .join(", ")}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {origenMeta?.personalizada && origenMeta.detalle ? (
+        <Text className="-mt-1 mb-3 text-sm leading-5 text-text-muted">
+          TMB {origenMeta.detalle.tmb} kcal × actividad{" "}
+          {origenMeta.detalle.factorActividad}
+          {origenMeta.detalle.ajusteObjetivo !== 0
+            ? ` ${origenMeta.detalle.ajusteObjetivo > 0 ? "+" : "−"} ${Math.abs(origenMeta.detalle.ajusteObjetivo)} por objetivo`
+            : ""}
+          . Estimación referencial (Mifflin-St Jeor); no reemplaza a un
+          nutricionista.
+        </Text>
+      ) : null}
+
+      {/* Barras de macronutrientes */}
+      <View className="gap-3 border-t border-border/30 pt-4">
+        {/* Proteínas */}
+        <View>
+          <View className="mb-1 flex-row items-center justify-between text-sm">
+            <Text className="text-sm font-bold tracking-wider text-text-secondary">
+              PROTEÍNAS
+            </Text>
+            <Text className="text-sm font-semibold text-text-muted">
+              <Text className="font-bold text-foreground">
+                {resumen.proteinasConsumidas}g
+              </Text>{" "}
+              / Meta: {resumen.metaProteinas}g
+            </Text>
+          </View>
+          <BarraProgreso
+            valor={resumen.porcentajeProteinas}
+            etiqueta="Consumo de proteínas"
+            textoValor={`${resumen.proteinasConsumidas} de ${resumen.metaProteinas} gramos`}
+            color={palette.accent}
+            claseCaja="h-2 bg-primary-light/25"
+          />
+        </View>
+
+        {/* Carbohidratos */}
+        <View>
+          <View className="mb-1 flex-row items-center justify-between text-sm">
+            <Text className="text-sm font-bold tracking-wider text-text-secondary">
+              CARBOHIDRATOS
+            </Text>
+            <Text className="text-sm font-semibold text-text-muted">
+              <Text className="font-bold text-foreground">
+                {resumen.carbohidratosConsumidos}g
+              </Text>{" "}
+              / Meta: {resumen.metaCarbohidratos}g
+            </Text>
+          </View>
+          <BarraProgreso
+            valor={resumen.porcentajeCarbohidratos}
+            etiqueta="Consumo de carbohidratos"
+            textoValor={`${resumen.carbohidratosConsumidos} de ${resumen.metaCarbohidratos} gramos`}
+            color={palette.primary}
+            claseCaja="h-2 bg-primary-light/25"
+          />
+        </View>
+
+        {/* Grasas */}
+        <View>
+          <View className="mb-1 flex-row items-center justify-between text-sm">
+            <Text className="text-sm font-bold tracking-wider text-text-secondary">
+              GRASAS
+            </Text>
+            <Text className="text-sm font-semibold text-text-muted">
+              <Text className="font-bold text-foreground">
+                {resumen.grasasConsumidas}g
+              </Text>{" "}
+              / Meta: {resumen.metaGrasas}g
+            </Text>
+          </View>
+          <BarraProgreso
+            valor={resumen.porcentajeGrasas}
+            etiqueta="Consumo de grasas"
+            textoValor={`${resumen.grasasConsumidas} de ${resumen.metaGrasas} gramos`}
+            color={palette.accentStrong}
+            claseCaja="h-2 bg-primary-light/25"
+          />
+        </View>
+      </View>
+    </View>
+  );
+}

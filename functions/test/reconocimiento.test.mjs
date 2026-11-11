@@ -17,7 +17,7 @@ import {
 
 test("las etiquetas del servidor coinciden con las de la app", () => {
   const ts = readFileSync(
-    new URL("../../src/services/ai/machineLabels.ts", import.meta.url),
+    new URL("../../src/features/machines/model/rules/machineLabels.ts", import.meta.url),
     "utf8",
   );
   const bloque = ts.slice(ts.indexOf("[", ts.indexOf("=")), ts.indexOf("];"));

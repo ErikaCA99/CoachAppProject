@@ -16,21 +16,21 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { DemostracionRutina } from "@/components/routines/ExerciseThumbnail";
-import { ErrorCarga } from "@/components/ui/LoadError";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { Text } from "@/components/ui/Typography";
-import { BarraProgresoEjercicios } from "@/components/workout/ExerciseProgressBar";
-import { TarjetaDescanso } from "@/components/workout/RestTimerCard";
-import { SeguimientoSeries } from "@/components/workout/SeriesTracker";
-import { ResumenEntrenamiento } from "@/components/workout/WorkoutSummary";
-import { palette } from "@/constants/palette";
-import { useIrAMaquina } from "@/hooks/useGoToMachine";
-import { useEntrenamientoGuiado } from "@/hooks/useGuidedWorkout";
-import { ejerciciosRealizados, seriesRealizadas } from "@/utils/workoutSession";
-import { toast } from "@/utils/toast";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { EmptyState } from "@/shared/ui/EmptyState";
+import { DemostracionRutina } from "@/features/routines/view/ExerciseThumbnail";
+import { ErrorCarga } from "@/shared/ui/LoadError";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { Text } from "@/shared/ui/Typography";
+import { BarraProgresoEjercicios } from "@/features/workout/view/ExerciseProgressBar";
+import { TarjetaDescanso } from "@/features/workout/view/RestTimerCard";
+import { SeguimientoSeries } from "@/features/workout/view/SeriesTracker";
+import { ResumenEntrenamiento } from "@/features/workout/view/WorkoutSummary";
+import { palette } from "@/shared/theme/palette";
+import { useIrAMaquina } from "@/features/machines/controller/useGoToMachine";
+import { useEntrenamientoGuiado } from "@/features/workout/controller/useGuidedWorkout";
+import { ejerciciosRealizados, seriesRealizadas } from "@/features/workout";
+import { toast } from "@/core/errors/toast";
 
 /** Convierte el parámetro `dia` de la ruta en un número de día válido (1..7). */
 function leerNumeroDia(param: string | string[] | undefined): number | null {

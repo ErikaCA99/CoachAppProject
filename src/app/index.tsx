@@ -3,9 +3,9 @@ import { useRouter } from "expo-router";
 import { Image, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
 
 /** Pantalla de bienvenida (solo sin sesión; ver `Stack.Protected` raíz). */
 export default function WelcomeScreen() {

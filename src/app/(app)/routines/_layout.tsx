@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { useReducirMovimiento } from "@/hooks/useReducedMotion";
+import { useReducirMovimiento } from "@/shared/hooks/useReducedMotion";
 
 export default function RoutinesLayout() {
   const reducir = useReducirMovimiento();

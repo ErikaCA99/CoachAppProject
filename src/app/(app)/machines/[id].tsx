@@ -12,25 +12,28 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { DemostracionEjercicio } from "@/components/machines/ExerciseDemonstration";
-import { ImagenStorage } from "@/components/machines/StorageImage";
-import { ModalAgregarRutina } from "@/components/machines/AddToRoutineModal";
-import { GuiaMaquinaTabs } from "@/components/machines/MachineGuideTabs";
-import { ImagenPoses } from "@/components/machines/PoseImage";
-import { ClavesSeguridad } from "@/components/machines/SafetyKeys";
-import { SeccionFicha } from "@/components/machines/SheetSection";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorCarga } from "@/components/ui/LoadError";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { MaquinasController } from "@/controllers/MachinesController";
-import type { EjercicioWger } from "@/models/entities/WgerExercise";
-import type { EjercicioGif, Maquina } from "@/models/entities/Machine";
+import { DemostracionEjercicio } from "@/features/machines/view/ExerciseDemonstration";
+import { ImagenStorage } from "@/features/machines/view/StorageImage";
+import { ModalAgregarRutina } from "@/features/machines/view/AddToRoutineModal";
+import { GuiaMaquinaTabs } from "@/features/machines/view/MachineGuideTabs";
+import { ImagenPoses } from "@/features/machines/view/PoseImage";
+import { ClavesSeguridad } from "@/features/machines/view/SafetyKeys";
+import { SeccionFicha } from "@/features/machines/view/SheetSection";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { EmptyState } from "@/shared/ui/EmptyState";
+import { ErrorCarga } from "@/shared/ui/LoadError";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { SegmentedControl } from "@/shared/ui/SegmentedControl";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { MaquinasController } from "@/features/machines/controller/MachinesController";
+import type { EjercicioWger } from "@/features/exercises";
+import type {
+  EjercicioGif,
+  Maquina,
+  DetalleEjercicioGenerado,
+} from "@/features/machines";
 import { useAuthStore } from "@/store/auth.store";
-import type { DetalleEjercicioGenerado } from "@/utils/machineExercise";
 
 type VistaEjercicio = "pasos" | "poses" | "animacion";
 

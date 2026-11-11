@@ -3,7 +3,7 @@
 USO EXCLUSIVAMENTE OFFLINE (preparar datos y evaluar en el PC / Colab). La app móvil no ejecuta
 OpenCV: todo lo que se haga aquí al entrenar debe ser algo que el modelo aprenda a tolerar, nunca un
 paso que la app tendría que repetir. La única excepción es `center_square_crop_resize`, que replica
-el recorte de `src/services/ai/machineRecognition.ts` para evaluar con la misma entrada que la app.
+el recorte de `src/features/machines/api/machineRecognition.ts` para evaluar con la misma entrada que la app.
 
 Qué aporta cada función a la calidad del modelo:
   - `image_quality`        detecta fotos borrosas, oscuras o diminutas antes de entrenar con ellas.

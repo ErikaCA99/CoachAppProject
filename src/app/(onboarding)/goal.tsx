@@ -2,12 +2,12 @@ import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ProgresoPasos } from "@/components/onboarding/StepProgress";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { Text } from "@/components/ui/Typography";
-import { SelectorNivel } from "@/components/user/LevelSelector";
-import { SelectorObjetivo } from "@/components/user/GoalSelector";
-import { useOnboardingStore } from "@/store/onboarding.store";
+import { ProgresoPasos } from "@/features/profile/view/StepProgress";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { Text } from "@/shared/ui/Typography";
+import { SelectorNivel } from "@/features/profile/view/LevelSelector";
+import { SelectorObjetivo } from "@/features/profile/view/GoalSelector";
+import { useOnboardingStore } from "@/features/profile/controller/onboarding.store";
 
 /**
  * Onboarding · Paso 1: objetivo + nivel de experiencia en una sola pantalla.

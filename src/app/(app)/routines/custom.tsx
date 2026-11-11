@@ -3,18 +3,18 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 
-import { SelectorEjercicios } from "@/components/routines/ExercisePicker";
-import { MiniaturaEjercicio } from "@/components/routines/ExerciseThumbnail";
-import { AppHeader } from "@/components/ui/AppHeader";
-import { BotonPrimario } from "@/components/ui/PrimaryButton";
-import { PantallaBase } from "@/components/ui/ScreenBase";
-import { CampoFormulario } from "@/components/ui/FormField";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { useEditorRutinaPersonalizada } from "@/hooks/useCustomRoutineEditor";
-import type { EjercicioWger } from "@/models/entities/WgerExercise";
-import { useOnboardingStore } from "@/store/onboarding.store";
-import { toast } from "@/utils/toast";
+import { SelectorEjercicios } from "@/features/routines/view/ExercisePicker";
+import { MiniaturaEjercicio } from "@/features/routines/view/ExerciseThumbnail";
+import { AppHeader } from "@/shared/ui/AppHeader";
+import { BotonPrimario } from "@/shared/ui/PrimaryButton";
+import { PantallaBase } from "@/shared/ui/ScreenBase";
+import { CampoFormulario } from "@/shared/ui/FormField";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { useEditorRutinaPersonalizada } from "@/features/routines/controller/useCustomRoutineEditor";
+import type { EjercicioWger } from "@/features/exercises";
+import { useOnboardingStore } from "@/features/profile/controller/onboarding.store";
+import { toast } from "@/core/errors/toast";
 
 export default function RutinaPersonalizadaScreen() {
   const router = useRouter();

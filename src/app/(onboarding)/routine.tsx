@@ -5,14 +5,14 @@ import { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ProgresoPasos } from "@/components/onboarding/StepProgress";
-import { IndicadorCarga } from "@/components/ui/LoadingIndicator";
-import { Text } from "@/components/ui/Typography";
-import { palette } from "@/constants/palette";
-import { AuthController } from "@/controllers/AuthController";
+import { ProgresoPasos } from "@/features/profile/view/StepProgress";
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { Text } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { AuthController } from "@/features/auth/controller/AuthController";
 import { useAuthStore } from "@/store/auth.store";
-import { useOnboardingStore } from "@/store/onboarding.store";
-import { toast } from "@/utils/toast";
+import { useOnboardingStore } from "@/features/profile/controller/onboarding.store";
+import { toast } from "@/core/errors/toast";
 
 /**
  * Onboarding · Paso 3 (final): cómo generar la primera rutina.

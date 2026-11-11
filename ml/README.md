@@ -13,7 +13,7 @@ inicial versionada está en `detection/train_config.json`.
 - `train_machine_recognition.py`: MobileNetV2 con softmax, 35 clases. Entrada
   RGB float32 `[1,224,224,3]`, salida `[1,35]`. Clasifica una imagen completa;
   sus alternativas top-3 no representan tres objetos detectados.
-- `src/services/ai/machineRecognition.ts`: prepara una foto mediante recorte
+- `src/features/machines/api/machineRecognition.ts`: prepara una foto mediante recorte
   central y ejecuta el clasificador TFLite. No devuelve cajas ni coordenadas.
 - `src/app/(app)/machines/scanner.tsx`: captura manual con `takePictureAsync`;
   no procesa continuamente los frames de la cámara.
