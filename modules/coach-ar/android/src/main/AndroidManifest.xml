@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.CAMERA" />
+  <!-- AR Optional: el catálogo y la cámara convencional siguen disponibles. -->
+  <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
+  <application>
+    <meta-data android:name="com.google.ar.core" android:value="optional" />
+  </application>
+</manifest>

@@ -1,0 +1,142 @@
+{
+ "abdominal": {
+  "train": 21,
+  "val": 3
+ },
+ "abductores-aductores": {
+  "train": 35,
+  "val": 4
+ },
+ "banco-pecho": {
+  "train": 63,
+  "val": 1
+ },
+ "banco-predicador": {
+  "train": 5,
+  "val": 1
+ },
+ "biceps-triceps": {
+  "train": 6,
+  "val": 1
+ },
+ "bicicleta-estatica": {
+  "train": 12,
+  "val": 2
+ },
+ "caminadora": {
+  "train": 21,
+  "val": 3
+ },
+ "curl-biceps": {
+  "train": 8,
+  "val": 2
+ },
+ "curl-femoral": {
+  "train": 21,
+  "val": 4
+ },
+ "dominadas-fondos-asistidos": {
+  "train": 7,
+  "val": 1
+ },
+ "elevaciones-laterales": {
+  "train": 3,
+  "val": 0
+ },
+ "eliptica": {
+  "train": 63,
+  "val": 1
+ },
+ "escaladora": {
+  "train": 4,
+  "val": 0
+ },
+ "estacion-poleas": {
+  "train": 12,
+  "val": 2
+ },
+ "extension-curl-piernas": {
+  "train": 8,
+  "val": 1
+ },
+ "extension-espalda": {
+  "train": 11,
+  "val": 1
+ },
+ "extension-piernas": {
+  "train": 12,
+  "val": 2
+ },
+ "hip-thrust": {
+  "train": 19,
+  "val": 3
+ },
+ "jalon-pecho": {
+  "train": 33,
+  "val": 3
+ },
+ "multicadera": {
+  "train": 6,
+  "val": 1
+ },
+ "multiestacion": {
+  "train": 8,
+  "val": 1
+ },
+ "palanca-peso-muerto": {
+  "train": 1,
+  "val": 0
+ },
+ "pantorrillas": {
+  "train": 9,
+  "val": 1
+ },
+ "patada-gluteo": {
+  "train": 12,
+  "val": 2
+ },
+ "pec-deck": {
+  "train": 16,
+  "val": 2
+ },
+ "prensa-piernas": {
+  "train": 26,
+  "val": 3
+ },
+ "press-hombro": {
+  "train": 23,
+  "val": 3
+ },
+ "press-pecho": {
+  "train": 20,
+  "val": 4
+ },
+ "rack-sentadilla": {
+  "train": 3,
+  "val": 0
+ },
+ "remo-sentado": {
+  "train": 17,
+  "val": 3
+ },
+ "remo-t": {
+  "train": 2,
+  "val": 0
+ },
+ "sentadilla-guiada": {
+  "train": 14,
+  "val": 2
+ },
+ "smith": {
+  "train": 4,
+  "val": 1
+ },
+ "torso-rotatorio": {
+  "train": 3,
+  "val": 1
+ },
+ "triceps": {
+  "train": 14,
+  "val": 2
+ }
+}

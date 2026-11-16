@@ -1,0 +1,273 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { Keyboard, TouchableOpacity, View } from "react-native";
+
+import { IndicadorCarga } from "@/shared/ui/LoadingIndicator";
+import { ErrorEnLinea } from "@/shared/ui/InlineError";
+import { CampoBusqueda } from "@/shared/ui/SearchField";
+import { Text, TextInput } from "@/shared/ui/Typography";
+import { palette } from "@/shared/theme/palette";
+import { calcularPorcion } from "@/features/nutrition/controller/NutritionController";
+import { useBuscarAlimentos } from "@/features/nutrition/controller/useFoodSearch";
+import type { AlimentoUSDA } from "@/features/nutrition/model/entities/USDAFood";
+import { capitalizar } from "@/features/nutrition/model/rules/foodTranslator";
+
+interface BuscadorAlimentosProps {
+  onAgregar: (
+    alimento: AlimentoUSDA,
+    gramos: number,
+    nombre: string,
+  ) => Promise<void>;
+  guardando?: boolean;
+}
+
+const PORCIONES_RAPIDAS = [50, 100, 150, 200] as const;
+
+export function BuscadorAlimentos({
+  onAgregar,
+  guardando = false,
+}: BuscadorAlimentosProps) {
+  const [texto, setTexto] = useState("");
+  const [seleccionado, setSeleccionado] = useState<AlimentoUSDA | null>(null);
+  const [nombre, setNombre] = useState("");
+  const [gramos, setGramos] = useState("100");
+  const [errorAgregar, setErrorAgregar] = useState<string | null>(null);
+
+  const { resultados, cargando, error, esValida } = useBuscarAlimentos(texto);
+
+  const gramosNum = parseFloat(gramos.replace(",", "."));
+  const porcion =
+    seleccionado && gramosNum > 0
+      ? calcularPorcion(seleccionado, gramosNum)
+      : null;
+
+  const seleccionar = (alimento: AlimentoUSDA) => {
+    Keyboard.dismiss();
+    setSeleccionado(alimento);
+    setErrorAgregar(null);
+    setNombre(alimento.descripcionEs || capitalizar(texto));
+    setGramos("100");
+  };
+
+  const limpiar = () => {
+    setTexto("");
+    setSeleccionado(null);
+    setErrorAgregar(null);
+    setNombre("");
+    setGramos("100");
+  };
+
+  const handleAgregar = async () => {
+    if (!seleccionado) return;
+    if (!(gramosNum > 0)) {
+      setErrorAgregar("Ingresa los gramos consumidos.");
+      return;
+    }
+    setErrorAgregar(null);
+    try {
+      await onAgregar(seleccionado, gramosNum, nombre);
+      limpiar();
+    } catch (e) {
+      setErrorAgregar(
+        e instanceof Error ? e.message : "No se pudo registrar el alimento.",
+      );
+    }
+  };
+
+  return (
+    <View className="mb-5 rounded-3xl border border-border/50 bg-background p-4 shadow-sm">
+      {/* Encabezado */}
+      <View className="mb-3 flex-row items-center gap-2.5">
+        <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/15">
+          <Ionicons name="search" size={17} color={palette.primary} />
+        </View>
+        <View className="flex-1">
+          <Text className="text-base font-bold text-foreground">
+            Buscar alimento
+          </Text>
+          <Text className="text-sm text-text-muted">
+            Datos: USDA FoodData Central · valores por 100 g
+          </Text>
+        </View>
+      </View>
+
+      {/* Campo de búsqueda */}
+      <CampoBusqueda
+        valor={texto}
+        onCambiar={(t) => {
+          setTexto(t);
+          setSeleccionado(null);
+        }}
+        placeholder="Ej. arroz cocido, pollo, plátano"
+        etiqueta="Buscar alimento"
+      />
+
+      {/* Detalle del alimento seleccionado */}
+      {seleccionado ? (
+        <View className="mt-3 rounded-2xl border border-primary/30 bg-primary/5 p-3.5">
+          <Text className="text-sm text-text-muted" numberOfLines={2}>
+            {seleccionado.descripcionEs || seleccionado.descripcion}
+          </Text>
+
+          <Text className="mb-1 mt-3 text-sm font-bold tracking-wider text-text-muted">
+            NOMBRE EN TU REGISTRO
+          </Text>
+          <TextInput
+            value={nombre}
+            onChangeText={setNombre}
+            placeholder={seleccionado.descripcionEs || seleccionado.descripcion}
+            placeholderTextColor={palette.textMuted}
+            className="h-10 rounded-xl border border-border/60 bg-background px-3 text-sm text-foreground"
+          />
+
+          <Text className="mb-1 mt-3 text-sm font-bold tracking-wider text-text-muted">
+            CANTIDAD (G)
+          </Text>
+          <View className="flex-row items-center gap-2">
+            <TextInput
+              value={gramos}
+              onChangeText={(t) => {
+                setGramos(t);
+                setErrorAgregar(null);
+              }}
+              keyboardType="numeric"
+              className="h-10 w-20 rounded-xl border border-border/60 bg-background text-center text-sm font-semibold text-foreground"
+              accessibilityLabel="Gramos consumidos"
+            />
+            {PORCIONES_RAPIDAS.map((g) => (
+              <TouchableOpacity
+                key={g}
+                onPress={() => setGramos(String(g))}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityState={{ selected: gramosNum === g }}
+                className={`min-h-11 justify-center rounded-full px-3 ${
+                  gramosNum === g ? "bg-primary" : "bg-background"
+                } border border-border/60`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    gramosNum === g ? "text-background" : "text-foreground"
+                  }`}
+                >
+                  {g} g
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Vista previa de la porción */}
+          {porcion ? (
+            <View className="mt-3 flex-row items-center justify-between rounded-xl bg-background p-3">
+              <View>
+                <Text className="text-2xl font-extrabold text-foreground">
+                  {porcion.calorias}
+                  <Text className="text-sm font-semibold text-text-muted">
+                    {" "}
+                    kcal
+                  </Text>
+                </Text>
+                <Text className="mt-0.5 text-sm text-text-muted">
+                  P: {porcion.proteinas}g · C: {porcion.carbohidratos}g · G:{" "}
+                  {porcion.grasas}g
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
+          <View className="mt-3">
+            <ErrorEnLinea mensaje={errorAgregar} />
+          </View>
+          <View className="flex-row gap-2.5">
+            <TouchableOpacity
+              onPress={() => setSeleccionado(null)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              className="h-11 flex-1 items-center justify-center rounded-2xl border border-border/60 bg-background"
+            >
+              <Text className="text-sm font-semibold text-text-secondary">
+                Cancelar
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleAgregar}
+              disabled={guardando || !porcion}
+              accessibilityState={{ disabled: guardando || !porcion }}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Agregar alimento al registro de hoy"
+              className={`h-11 flex-[2] items-center justify-center rounded-2xl ${
+                porcion ? "bg-primary" : "bg-primary/40"
+              }`}
+            >
+              {guardando ? (
+                <IndicadorCarga decorativo color={palette.background} />
+              ) : (
+                <Text className="text-sm font-bold text-background">
+                  Agregar al día
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : esValida ? (
+        /* Resultados de la API */
+        <View className="mt-3">
+          {cargando ? (
+            <View className="flex-row items-center justify-center gap-2 py-4">
+              <IndicadorCarga decorativo size="small" color={palette.primary} />
+              <Text className="text-sm text-text-muted">Buscando…</Text>
+            </View>
+          ) : error ? (
+            <View className="flex-row items-center gap-2 rounded-xl bg-accent/10 p-3">
+              <Ionicons
+                name="alert-circle-outline"
+                size={16}
+                color={palette.error}
+              />
+              <Text className="flex-1 text-sm text-error">{error}</Text>
+            </View>
+          ) : resultados.length === 0 ? (
+            <Text className="py-3 text-center text-sm text-text-muted">
+              Sin resultados para “{texto.trim()}”. Prueba con otro nombre o
+              regístralo manualmente abajo.
+            </Text>
+          ) : (
+            <View className="gap-2">
+              {resultados.map((alimento) => (
+                <TouchableOpacity
+                  key={alimento.fdcId}
+                  onPress={() => seleccionar(alimento)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${alimento.descripcionEs || alimento.descripcion}, ${alimento.caloriasPor100g} calorías por 100 gramos`}
+                  className="flex-row items-center justify-between rounded-xl border border-border/40 bg-background p-3"
+                >
+                  <View className="flex-1 pr-3">
+                    <Text
+                      className="text-sm font-semibold text-foreground"
+                      numberOfLines={2}
+                    >
+                      {alimento.descripcionEs || alimento.descripcion}
+                    </Text>
+                    <Text className="mt-0.5 text-sm text-text-muted">
+                      P: {alimento.proteinasPor100g}g · C:{" "}
+                      {alimento.carbohidratosPor100g}g · G:{" "}
+                      {alimento.grasasPor100g}g
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-sm font-bold text-primary">
+                      {alimento.caloriasPor100g}
+                    </Text>
+                    <Text className="text-sm text-text-muted">kcal/100g</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      ) : null}
+    </View>
+  );
+}

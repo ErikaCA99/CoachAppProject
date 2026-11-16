@@ -1,34 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { Tabs, useRouter, useSegments } from "expo-router";
 
-import { palette } from "@/constants/palette";
-import { useAuthStore } from "../../store/auth.store";
+import { palette } from "@/shared/theme/palette";
 
+/**
+ * Tabs de la app autenticada. La protección de sesión y de onboarding vive en
+ * el layout raíz (`Stack.Protected`): si este layout se monta, ya hay usuario
+ * y perfil completo, así que aquí no se valida nada.
+ */
 export default function AppLayout() {
-  const { user, isLoading, hasHydrated } = useAuthStore();
-
-  // Esperar a que Zustand termine de leer AsyncStorage para evitar
-  // un parpadeo que mande al usuario logueado a la pantalla de login
-  if (!hasHydrated || isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: palette.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={palette.primary} />
-      </View>
-    );
-  }
-
-  // Si no hay usuario autenticado, redirigir al login
-  if (!user) {
-    return <Redirect href="/(auth)/LoginScreen" />;
-  }
+  const router = useRouter();
+  const segmentos = useSegments();
+  const generandoRutina = segmentos[segmentos.length - 1] === "generate";
 
   return (
     <Tabs
@@ -41,6 +24,12 @@ export default function AppLayout() {
         },
         tabBarActiveTintColor: palette.primary,
         tabBarInactiveTintColor: palette.textMuted,
+        // Las etiquetas de la barra son la excepción al mínimo de 14 px: con
+        // cinco pestañas en 360 dp no caben más grandes.
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontFamily: "SplineSans_600SemiBold",
+        },
       }}
     >
       <Tabs.Screen
@@ -53,11 +42,36 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="routines"
+        options={{
+          title: "Rutinas",
+          tabBarStyle: generandoRutina ? { display: "none" } : undefined,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="barbell" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="machines"
+        listeners={{
+          tabPress: (event) => {
+            event.preventDefault();
+            router.navigate("/(app)/machines");
+          },
+        }}
         options={{
           title: "Máquinas",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="nutrition"
+        options={{
+          title: "Nutrición",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="restaurant" size={size} color={color} />
           ),
         }}
       />
@@ -70,23 +84,12 @@ export default function AppLayout() {
           ),
         }}
       />
+      {/* Perfil: href: null => navegable con router.push (avatar de la cabecera), pero oculto de la tab bar */}
+      <Tabs.Screen name="profile" options={{ href: null }} />
+      {/* Entrenar hoy: pantalla completa (sin tab bar) para no distraer durante la sesión */}
       <Tabs.Screen
-        name="routines"
-        options={{
-          title: "Rutinas",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="barbell" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="nutricion"
-        options={{
-          title: "Nutrición",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="restaurant" size={size} color={color} />
-          ),
-        }}
+        name="train"
+        options={{ href: null, tabBarStyle: { display: "none" } }}
       />
     </Tabs>
   );

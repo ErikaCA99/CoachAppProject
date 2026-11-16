@@ -1,0 +1,229 @@
+{
+ "nota": "Etiquetas asignadas visualmente por Claude el 2026-10-26; pendientes de confirmar. Licencia/permisos de uso: por verificar.",
+ "fotos": [
+  {
+   "archivo": "bicicleta-estatica/bicicleta-estatica--u05.jpg",
+   "clase": "bicicleta-estatica",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "eliptica/eliptica--u06.jpg",
+   "clase": "eliptica",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "prensa-piernas/prensa-piernas--u07.jpg",
+   "clase": "prensa-piernas",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "prensa-piernas/prensa-piernas--u13.jpg",
+   "clase": "prensa-piernas",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "banco-pecho/banco-pecho--u15.jpg",
+   "clase": "banco-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "extension-espalda/extension-espalda--u09.jpg",
+   "clase": "extension-espalda",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "press-hombro/press-hombro--u14.jpg",
+   "clase": "press-hombro",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "press-hombro/press-hombro--u26.jpg",
+   "clase": "press-hombro",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "press-hombro/press-hombro--u38.jpg",
+   "clase": "press-hombro",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "jalon-pecho/jalon-pecho--u32.jpg",
+   "clase": "jalon-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "jalon-pecho/jalon-pecho--u35.jpg",
+   "clase": "jalon-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "jalon-pecho/jalon-pecho--u45.jpg",
+   "clase": "jalon-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "jalon-pecho/jalon-pecho--u46.jpg",
+   "clase": "jalon-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "jalon-pecho/jalon-pecho--u48.jpg",
+   "clase": "jalon-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "jalon-pecho/jalon-pecho--u51.jpg",
+   "clase": "jalon-pecho",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abdominal/abdominal--u31.jpg",
+   "clase": "abdominal",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abdominal/abdominal--u37.jpg",
+   "clase": "abdominal",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "remo-sentado/remo-sentado--u34.jpg",
+   "clase": "remo-sentado",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "pantorrillas/pantorrillas--u39.jpg",
+   "clase": "pantorrillas",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "pantorrillas/pantorrillas--u40.jpg",
+   "clase": "pantorrillas",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "pec-deck/pec-deck--u42.jpg",
+   "clase": "pec-deck",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abductores-aductores/abductores-aductores--u43.jpg",
+   "clase": "abductores-aductores",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abductores-aductores/abductores-aductores--u49.jpg",
+   "clase": "abductores-aductores",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abductores-aductores/abductores-aductores--u50.jpg",
+   "clase": "abductores-aductores",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abductores-aductores/abductores-aductores--u62.jpg",
+   "clase": "abductores-aductores",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "abductores-aductores/abductores-aductores--u68.jpg",
+   "clase": "abductores-aductores",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "escaladora/escaladora--u53.jpg",
+   "clase": "escaladora",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "multiestacion/multiestacion--u55.jpg",
+   "clase": "multiestacion",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "extension-piernas/extension-piernas--u56.jpg",
+   "clase": "extension-piernas",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "caminadora/caminadora--u63.jpg",
+   "clase": "caminadora",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "estacion-poleas/estacion-poleas--u66.jpg",
+   "clase": "estacion-poleas",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  },
+  {
+   "archivo": "multicadera/multicadera--u64.jpg",
+   "clase": "multicadera",
+   "etiqueta_confirmada_por_usuario": false,
+   "origen": "fotos compartidas por Erika (gimnasios Kong, AAA-FIT y otros; material promocional)",
+   "marca_de_agua_retirada": true
+  }
+ ]
+}

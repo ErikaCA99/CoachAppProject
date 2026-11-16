@@ -1,0 +1,8 @@
+ultralytics>=8.3,<9
+opencv-python>=4.10,<5
+Pillow>=10.4,<13
+numpy>=1.26
+# solo para evaluar/exportar a TFLite
+ai-edge-litert
+litert-torch
+# versiones exactas probadas: ../../requirements.lock.txt

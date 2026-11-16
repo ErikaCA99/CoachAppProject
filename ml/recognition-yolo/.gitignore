@@ -1,0 +1,9 @@
+.venv/
+_build/
+runs/
+__pycache__/
+
+.test-tmp/
+weights/*.pt
+!weights/yolo11n-cls_machines_v2.pt
+

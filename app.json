@@ -1,29 +1,27 @@
 {
   "expo": {
-    "name": "cocha-app",
+    "name": "CoachApp",
     "slug": "cocha-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "cochaapp",
+    "icon": "./assets/images/logo-coachapp.png",
+    "scheme": "coachapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/logo-coachapp.png"
     },
     "android": {
       "package": "com.company.coachapp",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#0A141E",
+        "foregroundImage": "./assets/images/logo-coachapp.png"
       },
       "predictiveBackGestureEnabled": false,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo-coachapp.png"
     },
     "plugins": [
       "expo-router",
@@ -31,13 +29,24 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#ffffff",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "image": "./assets/images/logo-coachapp.png",
+          "imageWidth": 120
         }
       ],
       "expo-image",
       "@react-native-google-signin/google-signin",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "CoachApp usa la cámara para identificar las máquinas del gimnasio.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "react-native-fast-tflite",
+      "@react-native-firebase/app",
+      "@react-native-firebase/app-check"
     ],
     "experiments": {
       "typedRoutes": true,

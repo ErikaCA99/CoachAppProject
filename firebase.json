@@ -1,0 +1,53 @@
+{
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "coach-backend",
+      "runtime": "nodejs22",
+      "ignore": [
+        "node_modules",
+        "test",
+        "*.log",
+        ".env*"
+      ],
+      "predeploy": [
+        "npm --prefix functions test"
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 18080
+    },
+    "storage": {
+      "host": "127.0.0.1",
+      "port": 19199
+    },
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true,
+    "hub": {
+      "host": "127.0.0.1",
+      "port": 14400
+    },
+    "logging": {
+      "host": "127.0.0.1",
+      "port": 14500
+    }
+  }
+}

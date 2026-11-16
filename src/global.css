@@ -21,13 +21,13 @@
      PALETA PRINCIPAL
      ========================= */
 
-  --color-primary: #32a685;
+  --color-primary: #1a8062;
   --color-primary-light: #add9d1;
 
   --color-secondary: #f2c0a2;
 
   --color-accent: #f29580;
-  --color-accent-strong: #d95032;
+  --color-accent-strong: #c0391b;
 
   /* =========================
      FONDOS
@@ -55,7 +55,7 @@
      ESTADOS
      ========================= */
 
-  --color-success: #32a685;
+  --color-success: #1a8062;
   --color-warning: #f2c0a2;
-  --color-error: #d95032;
+  --color-error: #c0391b;
 }

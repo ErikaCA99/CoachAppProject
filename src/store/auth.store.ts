@@ -1,21 +1,39 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { type User, userSchema } from "../schemas/auth.schema";
+import { motorAlmacenamiento } from "@/core/storage/localStore";
+import { type User, userSchema } from "@/features/auth";
+
+const sesionPersistidaSchema = z.object({
+  user: userSchema.nullable(),
+  perfilCompleto: z.boolean().nullable(),
+});
 
 interface AuthState {
   /** Usuario autenticado (null si no hay sesión) */
   user: User | null;
+  /**
+   * Si el perfil de Firestore ya tiene objetivo + nivel (onboarding hecho).
+   * - `null`  → todavía no se sabe (perfil cargando o sin sesión)
+   * - `false` → hay que pasar por `(onboarding)`
+   * - `true`  → puede entrar a `(app)`
+   * Lo mantiene `usePerfilListener` a partir del documento `usuarios/{uid}`.
+   */
+  perfilCompleto: boolean | null;
   /** Indica si hay una operación de auth en curso */
   isLoading: boolean;
   /** Mensaje de error de la última operación de auth */
   error: string | null;
   /** True una vez que Zustand terminó de leer AsyncStorage */
   hasHydrated: boolean;
+  /** True cuando Firebase Auth emitió su primer `onAuthStateChanged` */
+  authInicializado: boolean;
 
   /** Valida con Zod y guarda el usuario en el store */
   setUser: (rawUser: unknown) => void;
+  /** Marca si el perfil completó el onboarding */
+  setPerfilCompleto: (completo: boolean | null) => void;
   /** Limpia la sesión */
   logout: () => void;
   /** Actualiza el estado de carga */
@@ -24,15 +42,19 @@ interface AuthState {
   setError: (error: string | null) => void;
   /** Marca que la rehidratación terminó */
   setHasHydrated: (value: boolean) => void;
+  /** Marca que Firebase Auth ya respondió al menos una vez */
+  setAuthInicializado: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      perfilCompleto: null,
       isLoading: false,
       error: null,
       hasHydrated: false,
+      authInicializado: false,
 
       setUser: (rawUser: unknown) => {
         const result = userSchema.safeParse(rawUser);
@@ -44,19 +66,39 @@ export const useAuthStore = create<AuthState>()(
         set({ user: result.data, error: null });
       },
 
-      logout: () => set({ user: null, error: null }),
+      setPerfilCompleto: (perfilCompleto: boolean | null) =>
+        set({ perfilCompleto }),
+
+      logout: () => set({ user: null, error: null, perfilCompleto: null }),
 
       setLoading: (isLoading: boolean) => set({ isLoading }),
 
       setError: (error: string | null) => set({ error }),
 
       setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
+
+      setAuthInicializado: (value: boolean) => set({ authInicializado: value }),
     }),
     {
       name: "auth-storage",
-      storage: createJSONStorage(() => AsyncStorage),
-      // Solo persiste el usuario; isLoading, error y hasHydrated son efímeros
-      partialize: (state) => ({ user: state.user }),
+      storage: createJSONStorage(() => motorAlmacenamiento),
+      // Persiste usuario + perfilCompleto para que, al reabrir la app, el
+      // enrutador sepa a qué grupo ir sin esperar a Firestore (sin parpadeo).
+      // isLoading, error, hasHydrated y authInicializado son efímeros.
+      partialize: (state) => ({
+        user: state.user,
+        perfilCompleto: state.perfilCompleto,
+      }),
+      merge: (persistido, actual) => {
+        const resultado = sesionPersistidaSchema.safeParse(persistido);
+        return {
+          ...actual,
+          ...(resultado.success
+            ? resultado.data
+            : { user: null, perfilCompleto: null }),
+          authInicializado: false,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

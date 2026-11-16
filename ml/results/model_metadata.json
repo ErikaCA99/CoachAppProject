@@ -1,0 +1,40 @@
+{
+  "version_modelo": "1.1.0",
+  "version_features": 1,
+  "features": [
+    "edad",
+    "genero_masculino",
+    "genero_femenino",
+    "imc",
+    "nivel",
+    "dias_disponibles",
+    "obj_perder_peso",
+    "obj_ganar_masa",
+    "obj_mantenimiento",
+    "obj_resistencia"
+  ],
+  "salida": {
+    "plantilla": [
+      0,
+      6
+    ],
+    "esquema": [
+      6,
+      10
+    ]
+  },
+  "plantillas": [
+    "3d_fuerza",
+    "3d_cardio",
+    "4d_fuerza",
+    "4d_cardio",
+    "5d_fuerza",
+    "5d_cardio"
+  ],
+  "esquemas": [
+    "metabolico",
+    "hipertrofia",
+    "general",
+    "resistencia"
+  ]
+}

@@ -1,23 +1,32 @@
 import { Stack } from "expo-router";
+import { useReducirMovimiento } from "@/shared/hooks/useReducedMotion";
 
-import { palette } from "@/constants/palette";
+export const unstable_settings = {
+  initialRouteName: "index",
+};
 
+/**
+ * Stack de la Guía de Máquinas. Las tres pantallas dibujan su propio
+ * encabezado (foto a pantalla completa en el detalle, fondo oscuro en el
+ * escáner), así que el header nativo va oculto.
+ */
 export default function MachinesLayout() {
+  const reducir = useReducirMovimiento();
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: palette.background },
-        headerTintColor: palette.foreground,
-        headerTitleStyle: { fontWeight: "600" },
+        headerShown: false,
+        animation: reducir ? "none" : "slide_from_right",
       }}
     >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="[id]" />
       <Stack.Screen
-        name="index"
-        options={{ title: "Máquinas", headerShown: false }}
-      />
-      <Stack.Screen
-        name="[id]"
-        options={{ title: "Detalle", headerShown: true }}
+        name="scanner"
+        options={{
+          animation: reducir ? "none" : "fade",
+          presentation: "fullScreenModal",
+        }}
       />
     </Stack>
   );
